@@ -9,20 +9,6 @@ using namespace std;
 namespace fs = boost::filesystem;
 namespace pt = boost::property_tree; // used to read the config file
 
-// Example of DAGMAN:
-// ```
-// JOB jobname1 condor.sub
-// VARS jobname1 key=value1
-//
-// JOB jobname2 condor.sub
-// VARS jobname2 key=value2
-//
-// JOB merge merge.sub
-// VARS merge otherkey=value3
-//
-// PARENT jobname1 jobname2 CHILD merge
-// ```
-
 // `boost::optional` allows to safely initialiase an object
 // example:
 // ```
@@ -77,41 +63,62 @@ namespace AllInOneConfig {
 static const Tokenise<int   > tok_int;
 static const Tokenise<string> tok_str;
 
+////////////////////////////////////////////////////////////////////////////////
+/// struct Job
+///
+/// Structure used to reproduce content for DAGMAN
+///
+/// Example of DAGMAN:
+/// ```
+/// JOB jobname1 condor.sub
+/// VARS jobname1 key=value1
+///
+/// JOB jobname2 condor.sub
+/// VARS jobname2 key=value2
+///
+/// JOB merge merge.sub
+/// VARS merge otherkey=value3
+///
+/// PARENT jobname1 jobname2 CHILD merge
+/// ```
 struct Job {
 
     const string name, exec;
-    const fs::path subdir;
+    const fs::path dir;
     pt::ptree tree;
 
     vector<string> parents;
 
-    Job (string Name, string Exec, fs::path Subdir) :
-        name(Name), exec(Exec), subdir(Subdir)
+    Job (string Name, string Exec, fs::path d) :
+        name(Name), exec(Exec), dir(d)
     {
         cout << "Declaring job " << name << " to be run with " << exec << endl;
     }
 };
 
-// Example:
-// ```
-// Job single1(...), single2(...);
-// Job merge(...);
-// merge.parents = {&single1, &single2};
-// dag << single1 << single2 << merge;
-// ```
+////////////////////////////////////////////////////////////////////////////////
+/// Overloaded operator<<
+///
+/// Example:
+/// ```
+/// Job single1(...), single2(...);
+/// Job merge(...);
+/// merge.parents = {&single1, &single2};
+/// dag << single1 << single2 << merge;
+/// ```
 ostream& operator<< (ostream& dag, const Job& job)
 {
     dag << "JOB " << job.name << " condor.sub" << '\n'
         << "VARS " << job.name << " exec=" << job.exec << '\n';
 
-    create_directories(job.subdir);
-    fs::path p = job.subdir / "config.info";
+    create_directories(job.dir);
+    fs::path p = job.dir / "config.info";
     pt::write_info(p.c_str(), job.tree);
     // TODO: copy condor.sub?
 
     if (job.parents.size() > 0)
         dag << accumulate(job.parents.begin(), job.parents.end(), string("PARENT"),
-                [](string instruction, string parent) { return instruction + ' ' + parent; })
+               [](string instruction, string parent) { return instruction + ' ' + parent; })
             << " CHILD " << job.name << '\n';
 
     return dag;
@@ -122,7 +129,7 @@ vector<int> DAG::GetIOVsFromTree (const pt::ptree& tree)
     if (!tree.count("IOV")) return {1};
 
     vector<int> IOVs = tree.get<vector<int>>("IOV", tok_int);
-    if (!is_sorted(IOVs.begin(), IOVs.end())) { 
+    if (!is_sorted(IOVs.begin(), IOVs.end())) { // TODO: exception handling
         cerr << "IOVs are not sorted\n";
         exit(EXIT_FAILURE);
     }
@@ -140,7 +147,7 @@ DAG::DAG (string file)
     dir = main_tree.get<string>("name");
     LFS = main_tree.get<string>("LFS");
 
-    alignments = main_tree.get_child("alignment");
+    alignments = main_tree.get_child("alignments");
 
     if (!main_tree.count("validations")) {
         //throw pt::ptree_bad_path("No validation found", "validations"); // TODO
@@ -180,7 +187,10 @@ DAG::DAG (string file)
 
 void DAG::GCP ()
 {
-    if (!ptGCP) return;
+    if (!ptGCP) {
+        cout << "No block for GCP found." << endl;
+        return;
+    }
 
     cout << "Generating GCP configuration files" << endl;
     for (pair<string,pt::ptree> it: *ptGCP) {
@@ -197,23 +207,26 @@ void DAG::GCP ()
             cout << "Preparing validation for IOV " << IOV << endl;
             it.second.put<int>("IOV", IOV);
 
-            fs::path subdir = dir / fs::path("GCP") / name;
+            fs::path subdir = "GCP"; subdir /= name;
             if (multiIOV) subdir /= fs::path(to_string(IOV));
             cout << "The validation will be performed in " << subdir << endl;
 
             string jobname = "GCP_" + name;
             if (multiIOV) jobname +=  '_' + to_string(IOV);
 
-            Job job(jobname, "GCP", subdir);
+            Job job(jobname, "GCP", dir / subdir);
 
             string twig_ref  = it.second.get<string>("reference"),
                    twig_test = it.second.get<string>("test");
 
-            job.tree.put<string>("LFS", LFS.string());
+            fs::path output = LFS / subdir;
+            // TODO: create directory?
+
+            job.tree.put<string>("output", output.string());
             job.tree.put_child(twig_ref, alignments.get_child(twig_ref));
             job.tree.put_child(twig_test, alignments.get_child(twig_test));
             job.tree.put_child(name, it.second);
-            if (job.tree.count("IOVs")) job.tree.erase("IOVs");
+            if (job.tree.count("IOV")) job.tree.erase("IOV");
 
             cout << "Queuing job" << endl;
             dag << job;
@@ -221,103 +234,99 @@ void DAG::GCP ()
     }
 }
 
-pair<string, vector<int>> DAG::DMRsingle (string name, pt::ptree& tree)
+/*pair<string, vector<int>>*/ void DAG::DMRsingle (string name, pt::ptree& tree)
 {
     cout << "DMR: " << name << endl;
 
     vector<int> IOVs = GetIOVsFromTree(tree);
     bool multiIOV = IOVs.size() > 1;
 
-    // aligns = alignments, but variable name has already been taken :p
-    vector<string> aligns = tree.get<vector<string>>("alignment", tok_str);
-    // first, remove preexisting alignments
-    for (auto a = aligns.begin(); a != aligns.end(); /* nothing */) {
-        bool preexisting = alignments.get_child(*a).count(name);
-        if (preexisting) a->erase();
-        else             ++a;
-    }
+    vector<string> geoms = tree.get<vector<string>>("alignments", tok_str);
+
+    //// check if there is any preexisting statement
+    //for (const auto& geom = geoms.begin(); geom != geoms.end(); /* nothing */) {
+    //    bool preexisting = alignments.get_child(*geom).count(name);
+    //    if (preexisting) { // TODO: exceptions
+    //        cerr << *a << " seems to be already ready (mentioned twice in the config)\n";
+    //        exit(EXIT_FAILURE);
+    //    }
+    //}
 
     // then create the jobs
     for (int IOV: IOVs)
-    for (string a: aligns) {
-        tree.put<int>("IOV", IOV);
+    for (string geom: geoms) {
 
-        fs::path subdir = dir / fs::path("DMR/single") / name;
+        fs::path subdir = "DMR/single/" + name;
         if (multiIOV) subdir /= fs::path(to_string(IOV));
         cout << "The validation will be performed in " << subdir << endl;
+
+        fs::path output = LFS / subdir;
+        // TODO: create directory?
+        alignments.put<string>(geom + ".files." + name, output.string());
 
         string jobname = "DMRsingle_" + name;
         if (multiIOV) jobname +=  '_' + to_string(IOV);
 
-        Job job(jobname, "DMR", subdir);
-        job.tree.put<string>("LFS", LFS.string());
-        job.tree.put_child("alignment." + a, alignments.get_child(a));
+        Job job(jobname, "DMR", dir / subdir);
+        //job.tree.put<string>("LFS", LFS.string());
+        job.tree.put_child("alignment", alignments.get_child(geom));
         job.tree.put_child(name, tree);
-        if (job.tree.count("IOVs")) job.tree.erase("IOVs");
-
-        // TODO: write the name of the outputs in alignments
+        if (job.tree.count("IOV")) job.tree.erase("IOV");
 
         cout << "Queuing job" << endl;
         dag << job;
     }
 
-    return { name, IOVs };
+    //return { name, IOVs };
 }
 
-//void DAG::PrepareDMRmerge ()
+void DAG::DMRmerge (string name, pt::ptree& tree)
+{
+    cout << name << endl;
+
+    // TODO: IOVs?
+    // - one list should be a subset of the other...
+}
+
+//void DAG::DMRtrend ()
 //{
 //    // TODO
-//            string name = it.first;
-//            cout << name << endl;
-//
-//            vector<string> singles = it.second.get<vector<string>>("single", tok_str);
-//
-//            for (string& single: singles) {
-//
-//                if (DMRsingles.find(single) == DMRsingles.end()) {
-//                    // TODO: look it up in the alignments
-//                    cerr << single << " could not be found\n";
-//                    exit(EXIT_FAILURE);
-//                }
-//
-//                // TODO: IOVs?
-//            }
 //}
-
-void DAG::DMRtrend ()
-{
-    // TODO
-}
 
 void DAG::DMR ()
 {
-    //if (!ptDMR) return;
+    if (!ptDMR) {
+        cout << "No block for DMR found." << endl;
+        return;
+    }
 
-    //boost::optional<pt::ptree&> singles = ptDMR->get_child_optional("single"),
-    //                            merges  = ptDMR->get_child_optional("merge"),
-    //                            trends  = ptDMR->get_child_optional("trend");
+    boost::optional<pt::ptree&> singles = ptDMR->get_child_optional("single"),
+                                merges  = ptDMR->get_child_optional("merge"),
+                                trends  = ptDMR->get_child_optional("trend");
 
     //map<int,vector<string>> singleJobs; // key = IOV, value = list of jobs
 
-    //if (singles) {
-    //    cout << "Generating DMR single configuration files" << endl;
-    //    for (pair<string,pt::ptree>& it: *singles) {
-    //        auto DMRsingle = DMRsingle(it.first, it.second);
-    //        DMRsingles.insert( DMRsingle );
-    //    }
-    //}
+    if (singles) {
+        cout << "Generating DMR single configuration files" << endl;
+        for (auto& it: *singles) {
+            string name = it.first;
+            auto subtree = it.second;
+            DMRsingle(name, subtree);
+        }
+    }
 
-    //if (merges) {
-    //    cout << "Generating DMR merge configuration files" << endl;
-    //    for (pair<string,pt::ptree> it: *merges) {
-    //        auto DMRmerge = DMRmerge(it.first, it.second);
-    //        DMRmerges.insert( DMRmerge );
-    //    }
-    //}
+    if (merges) {
+        cout << "Generating DMR merge configuration files" << endl;
+        for (pair<string,pt::ptree> it: *merges) {
+            string name = it.first;
+            auto subtree = it.second;
+            DMRmerge(name, subtree);
+        }
+    }
 
-    //if (trends) {
-    //    // TODO
-    //}
+    if (trends) {
+        // TODO
+    }
 }
 
 void DAG::close ()

@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <vector>
-#include <algorithm>
 
 // Boost
 
@@ -46,10 +45,11 @@ class DAG {
     //};
     //Queue DMRjobs;
 
-    std::pair<std::string, std::vector<int>> DMRsingle 
+    //std::pair<std::string, std::vector<int>> DMRsingle 
+    void DMRsingle
                     (std::string name, boost::property_tree::ptree& tree);
-    void DMRmerge (); // based on the series of geometries
-    void DMRtrend (); // based on the series of IOVs
+    void DMRmerge (std::string name, boost::property_tree::ptree& tree);
+    //void DMRtrend ();
 
 public:
     DAG //!< constructor

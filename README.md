@@ -15,4 +15,6 @@ then one can just test locally any step, or modify any parameter before simply s
  [x] generate `.gitignore`
  [x] make back-up of config file
  [ ] automatically uses versions?
- [ ] exceptions handling
+ [ ] exceptions handling (filesystem + own)
+ [ ] check inconsistencies in config file
+ [ ] fire & forget

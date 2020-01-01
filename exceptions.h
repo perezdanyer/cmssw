@@ -13,6 +13,16 @@
 
 using std::cerr;
 
+namespace AllInOneConfig {
+
+class ConfigError : public std::exception {
+    virtual const char* what() const throw()
+    {
+        //return "\x1B[31m\e[1mIn what()\x1B[30m\e[0m";
+        return "Config error"; // TODO
+    }
+};
+
 template<int FUNC(int, char **)>
 int exceptions (int argc, char * argv[])
 {
@@ -29,3 +39,4 @@ int exceptions (int argc, char * argv[])
     return EXIT_FAILURE;
 }
 
+}

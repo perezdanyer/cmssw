@@ -91,10 +91,9 @@ validations
                 maxtracks 1800000                       
                 maxhits 300                             
                 minhits 15                              
-                dataset MC_Filename_*_cff.py
+                dataset MC_Filename_cff.py
                 trackcollection ALCARECOTkAlMuonIsolated
                 magneticfield true                      
-                IOV 1
             }
         }
 
@@ -129,17 +128,5 @@ validations
                 showlumi true
             }
         }
-    }
-}
-
-documentation
-{
-    website
-    {
-        URL http://www.cern.ch/me
-    }
-    latex
-    {
-        output /here/or/there
     }
 }

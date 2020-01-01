@@ -2,38 +2,39 @@
 #include <iostream>
 
 #include "exceptions.h"
+#include "toolbox.h"
 #include "Options.h"
-//#include "DAG.h"
+
+#include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace AllInOneConfig;
 
-int DMRsingle (int argc, char * argv[])
+namespace pt = boost::property_tree;
+namespace fs = boost::filesystem;
+
+int single (int argc, char * argv[])
 {
     // parse the command line
     Options options;
     options.helper(argc, argv);
     options.parser(argc, argv);
 
-    //// validate, and catch exception if relevant
-    //// example how to produce all the config files and the DAGMAN
-    //DAG dag(options.config);
-    //dag.GCP();
-    //dag.DMR();
-    //dag.close();
+    pt::ptree main_tree;
+    pt::read_info(options.config, main_tree);
 
-    // example how to run the alignment locally
-    //dmr(options.config); // TODO?
+    pt::ptree alignment = main_tree.get_child("alignment");
+    pt::ptree validation = main_tree.get_child("validation");
 
-    if (options.dry) {
-        cout << "Dry run, exiting now" << endl;
-        return EXIT_SUCCESS;
-    }
+    dump(alignment);
+    dump(validation);
 
-    return true; //dag.submit();
+    return EXIT_SUCCESS; 
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 int main (int argc, char * argv[])
 {
-    return exceptions<DMRsingle>(argc, argv);
+    return exceptions<single>(argc, argv);
 }
+#endif

@@ -56,7 +56,7 @@ Options::Options () :
         ("example,e", "Print example of config")
         ("tutorial,t", "Explain how to use the command");
     desc.add_options()
-        ("dry,d", po::value<bool>(&dry)->default_value(false), "Set up all configs and jobs, but don't submit anything")
+        ("dry,d", po::value<bool>(&dry)->default_value(false), "Set up everything, but don't run anything")
         ("verbose,v", po::bool_switch()->default_value(false)->notifier(set_verbose), "Enable standard output stream")
         ("silent,s" , po::bool_switch()->default_value(false)->notifier(set_silent), "Disable standard error stream");
     hide.add_options()
