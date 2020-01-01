@@ -13,7 +13,7 @@ all: validateAlignment DMRsingle
 validateAlignment: validateAlignment.o Options.o DAG.o
 	g++ ${CFLAGS} $^ $(BOOSTLIBS) -o $@
 
-DMRsingle: DMRsingle.o Options.o DAG.o
+single: single.o Options.o DAG.o
 	g++ ${CFLAGS} $^ $(BOOSTLIBS) -o $@
 
 lib%.so: %.cc

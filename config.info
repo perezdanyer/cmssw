@@ -6,17 +6,20 @@ alignments
     UL17
     {
         globaltag 106X_dataRun2_v4
-        condition TrackerAlignmentRcd
+        conditions
         {
-            connect frontier://FrontierProd/CMS_CONDITIONS
-            tag TrackerAlignment_2017_ultralegacy_v1
-            label ""
-        }
-        condition TrackerSurfaceDeformationRcd
-        {
-            connect frontier://FrontierProd/CMS_CONDITIONS
-            tag TrackerSurfaceDeformations_2017_ultralegacy_v1
-            label ""
+            TrackerAlignmentRcd
+            {
+                connect frontier://FrontierProd/CMS_CONDITIONS
+                tag TrackerAlignment_2017_ultralegacy_v1
+                label ""
+            }
+            TrackerSurfaceDeformationRcd
+            {
+                connect frontier://FrontierProd/CMS_CONDITIONS
+                tag TrackerSurfaceDeformations_2017_ultralegacy_v1
+                label ""
+            }
         }
         color kBlue
         style 2101
@@ -55,13 +58,13 @@ validations
         {
             reference EOY17
             test UL17
-            IOVs "123456 234567"
+            IOV "123456 234567"
         }
         The2ndComparison
         {
             reference UL17
             test EOY17
-            IOVs "123456 234567"
+            IOV "123456 234567"
         }
     }
 
@@ -79,7 +82,7 @@ validations
                 dataset Data_Filename_*_cff.py
                 trackcollection ALCARECOTkAlMuonIsolated
                 magneticfield true                      
-                IOVs "123456 234567"                     
+                IOV "123456 234567"                     
             }
             MyMCisoMuValidation
             {
@@ -91,7 +94,7 @@ validations
                 dataset MC_Filename_*_cff.py
                 trackcollection ALCARECOTkAlMuonIsolated
                 magneticfield true                      
-                IOVs 1
+                IOV 1
             }
         }
 

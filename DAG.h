@@ -48,8 +48,8 @@ class DAG {
 
     std::pair<std::string, std::vector<int>> DMRsingle 
                     (std::string name, boost::property_tree::ptree& tree);
-    void DMRmerge ();
-    void DMRtrend ();
+    void DMRmerge (); // based on the series of geometries
+    void DMRtrend (); // based on the series of IOVs
 
 public:
     DAG //!< constructor

@@ -119,25 +119,14 @@ ostream& operator<< (ostream& dag, const Job& job)
 
 vector<int> DAG::GetIOVsFromTree (const pt::ptree& tree)
 {
-    if (tree.count("IOVs")) {
-        cout << "Getting IOVs" << endl;
-        if (tree.count("IOV")) {
-            cerr << "There shouldn't be both 'IOV' and 'IOVs' statements in the same block\n"; // TODO: be more precise
-            exit(EXIT_FAILURE);
-        }
-        vector<int> IOVs = tree.get<vector<int>>("IOVs", tok_int);
-        if (!is_sorted(IOVs.begin(), IOVs.end())) {
-            cerr << "IOVs are not sorted\n";
-            exit(EXIT_FAILURE);
-        }
-        return IOVs;
+    if (!tree.count("IOV")) return {1};
+
+    vector<int> IOVs = tree.get<vector<int>>("IOV", tok_int);
+    if (!is_sorted(IOVs.begin(), IOVs.end())) { 
+        cerr << "IOVs are not sorted\n";
+        exit(EXIT_FAILURE);
     }
-    else if (tree.count("IOV")) {
-        cout << "Getting single IOV" << endl;
-        return {tree.get<int>("IOV")};
-    }
-    else
-        return vector<int>();
+    return IOVs;
 }
 
 DAG::DAG (string file)
@@ -151,7 +140,7 @@ DAG::DAG (string file)
     dir = main_tree.get<string>("name");
     LFS = main_tree.get<string>("LFS");
 
-    alignments = main_tree.get_child("alignments");
+    alignments = main_tree.get_child("alignment");
 
     if (!main_tree.count("validations")) {
         //throw pt::ptree_bad_path("No validation found", "validations"); // TODO
@@ -173,6 +162,16 @@ DAG::DAG (string file)
     }
     cout << "Creating directory " << dir << endl;
     fs::create_directory(dir);
+
+    cout << "Adding .gitignore" << endl;
+    fs::path pi = dir / ".gitignore";
+    ofstream gitignore;
+    gitignore.open(pi.c_str());
+    gitignore << "*\n";
+    gitignore.close();
+
+    cout << "Copy INFO file as backup" << endl;
+    fs::copy(file, dir / "config.info");
 
     cout << "Opening dag file" << endl;
     fs::path p = dir / "dag";
@@ -230,7 +229,7 @@ pair<string, vector<int>> DAG::DMRsingle (string name, pt::ptree& tree)
     bool multiIOV = IOVs.size() > 1;
 
     // aligns = alignments, but variable name has already been taken :p
-    vector<string> aligns = tree.get<vector<string>>("alignments", tok_str);
+    vector<string> aligns = tree.get<vector<string>>("alignment", tok_str);
     // first, remove preexisting alignments
     for (auto a = aligns.begin(); a != aligns.end(); /* nothing */) {
         bool preexisting = alignments.get_child(*a).count(name);
@@ -252,7 +251,7 @@ pair<string, vector<int>> DAG::DMRsingle (string name, pt::ptree& tree)
 
         Job job(jobname, "DMR", subdir);
         job.tree.put<string>("LFS", LFS.string());
-        job.tree.put_child("alignments." + a, alignments.get_child(a));
+        job.tree.put_child("alignment." + a, alignments.get_child(a));
         job.tree.put_child(name, tree);
         if (job.tree.count("IOVs")) job.tree.erase("IOVs");
 
