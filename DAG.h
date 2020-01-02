@@ -32,35 +32,19 @@ class DAG {
 
     std::vector<int> GetIOVsFromTree (const boost::property_tree::ptree& tree);
 
-    //struct Queue {
-    //    string type;
-    //    vector<int> IOVs;
-    //    void Single (); // job for one geometry & one IOV
-    //    void Merge (); // merge job for several geometries but one IOV
-    //    void Trend (); // merge job for several IOVs
-
-    //    Queue (string Type) :
-    //        type(Type)
-    //    { }
-    //};
-    //Queue DMRjobs;
-
-    //std::pair<std::string, std::vector<int>> DMRsingle 
-    void DMRsingle
-                    (std::string name, boost::property_tree::ptree& tree);
+    void DMRsingle (std::string name, boost::property_tree::ptree& tree);
     void DMRmerge (std::string name, boost::property_tree::ptree& tree);
-    //void DMRtrend ();
+    void DMRtrend (std::string name, boost::property_tree::ptree& tree);
 
 public:
-    DAG //!< constructor
-        (std::string file); //!< name of the INFO config file
+    DAG (std::string file); 
 
-    void GCP (); //!< configure Geometry Comparison Plotter
-    void DMR (); //!< configure "offline validation", measuring the local performance
+    void GCP (); 
+    void DMR ();
     // TODO: PV, Zµµ, MTS, etc.
 
-    void close (); //!< close the DAG man
-    int submit () const; //!< submit the DAG man
+    void close ();
+    int submit () const;
 };
 
 }

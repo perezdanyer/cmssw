@@ -23,11 +23,11 @@ int validateAlignment (int argc, char * argv[])
     dag.close();
 
     if (options.dry) {
-        cout << "Dry run, exiting now" << endl;
+        cout << "Dry run, exiting right before submitting" << endl;
         return EXIT_SUCCESS;
     }
 
-    return true; //dag.submit();
+    return dag.submit();
 }
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

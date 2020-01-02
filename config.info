@@ -44,7 +44,10 @@ alignments
         {
             DMR
             {
-                TheDataIsoMu /path/to/rootfile.root
+                single
+                {
+                    TheDataIsoMu /path/to/rootfile.root
+                }
             }
         }
     }
@@ -101,7 +104,7 @@ validations
         {
             DataMC
             {
-                single "TheDataIsoMu MyMCisoMuValidation"
+                singles "TheDataIsoMu MyMCisoMuValidation"
                 legendoptions mean
                 usefit false
                 curves plain
@@ -109,7 +112,7 @@ validations
             }
             UL
             {
-                single TheDataIsoMu
+                singles TheDataIsoMu
                 legendoptions "mean rms"
                 usefit false
                 curves "plain split layers"
