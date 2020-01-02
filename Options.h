@@ -11,12 +11,10 @@ class Options {
     boost::program_options::positional_options_description pos_hide;
 
 public:
-    // TODO: use optional<const T>?
-    // -> pb: how to choose between std::optional & boost::optional...
-    std::string config;
+    std::string config, key;
     bool dry;
 
-    Options ();
+    Options (bool getter = false);
     void helper (int argc, char * argv[]);
     void parser (int argc, char * argv[]);
 };

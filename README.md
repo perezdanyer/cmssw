@@ -10,11 +10,20 @@ In principle, the `validateAlignment` command is enough to run everything.
 However, for local testing, one may want to make a dry run: all files will be produced, but the condor jobs will not be submitted;
 then one can just test locally any step, or modify any parameter before simply submitting the DAGMAN.
 
-# TODO
+## TODO list
 
  [x] generate `.gitignore`
  [x] make back-up of config file
  [ ] automatically uses versions?
  [ ] exceptions handling (filesystem + own)
  [ ] check inconsistencies in config file
- [ ] fire & forget
+ [ ] soft links to root files
+ [ ] fire & forget ?
+ [ ] tutorial
+ [ ] instructions for developers
+
+## Tutorial
+
+
+## Instructions for developers
+

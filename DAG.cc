@@ -1,9 +1,14 @@
-#include "DAG.h"
-
 #include <iostream>
 #include <string>
 #include <algorithm>
 #include <map>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
+
+#include "DAG.h"
+#include "exceptions.h"
 
 using namespace std;
 namespace fs = boost::filesystem;
@@ -17,11 +22,9 @@ namespace pt = boost::property_tree; // used to read the config file
 // ```
 // NB: std::optional exists in C++17 but there are issues when using Property Trees...
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
+static const char * bold = "\e[1m", * normal = "\e[0m";
 
-#include <boost/algorithm/string.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 // just a "translator" to get the IOVs from a space-separated string into a vector of integers
 template<typename T> class Tokenise {
@@ -108,13 +111,15 @@ struct Job {
 /// ```
 ostream& operator<< (ostream& dag, const Job& job)
 {
+    cout << "Queuing job " << job.name << endl;
+
     dag << "JOB " << job.name << " condor.sub" << '\n'
         << "VARS " << job.name << " exec=" << job.exec << '\n';
 
     create_directories(job.dir);
     fs::path p = job.dir / "config.info";
     pt::write_info(p.c_str(), job.tree);
-    // TODO: copy condor.sub?
+    // TODO: copy condor.sub? or generate it using some HTC class?
 
     if (job.parents.size() > 0)
         dag << accumulate(job.parents.begin(), job.parents.end(), string("PARENT"),
@@ -129,10 +134,8 @@ vector<int> DAG::GetIOVsFromTree (const pt::ptree& tree)
     if (!tree.count("IOV")) return {1};
 
     vector<int> IOVs = tree.get<vector<int>>("IOV", tok_int);
-    if (!is_sorted(IOVs.begin(), IOVs.end())) { // TODO: exception handling
-        cerr << "IOVs are not sorted\n";
-        exit(EXIT_FAILURE);
-    }
+    if (!is_sorted(IOVs.begin(), IOVs.end())) throw ConfigError("IOVs are not sorted");
+
     return IOVs;
 }
 
@@ -151,7 +154,7 @@ DAG::DAG (string file)
 
     if (!main_tree.count("validations")) {
         //throw pt::ptree_bad_path("No validation found", "validations"); // TODO
-        cerr << "No validation found!\n";
+        throw ConfigError("No validation found");
         exit(EXIT_FAILURE);
     }
 
@@ -196,7 +199,7 @@ void DAG::GCP ()
     for (pair<string,pt::ptree> it: *ptGCP) {
 
         string name = it.first;
-        cout << "GCP: " << name << endl;
+        cout << bold << "GCP: " << name << normal << endl;
 
         vector<int> IOVs = GetIOVsFromTree(it.second);
         bool multiIOV = IOVs.size() > 1;
@@ -220,13 +223,13 @@ void DAG::GCP ()
                    twig_test = it.second.get<string>("test");
 
             fs::path output = LFS / subdir;
-            // TODO: create directory?
+            fs::create_directories(output);
 
             job.tree.put<string>("output", output.string());
-            job.tree.put_child(twig_ref, alignments.get_child(twig_ref));
-            job.tree.put_child(twig_test, alignments.get_child(twig_test));
-            job.tree.put_child(name, it.second);
-            if (job.tree.count("IOV")) job.tree.erase("IOV");
+            job.tree.put_child("alignments." + twig_ref , alignments.get_child(twig_ref ));
+            job.tree.put_child("alignments." + twig_test, alignments.get_child(twig_test));
+            job.tree.put_child("validation", it.second);
+            job.tree.put<int>("validation.IOV", IOV);
 
             cout << "Queuing job" << endl;
             dag << job;
@@ -236,7 +239,7 @@ void DAG::GCP ()
 
 /*pair<string, vector<int>>*/ void DAG::DMRsingle (string name, pt::ptree& tree)
 {
-    cout << "DMR: " << name << endl;
+    cout << bold << "DMR single: " << name << normal << endl;
 
     vector<int> IOVs = GetIOVsFromTree(tree);
     bool multiIOV = IOVs.size() > 1;
@@ -261,19 +264,23 @@ void DAG::GCP ()
         cout << "The validation will be performed in " << subdir << endl;
 
         fs::path output = LFS / subdir;
-        // TODO: create directory?
-        alignments.put<string>(geom + ".files." + name, output.string());
+        fs::create_directories(output);
+        alignments.put<string>(geom + ".files.DMR." + name, output.string());
 
         string jobname = "DMRsingle_" + name;
         if (multiIOV) jobname +=  '_' + to_string(IOV);
 
         Job job(jobname, "DMR", dir / subdir);
-        //job.tree.put<string>("LFS", LFS.string());
         job.tree.put_child("alignment", alignments.get_child(geom));
-        job.tree.put_child(name, tree);
-        if (job.tree.count("IOV")) job.tree.erase("IOV");
+        job.tree.put_child("validation", tree);
+        job.tree.erase("validation.alignments");
+        job.tree.put("validation.IOV", IOV);
 
-        cout << "Queuing job" << endl;
+        // replace wildcard by IOV
+        string dataset = job.tree.get<string>("validation.dataset");
+        boost::replace_first(dataset, "*", to_string(IOV));
+        job.tree.put("validation.dataset", dataset);
+
         dag << job;
     }
 
@@ -282,7 +289,7 @@ void DAG::GCP ()
 
 void DAG::DMRmerge (string name, pt::ptree& tree)
 {
-    cout << name << endl;
+    cout << bold << "DMR merge: " << name << normal << endl;
 
     // TODO: IOVs?
     // - one list should be a subset of the other...

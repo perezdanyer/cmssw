@@ -8,7 +8,7 @@ BOOSTLIBS = -L/usr/lib/x86_64-linux-gnu -lboost_system -lboost_program_options -
 CFLAGS=-g -Wall -O3 -std=c++1z -fPIC -DDEBUG
 # -stdc++fs 
 
-all: validateAlignment single merge
+all: validateAlignment getINFO single merge
 
 validateAlignment: validateAlignment.o Options.o DAG.o
 	g++ ${CFLAGS} $^ $(BOOSTLIBS) -o $@
@@ -17,6 +17,9 @@ single: single.o Options.o toolbox.h
 	g++ ${CFLAGS} $^ $(BOOSTLIBS) -o $@
 
 merge: merge.o Options.o toolbox.h
+	g++ ${CFLAGS} $^ $(BOOSTLIBS) -o $@
+
+getINFO: getINFO.o Options.o
 	g++ ${CFLAGS} $^ $(BOOSTLIBS) -o $@
 
 lib%.so: %.cc

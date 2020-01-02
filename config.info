@@ -1,5 +1,5 @@
-name MyValidation
-LFS /eos/cms/store/group/alca_trackeralign/AlignmentValidation/UL17/test
+name TheValidation
+LFS /home/connorpa/Exercices/AllInOneConfig/MyLFS
 
 alignments
 {

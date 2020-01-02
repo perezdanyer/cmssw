@@ -47,23 +47,35 @@ void set_silent (bool flag)
 /// - contains a parser for the help itself
 /// - contains a parser for the options (unless help was displayed)
 /// - and contains a hidden/position option to get the INFO config file
-Options::Options () :
+Options::Options (bool getter) :
     help{"Helper"}, desc{"Options"}, hide{"Hidden"}
 {
     // define all options
+
+    // first the helper
     help.add_options()
         ("help,h", "Help screen")
         ("example,e", "Print example of config")
         ("tutorial,t", "Explain how to use the command");
-    desc.add_options()
-        ("dry,d", po::value<bool>(&dry)->default_value(false), "Set up everything, but don't run anything")
-        ("verbose,v", po::bool_switch()->default_value(false)->notifier(set_verbose), "Enable standard output stream")
-        ("silent,s" , po::bool_switch()->default_value(false)->notifier(set_silent), "Disable standard error stream");
+
+    // then (except for getINFO) the running options
+    if (!getter) 
+        desc.add_options()
+            ("dry,d", po::value<bool>(&dry)->default_value(false), "Set up everything, but don't run anything")
+            ("verbose,v", po::bool_switch()->default_value(false)->notifier(set_verbose), "Enable standard output stream")
+            ("silent,s" , po::bool_switch()->default_value(false)->notifier(set_silent), "Disable standard error stream");
+
+    // and finally / most importantly, the config file as apositional argument
     hide.add_options()
         ("config,c", po::value<string>(&config)->required()->notifier(check_file), "INFO config file");
+    pos_hide.add("config", 1); // 1 means one (positional) argument
 
-    // positional argument
-    pos_hide.add("config", 1);
+    // in case of getIMFO, adding a second positional argument for the key
+    if (!getter) return;
+
+    hide.add_options()
+        ("key,k", po::value<string>(&key)->required(), "key");
+    pos_hide.add("key", 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -22,9 +22,6 @@ int validateAlignment (int argc, char * argv[])
     dag.DMR();
     dag.close();
 
-    // example how to run the alignment locally
-    //dmr(options.config); // TODO?
-
     if (options.dry) {
         cout << "Dry run, exiting now" << endl;
         return EXIT_SUCCESS;
