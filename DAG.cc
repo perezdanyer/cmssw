@@ -266,42 +266,53 @@ void DAG::DMRsingle (string name, pt::ptree& tree)
 
     vector<string> geoms = tree.get<vector<string>>("alignments", tok_str);
 
-    //// check if there is any preexisting statement
-    //for (const auto& geom = geoms.begin(); geom != geoms.end(); /* nothing */) {
-    //    bool preexisting = alignments.get_child(*geom).count(name);
-    //    if (preexisting) { // TODO: exceptions
-    //        cerr << *a << " seems to be already ready (mentioned twice in the config)\n";
-    //        exit(EXIT_FAILURE);
-    //    }
-    //}
-
-    // then create the jobs
-    for (int IOV: IOVs)
+    // create the jobs
     for (string geom: geoms) {
 
-        fs::path subdir = "DMR/single/" + name;
-        if (multiIOV) subdir /= fs::path(to_string(IOV));
-        cout << "The validation will be performed in " << subdir << endl;
-
+        fs::path subdir = "DMR/single/" + name + '/' + geom;
         fs::path output = LFS / subdir;
-        fs::create_directories(output);
-        alignments.put<string>(geom + ".files.DMR.single." + name, output.string());
+        
+        for (int IOV: IOVs) {
 
-        string jobname = "DMRsingle_" + name;
-        if (multiIOV) jobname +=  '_' + to_string(IOV);
+            // light files 
+            fs::path subsubdir = subdir;
+            if (multiIOV) subsubdir /= fs::path(to_string(IOV));
+            cout << "The validation will be performed in " << subsubdir << endl;
+            fs::create_directories(subsubdir);
 
-        Job job(jobname, "DMRsingle", dir / subdir);
-        job.tree.put_child("alignment", alignments.get_child(geom));
-        job.tree.put_child("validation", tree);
-        job.tree.erase("validation.alignments");
-        job.tree.put("validation.IOV", IOV);
+            // heavy files
+            fs::path outputIOV = output;
+            if (multiIOV) outputIOV /= fs::path(to_string(IOV));
+            cout << "The heavy files will be stored in " << outputIOV << endl;
+            fs::create_directories(outputIOV);
 
-        // replace wildcard by IOV
-        string dataset = job.tree.get<string>("validation.dataset");
-        boost::replace_first(dataset, "*", to_string(IOV));
-        job.tree.put("validation.dataset", dataset);
+            // job
+            string jobname = "DMRsingle_" + name + '_' + geom;
+            if (multiIOV) jobname +=  '_' + to_string(IOV);
+            // NB: the name should be changed with care, since it is used later on
+            //     to define the hierarchy of jobs in the DAGMAN
 
-        dag << job;
+            // local config
+            Job job(jobname, "DMRsingle", dir / subsubdir);
+            job.tree.put_child("alignment", alignments.get_child(geom));
+            job.tree.put("alignment.output", outputIOV.string());
+            job.tree.put_child("validation", tree);
+            job.tree.erase("validation.alignments");
+            job.tree.put("validation.IOV", IOV);
+
+            // replace wildcard by IOV
+            string dataset = job.tree.get<string>("validation.dataset");
+            boost::replace_first(dataset, "*", to_string(IOV));
+            job.tree.put("validation.dataset", dataset);
+
+            // "submit"
+            dag << job;
+        }
+
+        // write output path for merge job
+        string key = geom + ".files.DMR." + name;
+        string value = output.string() + (multiIOV ? '*' : '\0');
+        alignments.put<string>(key, value);
     }
 }
 
@@ -309,48 +320,82 @@ void DAG::DMRmerge (string name, pt::ptree& tree)
 {
     cout << bold << "DMR merge: " << name << normal << endl;
 
+    cout << "Getting the single jobs from which the merge job depends:" << flush;
     vector<string> singles = tree.get<vector<string>>("singles", tok_str);
+    // e.g. if one would like to compare Data vs. MC, then different datasets are necessary
+    for (string single: singles) cout << ' ' << single;
+    cout << endl;
 
+    cout << "Getting the respective lists of IOVs (and sorting them by size)" << endl;
     vector<vector<int>> IOVss;
     for (string single: singles) {
-        vector<int> IOVs = tree.get<vector<int>>("validations.DMR.single." + single + ".IOV", tok_int);
+        pt::ptree single_tree = ptDMR->get_child("single." + single);
+        vector<int> IOVs = GetIOVsFromTree(single_tree);
+        //vector<int> IOVs = tree.get<vector<int>>("validations.DMR.single." + single + ".IOV", tok_int);
         IOVss.push_back(IOVs);
     }
+    sort(IOVss.begin(), IOVss.end(), [](auto a, auto b) { return a.size() > b.size(); });
 
-    // TODO: order by size
-    // TODO: check that element i is a subset of i-1 OR is trivial
+    cout << "Checking the IOV lists" << endl;
+    for (size_t i = IOVss.size()-1; i > 0; --i) {
 
-    //if (includes(set_one.begin(), set_one.end(),
-    //             set_two.begin(), set_two.end()))
+        // first test: if there is only one IOV, just go with it
+        vector<int>& test = IOVss.at(i);
+        if (test.size() == 1) continue;
 
-    vector<int> IOVs = IOVss.front();
+        // if the test is a subset of ref, then everything is fine as well
+        vector<int>& ref = IOVss.at(i-1);
+        if (includes(test.begin(), test.end(), ref.begin(), ref.end())) continue;
+
+        // otherwise, complain
+        throw ConfigError("Inconsistent IOV lists.");
+    }
+
+    vector<int>& IOVs = IOVss.front();
     bool multiIOV = IOVs.size() > 1;
 
-    // TODO: define here the singles to consider
+    cout << "Getting the alignments:" << flush;
+    map<string,vector<string>> singles_alis; // key = single DMR job, value = vector of geometries
+    for (string single: singles) {
+        auto alis = ptDMR->get<vector<string>>("single." + single + ".alignments", tok_str);
+        for (string ali: alis) cout << ' ' << ali;
+        singles_alis.insert({single, alis});
+    }
+    cout << endl;
 
     for (int IOV: IOVs) {
-
-        // TODO: update the singles if an IOV exists (respectively)
 
         fs::path subdir = "DMR/merge/" + name;
         if (multiIOV) subdir /= fs::path(to_string(IOV));
         cout << "The validation will be performed in " << subdir << endl;
+        fs::create_directories(subdir);
 
         fs::path output = LFS / subdir;
+        cout << "The heavy files will be stored in " << output << endl;
         fs::create_directories(output);
-        alignments.put<string>(geom + ".files.DMR.merge." + name, output.string());
 
         string jobname = "DMRmerge_" + name;
         if (multiIOV) jobname +=  '_' + to_string(IOV);
 
         Job job(jobname, "DMRmerge", dir / subdir);
+        job.tree.put_child("validation", tree);
+        job.tree.put<string>("validation.output", output.string());
 
-        // TODO: define local config
-        // TODO: define parents
-        //job.tree.put_child("alignment", alignments.get_child(geom));
-        //job.tree.put_child("validation", tree);
-        //job.tree.erase("validation.alignments");
-        //job.tree.put("validation.IOV", IOV);
+        for (auto single_alis: singles_alis) 
+        for (auto ali: single_alis.second) {
+            string single = single_alis.first;
+
+            pt::ptree a = alignments.get_child(ali);
+            string rootfile = a.get<string>("files.DMR." + single);
+            // TODO: check if IOV exists...
+            boost::replace_first(rootfile, "*", to_string(IOV));
+            job.tree.put("files.DMR." + single, rootfile);
+            job.tree.put_child("alignments." + ali, a);
+
+            string parentjob = "DMRsingle_" + single + '_' + ali;
+            if (multiIOV) parentjob += '_' + to_string(IOV);
+            job.parents.push_back(parentjob);
+        }
 
         dag << job;
     }
