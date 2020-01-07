@@ -5,7 +5,6 @@
 
 // Boost
 
-#include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/filesystem.hpp>
 
@@ -27,14 +26,14 @@ class DAG {
 
     boost::property_tree::ptree alignments; //!< subtree containing the alignments
     boost::optional<boost::property_tree::ptree> ptGCP, ptDMR; //!< validation blocks
-    boost::filesystem::path dir, LFS; //!< path to directories where files are stored (dir for local config and plots, LSF for heavy root files)
+    boost::filesystem::path dir, LFS, condor; //!< path to directories where files are stored (dir for local config and plots, LSF for heavy root files)
     std::ofstream dag; //!< file to which the hierarchy of the job is written, submitted at the end of the program
 
     std::vector<int> GetIOVsFromTree (const boost::property_tree::ptree& tree);
 
     void DMRsingle (std::string name, boost::property_tree::ptree& tree);
     void DMRmerge (std::string name, boost::property_tree::ptree& tree);
-    void DMRtrend (std::string name, boost::property_tree::ptree& tree);
+    //void DMRtrend (std::string name, boost::property_tree::ptree& tree);
 
 public:
     DAG (std::string file); 

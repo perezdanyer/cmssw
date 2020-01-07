@@ -1,0 +1,11 @@
+universe = vanilla
+executable = $(exec)
+log = log
+error = err
+output = out
+requirements = (OpSysAndVer =?= "CentOS7")
++JobFlavour = "tomorrow"
++RequestMemory = 1024
++FileTransferDownloadBytes = 1024
++AccountingGroup     = "group_u_CMS.CAF.ALCA"
+queue

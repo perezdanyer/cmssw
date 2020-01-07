@@ -6,6 +6,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/property_tree/info_parser.hpp>
 
 #include "DAG.h"
 #include "exceptions.h"
@@ -88,17 +89,15 @@ struct Job {
 
     const string name, //!< job name as see by HTC
                  exec; //!< executable
-    // TODO: a template per type of validation? (or even for each of DMRsingle, DMRmerge, etc.?)
-    //       -> the template could contain the name of executable...
-    //   OR: inherit from Job to define JobDMRsingle, JobDMRmerge, etc. (might be overengineering)
 
-    const fs::path dir; //!< directory to place the configs for the job
+    const fs::path dir, //!< directory to place the configs for the job
+                   condor; //!< path to condor config
     pt::ptree tree; //!< local config (should NOT be a reference)
 
     vector<string> parents; //!< parents for which current job has to weight
 
-    Job (string Name, string Exec, fs::path d) :
-        name(Name), exec(Exec), dir(d)
+    Job (string Name, string Exec, fs::path d, fs::path c) :
+        name(Name), exec(Exec), dir(d), condor(c)
     {
         cout << "Declaring job " << name << " to be run with " << exec << endl;
     }
@@ -118,18 +117,21 @@ ostream& operator<< (ostream& dag, const Job& job)
 {
     cout << "Queuing job " << job.name << endl;
 
-    dag << "JOB " << job.name << " condor.sub" << '\n'
+    fs::path newcondor = job.dir / "condor.sub";
+    dag << "JOB " << job.name << ' ' << fs::absolute(newcondor).string() << '\n'
         << "VARS " << job.name << " exec=" << job.exec << '\n';
 
-    create_directories(job.dir);
-    fs::path p = job.dir / "config.info";
-    pt::write_info(p.c_str(), job.tree);
-    // TODO: copy condor.sub? or generate it using some HTC class?
+    fs::path newconfig = job.dir / "config.info";
+    pt::write_info(newconfig.c_str(), job.tree);
+
+    fs::copy(job.condor, newcondor);
 
     if (job.parents.size() > 0)
         dag << accumulate(job.parents.begin(), job.parents.end(), string("PARENT"),
                [](string instruction, string parent) { return instruction + ' ' + parent; })
             << " CHILD " << job.name << '\n';
+
+    dag << '\n';
 
     return dag;
 }
@@ -154,22 +156,23 @@ DAG::DAG
     cout << "Starting validation" << endl;
 
     cout << "Reading the config " << file << endl;
-    pt::ptree main_tree;
-    pt::read_info(file, main_tree);
+    pt::ptree tree;
+    pt::read_info(file, tree);
 
-    dir = main_tree.get<string>("name");
-    LFS = main_tree.get<string>("LFS");
+    dir = tree.get<string>("name");
+    LFS = tree.get<string>("LFS");
+    condor = tree.get<string>("condor");
 
-    alignments = main_tree.get_child("alignments");
+    alignments = tree.get_child("alignments");
 
-    if (!main_tree.count("validations")) {
+    if (!tree.count("validations")) {
         //throw pt::ptree_bad_path("No validation found", "validations"); // TODO
         throw ConfigError("No validation found");
         exit(EXIT_FAILURE);
     }
 
-    ptGCP = main_tree.get_child_optional("validations.GCP");
-    ptDMR = main_tree.get_child_optional("validations.DMR");
+    ptGCP = tree.get_child_optional("validations.GCP");
+    ptDMR = tree.get_child_optional("validations.DMR");
 
     if (!ptGCP && !ptDMR) {
         cerr << "No known validation found!\n";
@@ -221,6 +224,8 @@ void DAG::GCP ()
 
         if (multiIOV) cout << "Several IOVs were found";
 
+        fs::path config = it.second.count("condor") ? it.second.get<string>("condor") : condor;
+
         for (int IOV: IOVs) {
             cout << "Preparing validation for IOV " << IOV << endl;
             it.second.put<int>("IOV", IOV);
@@ -228,11 +233,12 @@ void DAG::GCP ()
             fs::path subdir = "GCP"; subdir /= name;
             if (multiIOV) subdir /= fs::path(to_string(IOV));
             cout << "The validation will be performed in " << subdir << endl;
+            fs::create_directories(dir / subdir);
 
             string jobname = "GCP_" + name;
             if (multiIOV) jobname +=  '_' + to_string(IOV);
 
-            Job job(jobname, "GCP", dir / subdir);
+            Job job(jobname, "GCP", dir / subdir, config);
 
             string twig_ref  = it.second.get<string>("reference"),
                    twig_test = it.second.get<string>("test");
@@ -246,7 +252,6 @@ void DAG::GCP ()
             job.tree.put_child("validation", it.second);
             job.tree.put<int>("validation.IOV", IOV);
 
-            cout << "Queuing job" << endl;
             dag << job;
         }
     }
@@ -266,6 +271,8 @@ void DAG::DMRsingle (string name, pt::ptree& tree)
 
     vector<string> geoms = tree.get<vector<string>>("alignments", tok_str);
 
+    fs::path config = tree.count("condor") ? tree.get<string>("condor") : condor;
+
     // create the jobs
     for (string geom: geoms) {
 
@@ -278,7 +285,7 @@ void DAG::DMRsingle (string name, pt::ptree& tree)
             fs::path subsubdir = subdir;
             if (multiIOV) subsubdir /= fs::path(to_string(IOV));
             cout << "The validation will be performed in " << subsubdir << endl;
-            fs::create_directories(subsubdir);
+            fs::create_directories(dir / subsubdir);
 
             // heavy files
             fs::path outputIOV = output;
@@ -293,11 +300,11 @@ void DAG::DMRsingle (string name, pt::ptree& tree)
             //     to define the hierarchy of jobs in the DAGMAN
 
             // local config
-            Job job(jobname, "DMRsingle", dir / subsubdir);
+            Job job(jobname, "DMRsingle", dir / subsubdir, config);
             job.tree.put_child("alignment", alignments.get_child(geom));
             job.tree.put("alignment.output", outputIOV.string());
             job.tree.put_child("validation", tree);
-            job.tree.erase("validation.alignments");
+            job.tree.erase("validation.alignments"); // TODO: check (should not be there, but it seems that it is not removed)
             job.tree.put("validation.IOV", IOV);
 
             // replace wildcard by IOV
@@ -311,7 +318,7 @@ void DAG::DMRsingle (string name, pt::ptree& tree)
 
         // write output path for merge job
         string key = geom + ".files.DMR." + name;
-        string value = output.string() + (multiIOV ? '*' : '\0');
+        string value = output.string() + (multiIOV ? "/*" : "");
         alignments.put<string>(key, value);
     }
 }
@@ -345,7 +352,7 @@ void DAG::DMRmerge (string name, pt::ptree& tree)
 
         // if the test is a subset of ref, then everything is fine as well
         vector<int>& ref = IOVss.at(i-1);
-        if (includes(test.begin(), test.end(), ref.begin(), ref.end())) continue;
+        if (all_of(test.begin(), test.end(), [&ref](int IOV) { return find(ref.begin(), ref.end(), IOV) != ref.end(); })) continue;
 
         // otherwise, complain
         throw ConfigError("Inconsistent IOV lists.");
@@ -354,58 +361,73 @@ void DAG::DMRmerge (string name, pt::ptree& tree)
     vector<int>& IOVs = IOVss.front();
     bool multiIOV = IOVs.size() > 1;
 
-    cout << "Getting the alignments:" << flush;
-    map<string,vector<string>> singles_alis; // key = single DMR job, value = vector of geometries
-    for (string single: singles) {
-        auto alis = ptDMR->get<vector<string>>("single." + single + ".alignments", tok_str);
-        for (string ali: alis) cout << ' ' << ali;
-        singles_alis.insert({single, alis});
-    }
-    cout << endl;
+    fs::path config = tree.count("condor") ? fs::path(tree.get<string>("condor")) : condor;
 
-    for (int IOV: IOVs) {
+    for (int globalIOV: IOVs) {
 
         fs::path subdir = "DMR/merge/" + name;
-        if (multiIOV) subdir /= fs::path(to_string(IOV));
+        if (multiIOV) subdir /= fs::path(to_string(globalIOV));
         cout << "The validation will be performed in " << subdir << endl;
-        fs::create_directories(subdir);
+        fs::create_directories(dir / subdir);
 
         fs::path output = LFS / subdir;
         cout << "The heavy files will be stored in " << output << endl;
         fs::create_directories(output);
 
         string jobname = "DMRmerge_" + name;
-        if (multiIOV) jobname +=  '_' + to_string(IOV);
+        if (multiIOV) jobname +=  '_' + to_string(globalIOV);
 
-        Job job(jobname, "DMRmerge", dir / subdir);
+        Job job(jobname, "DMRmerge", dir / subdir, config);
+        job.tree.put_child("alignments", alignments);
         job.tree.put_child("validation", tree);
         job.tree.put<string>("validation.output", output.string());
 
-        for (auto single_alis: singles_alis) 
-        for (auto ali: single_alis.second) {
-            string single = single_alis.first;
+        cout << "Looping over single and alignments:" << flush;
+        for (string single: singles) {
+            cout << ' ' << single;
+            auto localIOVs = GetIOVsFromTree(ptDMR->get_child("single." + single));
 
-            pt::ptree a = alignments.get_child(ali);
-            string rootfile = a.get<string>("files.DMR." + single);
-            // TODO: check if IOV exists...
-            boost::replace_first(rootfile, "*", to_string(IOV));
-            job.tree.put("files.DMR." + single, rootfile);
-            job.tree.put_child("alignments." + ali, a);
+            // getting "local" IOV, i.e. from the single job
+            int localIOV = localIOVs.front();
+            bool localMultiIOV = localIOVs.size() > 1;
+            if (localMultiIOV) {
+                auto it = localIOVs.rbegin();
+                while (it != localIOVs.rend() && *it > globalIOV) ++it;
+                localIOV = *it;
+            }
+            
+            cout << " (";
+            for (auto it: alignments) {
+                string ali = it.first;
+                cout << ali << ' ' << flush;
 
-            string parentjob = "DMRsingle_" + single + '_' + ali;
-            if (multiIOV) parentjob += '_' + to_string(IOV);
-            job.parents.push_back(parentjob);
+                string key = "files.DMR." + single;
+                boost::optional<string> input = it.second.get_optional<string>(key);
+                if (!input) continue;
+
+                boost::replace_first(*input, "*", to_string(localIOV));
+                cout << bold << __LINE__ << ' '  << input << normal << endl;
+                job.tree.put<string>("alignments." + ali + "." + key, *input);
+
+                string parentjob = "DMRsingle_" + single + '_' + ali;
+                if (localMultiIOV) parentjob += '_' + to_string(localIOV);
+                job.parents.push_back(parentjob);
+            }
+            cout << "\b)" << flush;;
         }
+        cout << endl;
 
         dag << job;
     }
+
+    // TODO: write output of merge job in alignments.*.files.DMR.merge ?
 }
 
-void DAG::DMRtrend (string name, pt::ptree& tree)
-{
-    cout << bold << "DMR trend: " << name << normal << endl;
-    // TODO
-}
+//void DAG::DMRtrend (string name, pt::ptree& tree)
+//{
+//    cout << bold << "DMR trend: " << name << normal << endl;
+//    // TODO
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// function DAG::DMR
@@ -420,16 +442,7 @@ void DAG::DMR ()
         return;
     }
 
-    //// preparing output of DMRsingle
-    //map<int,vector<string>> IOV_singleJobs; // key = IOV, value = list of jobs
-    //// -> this is necessary for the merge jobs
-    //// NB: for any pair of single jobs entering a merge job,
-    ////     we expect the IOV list of one to be
-    ////     EITHER a subset of the other OR trivial
-
-    //// TODO: strategy for preexisting validation
-
-    // TODO: make a loop since all three blocks are very similar
+    // TODO: make a loop since all three blocks are very similar?
 
     boost::optional<pt::ptree&> singles = ptDMR->get_child_optional("single");
     if (singles) {
@@ -439,9 +452,12 @@ void DAG::DMR ()
             auto subtree = it.second;
             DMRsingle(name, subtree);
         }
+        // TODO: intermediate config files (can help debugging + provides templates for another run of validation)
+        //fs::path output = dir / "DMR/single.info";
+        //pt::write_info(output.c_str(), alignments);
     }
 
-    boost::optional<pt::ptree&> merges  = ptDMR->get_child_optional("merge");
+    boost::optional<pt::ptree&> merges = ptDMR->get_child_optional("merge");
     if (merges) {
         cout << "Generating DMR merge configuration files" << endl;
         for (auto& it: *merges) {
@@ -451,15 +467,15 @@ void DAG::DMR ()
         }
     }
 
-    boost::optional<pt::ptree&> trends  = ptDMR->get_child_optional("trend");
-    if (trends) {
-        cout << "Generating DMR trend configuration files" << endl;
-        for (auto& it: *trends) {
-            string name = it.first;
-            auto subtree = it.second;
-            DMRtrend(name, subtree);
-        }
-    }
+    //boost::optional<pt::ptree&> trends = ptDMR->get_child_optional("trend");
+    //if (trends) {
+    //    cout << "Generating DMR trend configuration files" << endl;
+    //    for (auto& it: *trends) {
+    //        string name = it.first;
+    //        auto subtree = it.second;
+    //        DMRtrend(name, subtree);
+    //    }
+    //}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

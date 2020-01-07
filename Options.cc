@@ -95,7 +95,8 @@ void Options::helper (int argc, char * argv[])
     po::notify(vm); // necessary for config to be given the value from the cmd line
 
     if (vm.count("help")) {
-        cout << "Basic syntax:\n  " << argv[0] << " config.info\n"
+        fs::path executable = argv[0];
+        cout << "Basic syntax:\n  " << executable.filename().string() << " config.info\n"
              << options << '\n'
              << "Boost " << BOOST_LIB_VERSION << endl;
         exit(EXIT_SUCCESS);

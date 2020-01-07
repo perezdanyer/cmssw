@@ -1,5 +1,6 @@
 name TheValidation
 LFS /home/connorpa/Exercices/AllInOneConfig/MyLFS
+condor default.sub
 
 alignments
 {
@@ -44,7 +45,7 @@ alignments
         {
             DMR
             {
-                TheDataIsoMu /path/to/rootfile.root
+                TheDataIsoMu /path/to/rootfile
             }
         }
     }
@@ -82,7 +83,20 @@ validations
                 dataset Data_Filename_*_cff.py
                 trackcollection ALCARECOTkAlMuonIsolated
                 magneticfield true                      
-                IOV "123456 234567"                     
+                IOV "123456 345678"
+            }
+            TheDataIsoMu2
+            {
+                alignments "UL17 EOY17"
+                maxevents 2000000                       
+                maxtracks 1800000                       
+                maxhits 300                             
+                minhits 15                              
+                dataset Data_Filename_*_cff.py
+                trackcollection ALCARECOTkAlMuonIsolated
+                magneticfield true                      
+                IOV "123456 234567 345678"
+                condor nextweek.sub
             }
             MyMCisoMuValidation
             {
@@ -101,7 +115,7 @@ validations
         {
             DataMC
             {
-                singles "TheDataIsoMu MyMCisoMuValidation"
+                singles "TheDataIsoMu TheDataIsoMu2 MyMCisoMuValidation"
                 legendoptions mean
                 usefit false
                 curves plain
