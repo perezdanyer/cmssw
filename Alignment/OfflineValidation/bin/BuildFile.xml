@@ -1,5 +1,10 @@
 <flags CXXFLAGS="-g -DDEBUG -O3 -Wall -std=c++17"/>
 <use name="root"/>
 <use name="rootgraphics"/>
-<lib name="stdc++fs"/>
-<bin name="DMRtrends" file="DMRtrends.cc"/>
+<use name="boost" />
+<use name="boost_program_options"/>
+<lib name="stdc++fs" />
+<bin name="DMRsingle" file="DMRsingle.cc" />
+<bin name="DMRmerge" file="DMRmerge.cc" />
+<bin name="DMRtrends" file="DMRtrends.cc" />
+<bin name="validateAlignment" file="validateAlignment.cc,validateAlignmentProgramOptions.cc" />
