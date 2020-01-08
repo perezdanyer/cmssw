@@ -45,7 +45,10 @@ alignments
         {
             DMR
             {
-                TheDataIsoMu /path/to/rootfile
+                single
+                {
+                    TheDataIsoMu /path/to/rootfile
+                }
             }
         }
     }

@@ -12,13 +12,15 @@ then one can just test locally any step, or modify any parameter before simply s
 
 ## TODO list
 
- [x] generate `.gitignore`
- [x] make back-up of config file
- [ ] exceptions handling (filesystem + own)
- [ ] check inconsistencies in config file
- [ ] soft links to root files
- [ ] tutorial
- [ ] instructions for developers
+ - exceptions handling (filesystem + own)
+   - check inconsistencies in config file
+ - other executables
+   - start with GCP and DMRs
+   - soft links to root files
+ - documentation
+   - tutorial
+   - instructions for developers
+ - port to CMSSW
 
 ## Tutorial
 

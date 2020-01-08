@@ -31,7 +31,7 @@ lib%.so: %.cc
 clean: 
 	rm -f *.pdf *.so *.o *.root 
 
-cleantest:
+test:
 	@rm -rf MyLFS/* TheValidation
 	@./validateAlignment -v config.info
 
