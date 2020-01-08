@@ -5,16 +5,18 @@
 
 namespace AllInOneConfig {
 
-class Options {
+class ValidationProgramOptions {
 
     boost::program_options::options_description help, desc, hide;
     boost::program_options::positional_options_description pos_hide;
 
 public:
-    std::string config, key;
+    // TODO: use optional<const T>?
+    // -> pb: how to choose between std::optional & boost::optional...
+    std::string config;
     bool dry;
 
-    Options (bool getter = false);
+    ValidationProgramOptions ();
     void helper (int argc, char * argv[]);
     void parser (int argc, char * argv[]);
 };
