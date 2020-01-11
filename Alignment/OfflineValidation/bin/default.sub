@@ -1,10 +1,12 @@
 universe = vanilla
+getenv = False
 executable = $(exec)
-log = log
-error = err
-output = out
+arguments = "-v $(output)/config.sub"
+log = $(output)/log
+error = $(output)/err
+output = $(output)/out
 requirements = (OpSysAndVer =?= "CentOS7")
-+JobFlavour = "tomorrow"
++JobFlavour = "espresso"
 +RequestMemory = 1024
 +FileTransferDownloadBytes = 1024
 +AccountingGroup     = "group_u_CMS.CAF.ALCA"

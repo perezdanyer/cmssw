@@ -24,6 +24,8 @@ namespace AllInOneConfig {
 ///  - https://theboostcpplibraries.com/boost.propertytree
 class DAG {
 
+    const boost::filesystem::path execDir;
+
     boost::property_tree::ptree alignments; //!< subtree containing the alignments, modified along the different steps
     boost::optional<boost::property_tree::ptree> ptGCP, ptDMR; //!< validation blocks
     boost::filesystem::path dir, LFS, condor; //!< path to directories where files are stored (dir for local config and plots, LSF for heavy root files)
@@ -43,7 +45,7 @@ public:
     // TODO: PV, Zµµ, MTS, etc.
 
     void close ();
-    int submit () const;
+    int submit (bool dry = false) const;
 };
 
 }

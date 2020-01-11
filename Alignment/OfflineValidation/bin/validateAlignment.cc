@@ -16,18 +16,12 @@ int validateAlignment (int argc, char * argv[])
     options.parser(argc, argv);
 
     // validate, and catch exception if relevant
-    // example how to produce all the config files and the DAGMAN
     DAG dag(options.config);
     dag.GCP();
     dag.DMR();
     dag.close();
 
-    if (options.dry) {
-        cout << "Dry run, exiting right before submitting" << endl;
-        return EXIT_SUCCESS;
-    }
-
-    return dag.submit();
+    return dag.submit(options.dry);
 }
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

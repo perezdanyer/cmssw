@@ -42,10 +42,14 @@ ValidationProgramOptions::ValidationProgramOptions () :
         ("help,h", "Help screen")
         ("example,e", "Print example of config")
         ("tutorial,t", "Explain how to use the command");
-    desc.add_options()
-        ("dry,d", po::value<bool>(&dry)->default_value(false), "Set up all configs and jobs, but don't submit")
-        ("verbose,v", po::bool_switch()->default_value(false)->notifier(set_verbose), "Enable standard output stream")
-        ("silent,s" , po::bool_switch()->default_value(false)->notifier(set_silent), "Disable standard error stream");
+    // then (except for getINFO) the running options
+    if (!getter) 
+        desc.add_options()
+            ("dry,d", po::bool_switch(&dry)->default_value(false), "Set up everything, but don't run anything")
+            ("verbose,v", po::bool_switch()->default_value(false)->notifier(set_verbose), "Enable standard output stream")
+            ("silent,s" , po::bool_switch()->default_value(false)->notifier(set_silent), "Disable standard error stream");
+
+    // and finally / most importantly, the config file as apositional argument
     hide.add_options()
         ("config,c", po::value<string>(&config)->required()->notifier(check_file), "INFO config file");
 
@@ -74,7 +78,7 @@ void ValidationProgramOptions::helper (int argc, char * argv[])
         exit(EXIT_SUCCESS);
     }
 
-    if (vm.count("tutorial") || vm.count("example")) { // TODO
+    if (vm.count("tutorial") || vm.count("example")) { // TODO: generate examples of configs (INFO + sub)
         cout << "   ______________________\n"
              << "  < Oops! not ready yet! >\n"
              << "   ----------------------\n"
@@ -98,6 +102,8 @@ void ValidationProgramOptions::parser (int argc, char * argv[])
         parser.options(cmd_line)
               .positional(pos_hide);
 
+        // TODO: env
+
         po::variables_map vm;
         po::store(parser.run(), vm);
         po::notify(vm); // necessary for config to be given the value from the cmd line
@@ -109,11 +115,17 @@ void ValidationProgramOptions::parser (int argc, char * argv[])
             cerr << "Program Options Required Option: " << e.what() << '\n';
         exit(EXIT_FAILURE);
     }
-
-    // TODO
-    // Boost.ProgramOptions also defines the function boost::program_options::parse_environment(),
-    // which can be used to load options from environment variables.
-    // The class boost::environment_iterator lets you iterate over environment variables.
 }
 
-} // end of namespace
+//void Options::env ()
+//{
+//
+//
+//    // TODO: get $CMSSW_BASE and $SCRAM_ARCH in order to copy the executable (and libraries?) necessary to run
+//    //
+//    // Boost.ProgramOptions also defines the function boost::program_options::parse_environment(),
+//    // which can be used to load options from environment variables.
+//    // The class boost::environment_iterator lets you iterate over environment variables.
+//}
+
+} // end of namespace AllInOneConfig

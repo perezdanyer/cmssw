@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <algorithm>
@@ -87,16 +88,16 @@ static const Tokenise<string> tok_str;
 /// ```
 struct Job {
 
-    const string name, //!< job name as see by HTC
-                 exec; //!< executable
+    const string name; //!< job name as see by HTC
 
-    const fs::path dir, //!< directory to place the configs for the job
+    const fs::path exec, //!< executable
+                   dir, //!< directory to place the configs for the job
                    condor; //!< path to condor config
     pt::ptree tree; //!< local config (should NOT be a reference)
 
     vector<string> parents; //!< parents for which current job has to weight
 
-    Job (string Name, string Exec, fs::path d, fs::path c) :
+    Job (string Name, fs::path Exec, fs::path d, fs::path c) :
         name(Name), exec(Exec), dir(d), condor(c)
     {
         cout << "Declaring job " << name << " to be run with " << exec << endl;
@@ -119,7 +120,8 @@ ostream& operator<< (ostream& dag, const Job& job)
 
     fs::path newcondor = job.dir / "condor.sub";
     dag << "JOB " << job.name << ' ' << fs::absolute(newcondor).string() << '\n'
-        << "VARS " << job.name << " exec=" << job.exec << '\n';
+        << "VARS " << job.name << " exec=" << fs::absolute(job.exec) 
+                               << " output=" << fs::absolute(job.dir) << '\n';
 
     fs::path newconfig = job.dir / "config.info";
     pt::write_info(newconfig.c_str(), job.tree);
@@ -151,9 +153,13 @@ vector<int> DAG::GetIOVsFromTree (const pt::ptree& tree) const
 ///
 /// Constructor, making basic checks and opening file to write DAGMAN
 DAG::DAG
-    (string file) //!< name of the INFO config file
+    (string file) : //!< name of the INFO config file
+        execDir(getenv("CMSSW_BASE") / fs::path("bin") / getenv("SCRAM_ARCH"))
 {
     cout << "Starting validation" << endl;
+
+    cout << "Checking the directory containing the executables" << endl;
+    if (!fs::exists(execDir)) throw ConfigError("Unable to find the executables");
 
     cout << "Reading the config " << file << endl;
     pt::ptree tree;
@@ -162,6 +168,9 @@ DAG::DAG
     dir = tree.get<string>("name");
     LFS = tree.get<string>("LFS");
     condor = tree.get<string>("condor");
+    // TODO: make default template a hidden file (which can also be used to generate a template from the command line)
+
+    if (LFS.filename().string() != dir.string()) LFS /= dir.filename();
 
     if (fs::exists(dir)) throw ConfigError("Output directory already exists");
 
@@ -204,6 +213,12 @@ void DAG::GCP ()
         return;
     }
 
+    cout << "Copying the executable" << endl;
+    fs::create_directories(dir / "GCP");
+    fs::path original(execDir / "GCP"),
+             exec(dir / "GCP/GCP"); // note: the first (second) "GCP" is an executable (directory)
+    fs::copy(original, exec);
+
     cout << "Generating GCP configuration files" << endl;
     for (pair<string,pt::ptree> it: *ptGCP) {
 
@@ -229,7 +244,7 @@ void DAG::GCP ()
             string jobname = "GCP_" + name;
             if (multiIOV) jobname +=  '_' + to_string(IOV);
 
-            Job job(jobname, "GCP", dir / subdir, config);
+            Job job(jobname, exec, dir / subdir, config);
 
             string twig_ref  = it.second.get<string>("reference"),
                    twig_test = it.second.get<string>("test");
@@ -266,6 +281,12 @@ void DAG::DMRsingle (string name, pt::ptree validation)
     fs::path config = validation.count("condor") ? validation.get<string>("condor") : condor;
     validation.erase("condor");
 
+    cout << "Copying the executable" << endl;
+    fs::create_directories(dir / "DMR/single");
+    fs::path original(execDir / "DMRsingle"),
+             exec(dir / "DMR/single/DMRsingle");
+    fs::copy(original, exec);
+
     // create the jobs
     for (string geom: geoms) {
 
@@ -287,6 +308,7 @@ void DAG::DMRsingle (string name, pt::ptree validation)
             if (multiIOV) outputIOV /= fs::path(to_string(IOV));
             cout << "The heavy files will be stored in " << outputIOV << endl;
             fs::create_directories(outputIOV);
+            // TODO: private method
 
             // job
             string jobname = "DMRsingle_" + name + '_' + geom;
@@ -300,7 +322,7 @@ void DAG::DMRsingle (string name, pt::ptree validation)
             alignment.put("output", outputIOV.string());
 
             // local config
-            Job job(jobname, "DMRsingle", dir / subsubdir, config);
+            Job job(jobname, exec, dir / subsubdir, config);
             job.tree.put_child("alignment", alignment);
             job.tree.put_child("validation", validation);
 
@@ -361,6 +383,12 @@ void DAG::DMRmerge (string name, pt::ptree validation)
              subdir = ("DMR/merge/" + name),
              output = LFS / subdir;
 
+    cout << "Copying the executable" << endl;
+    fs::create_directories(dir / "DMR/merge");
+    fs::path original(execDir / "DMRmerge"),
+             exec(dir / "DMR/merge/DMRmerge");
+    fs::copy(original, exec);
+
     for (int globalIOV: IOVs) {
 
         fs::path subsubdir = subdir;
@@ -373,12 +401,14 @@ void DAG::DMRmerge (string name, pt::ptree validation)
         cout << "The heavy files will be stored in " << output << endl;
         fs::create_directories(outputIOV);
 
+        // TODO: private method
+
         string jobname = "DMRmerge_" + name;
         if (multiIOV) jobname +=  '_' + to_string(globalIOV);
 
         validation.put<string>("output", outputIOV.string());
 
-        Job job(jobname, "DMRmerge", dir / subsubdir, config);
+        Job job(jobname, exec, dir / subsubdir, config);
         job.tree.put_child("alignments", alignments);
         job.tree.put_child("validation", validation);
 
@@ -460,13 +490,20 @@ void DAG::DMR ()
 
     for (auto step: steps) {
         string name = step.first;
+
+        // getting the step block (if existing)
         boost::optional<pt::ptree&> block = ptDMR->get_child_optional(step.first);
         if (!block) continue;
+
+        // calling corresponding private method / subroutine
         cout << "Generating DMR " << step.first << " configuration files" << endl;
         DMRstep f = step.second;
         for (auto& it: *block) (this->*f)(/* name = */ it.first, /* subtree = */ it.second);
+
+        // copying INFO file as back-up (can be used for future "preexisting" validations)
         fs::path output = dir / ("DMR/" + name + "/alignments.info");
         pt::write_info(output.c_str(), alignments);
+        // note: there is here a weakness, because it assumes that the directory has been created in the subroutine
     }
 }
 
@@ -484,10 +521,20 @@ void DAG::close ()
 /// function DAG::submit
 /// 
 /// Submit the DAGMAN
-int DAG::submit () const
+int DAG::submit (bool dry) const
 {
     cout << "Submitting DAGMAN" << endl;
-    return system("echo condor_submit_dag "); // TODO
+
+    string instruction = "condor_submit_dag -batch-name "
+                        + dir.filename().string();
+
+    if (dry) instruction += " -no_submit";
+
+    fs::path p = dir / "dag";
+    instruction += ' ' + p.string();
+
+    cout << instruction << endl;
+    return system(instruction.c_str());
 }
 
 }

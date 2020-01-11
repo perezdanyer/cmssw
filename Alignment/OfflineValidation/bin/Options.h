@@ -11,10 +11,8 @@ class ValidationProgramOptions {
     boost::program_options::positional_options_description pos_hide;
 
 public:
-    // TODO: use optional<const T>?
-    // -> pb: how to choose between std::optional & boost::optional...
-    std::string config;
-    bool dry;
+    std::string config, key;
+    bool dry, verbose, silent;
 
     ValidationProgramOptions ();
     void helper (int argc, char * argv[]);
