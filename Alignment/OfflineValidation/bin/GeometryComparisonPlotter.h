@@ -1,27 +1,10 @@
-#include <TROOT.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <vector>
+#include <map>
 
 #include <TString.h>
-#include <TStyle.h>
-#include <TAxis.h>
-#include <TGraph.h>
-#include <TF1.h>
-#include <TH1.h>
-#include <TH2.h>
-#include <TMultiGraph.h>
 #include <TFile.h>
-#include <TCanvas.h>
 #include <TLegend.h>
 #include <TTree.h>
-#include <TDirectory.h>
-#include <TMath.h>
-#include <TPaveText.h>
-#include <TLatex.h>
-#include <TList.h>
-
 
 class GeometryComparisonPlotter
 {
@@ -51,10 +34,10 @@ class GeometryComparisonPlotter
         _window_height;
 
     // branches
-    map<TString, int> branch_i;
-    map<TString, float> branch_f,
-                        _max, _min, _SF;
-    map<TString, TString> _units;
+    std::map<TString, int> branch_i;
+    std::map<TString, float> branch_f,
+                             _max, _min, _SF;
+    std::map<TString, TString> _units;
 
     // variables of external objects
     TFile * tree_file;
@@ -88,18 +71,18 @@ public:
     ~GeometryComparisonPlotter ();
 
     // main methods
-    void MakePlots (const vector<TString>,
-                    const vector<TString>,
-                    const vector<float>,
-                    const vector<float>
+    void MakePlots (const std::vector<TString>,
+                    const std::vector<TString>,
+                    const std::vector<float>,
+                    const std::vector<float>
                     );
                     
-    void MakeTables (const vector<TString>,
-                    const vector<TString>,
-                    const vector<float>,
-                    const vector<float>);
+    void MakeTables (const std::vector<TString>,
+                    const std::vector<TString>,
+                    const std::vector<float>,
+                    const std::vector<float>);
                  
-    void WriteTable (const vector<TString> x,
+    void WriteTable (const std::vector<TString> x,
 					unsigned int nLevelsTimesSlices,
 					float meanValue[10][24],
 					float RMS[10][24],					
@@ -115,7 +98,7 @@ public:
     void Set1dModule            (const bool);           // cut to include 1D modules
     void Set2dModule            (const bool);           // cut to include 2D modules
 #define DEFAULT_LEVEL 1
-    void SetLevelCut            (const int);            // module level: level=1 (default)
+    void SetLevelCut            (const int = DEFAULT_LEVEL);            // module level: level=1 (default)
     void SetBatchMode           (const bool);           // activates the display of the canvases
     void SetGrid                (const int,             // activates the display of the grids
                                  const int);
@@ -132,6 +115,6 @@ public:
     void SetPrintOption         (const Option_t *);     // litteraly the print option of the TPad::Print()
 #define DEFAULT_WINDOW_WIDTH  3508
 #define DEFAULT_WINDOW_HEIGHT 2480
-    void SetCanvasSize          (const int window_width  = DEFAULT_WINDOW_WIDTH,
-                                 const int window_height = DEFAULT_WINDOW_HEIGHT);
+    void SetCanvasSize          (const int = DEFAULT_WINDOW_WIDTH,
+                                 const int = DEFAULT_WINDOW_HEIGHT);
 };

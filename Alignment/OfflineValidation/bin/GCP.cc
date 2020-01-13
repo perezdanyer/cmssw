@@ -1,27 +1,21 @@
-#include <TROOT.h>
-#include <TApplication.h>
+#include <cstdlib>
+#include <iostream>
 
-#include <sys/stat.h>
+#include "exceptions.h"
+#include "toolbox.h"
+#include "Options.h"
 
-#include "GeometryComparisonPlotter.cc" // TO DO: only include the header and provide the .o file
+#include <boost/filesystem.hpp>
 
-///////////////////////////////////////////////////////////////////////////////////////
-// README:                                                                           //
-///////////////////////////////////////////////////////////////////////////////////////
-// This script is an example highly documented to present the production             //
-// of comparison plots between to geometries of the tracker.                         //
-// The main idea is to provide some input file and output destination                //
-// and to provide the couples to plot. Each combination gives rise to a single plot  //
-// and within a global output.                                                       //
-// Some options/cuts/specifications may be added.                                    //
-///////////////////////////////////////////////////////////////////////////////////////
-// Any question can be asked to Patrick Connor at the address patrick.connor@desy.de //
-///////////////////////////////////////////////////////////////////////////////////////
+#include "GeometryComparisonPlotter.h"
 
-int GeometryComparisonPlotter::canvas_index = 0;
+using namespace std;
+using namespace AllInOneConfig;
 
+namespace pt = boost::property_tree;
+namespace fs = boost::filesystem;
 
-void comparisonScript (TString inFile,//="mp1510_vs_mp1509.Comparison_commonTracker.root",
+void comparisonScript (TString inFile,//="mp1510_vs_mp1509.Comparison_commonTracker.root", // TODO: get ROOT file
                        TString outDir="outputDir/",
                        TString modulesToPlot="all",
                        TString alignmentName="Alignment",
@@ -49,7 +43,7 @@ void comparisonScript (TString inFile,//="mp1510_vs_mp1509.Comparison_commonTrac
                        )
 {
     // the output directory is created if it does not exist
-    mkdir(outDir, S_IRWXU);
+    fs::create_directories(outDir.Data());
     
     // store y-ranges temporaly for the case when the default range is used together with individual ranges
     float dx_min_temp = dx_min;
@@ -112,13 +106,12 @@ void comparisonScript (TString inFile,//="mp1510_vs_mp1509.Comparison_commonTrac
     // display canvases: be careful, as there are many many ... canvases
 
     // the name of the variables are the names of the branches
-    // REMARK: a supplementary branch for rdphi is calculated automatically
-    //         from r and dphi
+    // REMARK: an additional branch for rdphi is calculated automatically from r and dphi
 
     // now the object to produce the comparison plots is created
     
     // Plot Translations
-    GeometryComparisonPlotter * trans = new GeometryComparisonPlotter (inFile, outDir,modulesToPlot,alignmentName,referenceName,plotOnlyGlobal,makeProfilePlots);
+    GeometryComparisonPlotter * trans = new GeometryComparisonPlotter(inFile, outDir,modulesToPlot,alignmentName,referenceName,plotOnlyGlobal,makeProfilePlots);
     // x and y contain the couples to plot
     // -> every combination possible will be performed
     // /!\ always give units (otherwise, unexpected bug from root...)
@@ -133,7 +126,7 @@ void comparisonScript (TString inFile,//="mp1510_vs_mp1509.Comparison_commonTrac
     y.push_back("dz");		trans->SetBranchSF("dz", 	10000);     trans->SetBranchUnits("dz",    "#mum");
     dyMin.push_back(dz_min);
     dyMax.push_back(dz_max);
-    y.push_back("rdphi");	trans->SetBranchSF("rdphi",10000);      trans->SetBranchUnits("rdphi", "#mum rad");
+    y.push_back("rdphi");	trans->SetBranchSF("rdphi", 10000);      trans->SetBranchUnits("rdphi", "#mum rad");
     dyMin.push_back(rdphi_min);
     dyMax.push_back(rdphi_max);
     y.push_back("dx");		trans->SetBranchSF("dx", 	10000);     trans->SetBranchUnits("dx",    "#mum");    //trans->SetBranchMax("dx", 10); trans->SetBranchMin("dx", -10);
@@ -164,15 +157,12 @@ void comparisonScript (TString inFile,//="mp1510_vs_mp1509.Comparison_commonTrac
 
     
     // Plot Rotations
-    GeometryComparisonPlotter * rot = new GeometryComparisonPlotter (inFile, outDir,modulesToPlot,alignmentName,referenceName,plotOnlyGlobal,makeProfilePlots);
+    GeometryComparisonPlotter * rot = new GeometryComparisonPlotter(inFile, outDir,modulesToPlot,alignmentName,referenceName,plotOnlyGlobal,makeProfilePlots);
     // x and y contain the couples to plot
     // -> every combination possible will be performed
     // /!\ always give units (otherwise, unexpected bug from root...)
     vector<TString> b;
     vector<float> dbMin,dbMax;
-    //a.push_back("alpha");       									rot->SetBranchUnits("alpha",    "rad");  
-    //a.push_back("beta");        									rot->SetBranchUnits("beta",   "rad");
-    //a.push_back("gamma");       									rot->SetBranchUnits("gamma",   "rad");
     rot->SetBranchUnits("r",     "cm");  
     rot->SetBranchUnits("phi",   "rad");
     rot->SetBranchUnits("z",     "cm"); 
@@ -193,49 +183,27 @@ void comparisonScript (TString inFile,//="mp1510_vs_mp1509.Comparison_commonTrac
 	    rot->SetPrintOption("png");
 	    rot->MakePlots(x, b,dbMin, dbMax);
 	}	
-    
-
-    // now the same object can be reused with other specifications/cuts
-    //void SetPrint               (const bool);           // activates the printing of the individual and global pdf
-    //void SetLegend              (const bool);           // activates the legends
-    //void SetWrite               (const bool);           // activates the writing into a Root file
-    //void Set1dModule            (const bool);           // cut to include 1D modules
-    //void Set2dModule            (const bool);           // cut to include 2D modules
-    //void SetLevelCut            (const int);            // module level: level=1 (default)
-    //void SetBatchMode           (const bool);           // activates the display of the canvases
-    //void SetGrid                (const int,             // activates the display of the grids
-    //                             const int);
-    //void SetBranchMax           (const TString,         // sets a max value for the variable
-    //                             const float);          // by giving the name and the value
-    //void SetBranchMin           (const TString,         // sets a min value for the variable
-    //                             const float);          // by giving the name and the value
-    //void SetBranchSF            (const TString,         // sets a rescaling factor for the variable
-    //                             const float);          // by giving the name and the value
-    //void SetBranchUnits         (const TString,         // writes de units next on the axis
-    //                             const TString);
-    //void SetOutputDirectoryName (const TString);        // sets the output name of the directory
-    //void SetOutputFileName      (const TString);        // sets the name of the root file (if applicable)
-    //void SetPrintOption         (const Option_t *);     // litteraly the print option of the TPad::Print()
-    //void SetCanvasSize          (const int window_width  = DEFAULT_WINDOW_WIDTH,
-    //                             const int window_height = DEFAULT_WINDOW_HEIGHT);
 }
 
-// the following line is necessary for standalone applications
-// so in this case just run the makefile and the standalone executable with right arguments:
-// - root file containing the tree
-// - name of the output directory
-// otherwise, juste ignore this part of the code
-#ifndef __CINT__
+int GCP (int argc, char * argv[])
+{
+    // parse the command line
+    Options options;
+    options.helper(argc, argv);
+    options.parser(argc, argv);
+
+    pt::ptree main_tree;
+    pt::read_info(options.config, main_tree);
+
+    // TODO
+    // - comments à la doxygen
+    // - get ROOT file (look into All-In-One Tool)
+    // - use Boost to read config file
+}
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 int main (int argc, char * argv[])
 {
-    TApplication * app = new TApplication ("comparisonScript", &argc, argv);
-    comparisonScript(app->Argv(1),
-                     app->Argv(2));
-    app->Run();
-    // ask René Brun if you wonder why it is needed, I have no damned idea :p
-#ifndef DEBUG
-    delete app;
-#endif
-    return 0;
+    return exceptions<GCP>(argc, argv);
 }
 #endif
