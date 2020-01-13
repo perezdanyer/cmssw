@@ -40,7 +40,7 @@ ValidationProgramOptions::ValidationProgramOptions () :
     // define all options
     help.add_options()
         ("help,h", "Help screen")
-        ("example,e", "Print example of config")
+        ("example,e", "Print example of config in INFO format")
         ("tutorial,t", "Explain how to use the command");
     // then (except for getINFO) the running options
     if (!getter) 
@@ -52,9 +52,33 @@ ValidationProgramOptions::ValidationProgramOptions () :
     // and finally / most importantly, the config file as apositional argument
     hide.add_options()
         ("config,c", po::value<string>(&config)->required()->notifier(check_file), "INFO config file");
+    pos_hide.add("config", 1); // 1 means one (positional) argument
+    if (getter) {
+        // in case of getIMFO, adding a second positional argument for the key
+        hide.add_options()
+            ("key,k", po::value<string>(&key)->required(), "key");
+        pos_hide.add("key", 1);
+    }
 
-    // positional argument
-    pos_hide.add("config", 1);
+    //// get certain environment variables
+    //po::options_description desc_env;
+    //desc_env.add_options()
+    //    ("CMSSW_BASE"        , po::value<string>(&CMSSW_BASE        )->required())
+    //    ("CMSSW_RELEASE_BASE", po::value<string>(&CMSSW_RELEASE_BASE)->required())
+    //    ("SCRAM_ARCH"        , po::value<string>(&SCRAM_ARCH        )->required());
+
+    //// trick to reproduce behaviour of po::command_line_parser::allow_unregistered()
+    //// from https://stackoverflow.com/questions/53285248/boost-program-options-allow-undeclared-from-environment
+    //auto allow_unregistered = [&desc_env](const string& var) {
+    //    auto filter = [var](auto opt) { return var == opt->long_name(); };
+    //    bool condition = any_of( desc_env.options().cbegin(), desc_env.options().cend(), filter);
+    //    return condition ? var : string();
+    //};
+
+    //po::variables_map env;
+    //po::store(po::parse_environment(desc_env, allow_unregistered), env);
+    //po::notify(env);
+    //cout << CMSSW_BASE << '\t' << CMSSW_RELEASE_BASE << '\t' << SCRAM_ARCH << endl;
 }
 
 void ValidationProgramOptions::helper (int argc, char * argv[])
@@ -78,7 +102,18 @@ void ValidationProgramOptions::helper (int argc, char * argv[])
         exit(EXIT_SUCCESS);
     }
 
-    if (vm.count("tutorial") || vm.count("example")) { // TODO: generate examples of configs (INFO + sub)
+    if (vm.count("example")) {
+        static const char * bold = "\e[1m", * normal = "\e[0m";
+        cout << bold << "Example of HTC condor config:" << normal << '\n' << endl;
+        system("cat $CMSSW_BASE/src/Alignment/OfflineValidation/bin/.default.sub");
+        cout << '\n' << bold << "Example of INFO config (for `validateAlignment` only):" << normal << '\n' << endl;
+        system("cat $CMSSW_BASE/src/Alignment/OfflineValidation/bin/.example.info");
+        cout << '\n' << bold << "NB: " << normal << " for examples of inputs to GCPs, DMRs, etc., just make a dry run of the example" << endl;
+        exit(EXIT_SUCCESS);
+    }
+    // TODO: make examples for each executables? (could be examples used in release validation...)
+
+    if (vm.count("tutorial")) {
         cout << "   ______________________\n"
              << "  < Oops! not ready yet! >\n"
              << "   ----------------------\n"
@@ -94,38 +129,16 @@ void ValidationProgramOptions::helper (int argc, char * argv[])
 
 void ValidationProgramOptions::parser (int argc, char * argv[])
 {
-    try {
-        po::options_description cmd_line;
-        cmd_line.add(desc).add(hide);
+    po::options_description cmd_line;
+    cmd_line.add(desc).add(hide);
 
-        po::command_line_parser parser{argc, argv};
-        parser.options(cmd_line)
-              .positional(pos_hide);
+    po::command_line_parser parser{argc, argv};
+    parser.options(cmd_line)
+        .positional(pos_hide);
 
-        // TODO: env
-
-        po::variables_map vm;
-        po::store(parser.run(), vm);
-        po::notify(vm); // necessary for config to be given the value from the cmd line
-    }
-    catch (const po::required_option &e) {
-        if (e.get_option_name() == "--config")
-            cerr << "Missing config" << '\n';
-        else 
-            cerr << "Program Options Required Option: " << e.what() << '\n';
-        exit(EXIT_FAILURE);
-    }
+    po::variables_map vm;
+    po::store(parser.run(), vm);
+    po::notify(vm); // necessary for config to be given the value from the cmd line
 }
-
-//void Options::env ()
-//{
-//
-//
-//    // TODO: get $CMSSW_BASE and $SCRAM_ARCH in order to copy the executable (and libraries?) necessary to run
-//    //
-//    // Boost.ProgramOptions also defines the function boost::program_options::parse_environment(),
-//    // which can be used to load options from environment variables.
-//    // The class boost::environment_iterator lets you iterate over environment variables.
-//}
 
 } // end of namespace AllInOneConfig

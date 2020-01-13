@@ -10,20 +10,20 @@ In principle, the `validateAlignment` command is enough to submit everything.
 However, for local testing, one may want to make a dry run: all files will be produced, but the condor jobs will not be submitted;
 then one can just test locally any step, or modify any parameter before simply submitting the DAGMAN.
 
-## TODO list
+## TODO list 
 
- - exceptions handling (filesystem + own)
-   - check inconsistencies in config file
- - other executables
-   - start with GCP and DMRs
-   - soft links to root files
- - documentation
+ - improve exceptions handling (filesystem + own)
+   - check inconsistencies in config file?
+ - from DMR toy to real application
+   - GCP (get "n-tuples" + grid, 3D, TkMaps)
+   - DMRs (single + merge + trend)
+   - PV (single + merge + trend)
+   - Zµµ (single + merge)
+   - MTS (single + merge)
+   - overlap (single + merge + trend)
+   - ...
+ - documentation (this README)
    - tutorial
    - instructions for developers
- - port to CMSSW
-
-## Tutorial
-
-
-## Instructions for developers
+(list from mid-January)
 

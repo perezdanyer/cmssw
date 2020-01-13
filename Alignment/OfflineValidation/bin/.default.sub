@@ -1,0 +1,12 @@
+universe = vanilla
+getenv = True
+transfer_input_files = validation.info
+executable = ./$(exec)
+arguments = "-v validation.info"
+output = condor.out
+error  = condor.err
+log    = condor.log
+requirements = (OpSysAndVer =?= "CentOS7")
++JobFlavour = "espresso"
++AccountingGroup = "group_u_CMS.CAF.ALCA"
+queue

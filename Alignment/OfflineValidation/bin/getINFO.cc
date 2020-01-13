@@ -24,6 +24,9 @@ int getINFO (int argc, char * argv[])
     pt::ptree tree;
     pt::read_info(options.config, tree);
 
+    // TODO: use regex on options.key
+    //       -> if several entries are possible, return them all?
+
     string value = tree.get<string>(options.key);
 
     cout << value << endl;

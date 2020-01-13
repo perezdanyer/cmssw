@@ -40,6 +40,10 @@ template<int FUNC(int, char **)> int exceptions (int argc, char * argv[])
     try { return FUNC(argc, argv); }
     //catch (const AllInOneConfig::ConfigError & e) { cerr << "Config error: " << e.what() << '\n'; }
     catch (const boost::exception & e) { cerr << colorify("Boost exception: ") << boost::diagnostic_information(e); throw; }
+    catch (const boost::program_options::required_option &e) {
+        if (e.get_option_name() == "--config") cerr << colorify("Missing config") << '\n';
+        else cerr << colorify("Program Options Required Option: ") << e.what() << '\n';
+    }
     catch (const boost::program_options::invalid_syntax & e) { cerr << colorify("Program Options Invalid Syntax: ") << e.what() << '\n'; }
     catch (const boost::program_options::error          & e) { cerr << colorify("Program Options Error: ") << e.what() << '\n'; }
     catch (const boost::property_tree::ptree_bad_data & e) { cerr << colorify("Property Tree Bad Data Error: ") << e.data<std::string>() << '\n'; }

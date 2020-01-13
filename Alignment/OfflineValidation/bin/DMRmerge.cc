@@ -28,9 +28,10 @@ int merge (int argc, char * argv[])
     pt::ptree validation = main_tree.get_child("validation");
 
     dump(validation);
-    string single = validation.get<string>("single");
+    string single = validation.get<string>("singles");
+    cout << '\n' << single << endl;
     for (auto& alignment: alignments) {
-        string file = alignment.second.get<string>("files.DMR." + single);
+        string file = alignment.second.get<string>("files.DMR.single." + single);
         cout << alignment.first << '\t' << file << '\n';
     }
     cout << flush;

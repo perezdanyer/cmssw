@@ -1,48 +1,35 @@
-<flags CXXFLAGS="-g -DDEBUG -O3 -Wall -std=c++17"/>
-<use name="root"/>
-<use name="rootgraphics"/>
-<use name="boost" />
-<use name="boost_program_options"/>
-<lib name="stdc++fs" />
-<bin name="DMRsingle" file="DMRsingle.cc" />
-<bin name="DMRmerge" file="DMRmerge.cc" />
-<bin name="DMRtrends" file="DMRtrends.cc" />
-<bin name="validateAlignment" file="validateAlignment.cc,validateAlignmentProgramOptions.cc" />
-ROOTINC    = $(shell /home/connorpa/Libraries/Root/bin/root-config --incdir)
-ROOTCFLAGS = $(shell /home/connorpa/Libraries/Root/bin/root-config --cflags)
-ROOTLIBS   = $(shell /home/connorpa/Libraries/Root/bin/root-config --libs)
+<flags CXXFLAGS="-g -Wall -DDEBUG -O3 -Wall -std=c++17" />
 
-BOOSTINC = -I/usr/include/boost
-BOOSTLIBS = -L/usr/lib/x86_64-linux-gnu -lboost_system -lboost_program_options -lboost_filesystem
+<bin name="DMRtrends" file="DMRtrends.cc">
+    <use name="root" />
+    <use name="rootgraphics"/>
+    <lib name="stdc++fs" />
+</bin>
 
-CFLAGS=-g -Wall -O3 -std=c++1z -fPIC -DDEBUG
-# -stdc++fs 
+<bin name="validateAlignment" file="validateAlignment.cc,Options.cc,DAG.cc">
+    <use name="boost" />
+    <use name="boost_program_options"/>
+    <use name="boost_system"/>
+    <use name="boost_filesystem"/>
+</bin>
 
-all: validateAlignment getINFO single merge
+<bin name="DMRsingle" file="DMRsingle.cc,Options.cc">
+    <use name="boost" />
+    <use name="boost_program_options"/>
+    <use name="boost_system"/>
+    <use name="boost_filesystem"/>
+</bin>
 
-validateAlignment: validateAlignment.o Options.o DAG.o
-	g++ ${CFLAGS} $^ $(BOOSTLIBS) -o $@
+<bin name="DMRmerge" file="DMRmerge.cc,Options.cc">
+    <use name="boost" />
+    <use name="boost_program_options"/>
+    <use name="boost_system"/>
+    <use name="boost_filesystem"/>
+</bin>
 
-single: single.o Options.o toolbox.h
-	g++ ${CFLAGS} $^ $(BOOSTLIBS) -o $@
-
-merge: merge.o Options.o toolbox.h
-	g++ ${CFLAGS} $^ $(BOOSTLIBS) -o $@
-
-getINFO: getINFO.o Options.o
-	g++ ${CFLAGS} $^ $(BOOSTLIBS) -o $@
-
-lib%.so: %.cc
-	g++ ${CFLAGS} $(BOOSTINC) -shared $^ $(BOOSTLIBS) -o $@
-
-%.o: %.cc 
-	g++ $(CFLAGS) $(BOOSTINC) -c $^ -o $@  
-
-clean: 
-	rm -f *.pdf *.so *.o *.root 
-
-test:
-	@rm -rf MyLFS/* TheValidation
-	@./validateAlignment -v config.info
-
-.PHONY: all clean
+<bin name="getINFO" file="getINFO.cc,Options.cc">
+    <use name="boost" />
+    <use name="boost_program_options"/>
+    <use name="boost_system"/>
+    <use name="boost_filesystem"/>
+</bin>

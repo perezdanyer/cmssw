@@ -26,6 +26,7 @@ int single (int argc, char * argv[])
     pt::ptree alignment = main_tree.get_child("alignment");
     pt::ptree validation = main_tree.get_child("validation");
 
+    // just dump the content, to show that it can be used
     dump(alignment);
     dump(validation);
 
