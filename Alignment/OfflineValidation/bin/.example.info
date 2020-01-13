@@ -1,5 +1,5 @@
 name TheValidation
-LFS /home/connorpa/Exercices/AllInOneConfig/MyLFS
+LFS /afs/cern.ch/work/p/paconnor/example
 condor default.sub
 
 alignments
