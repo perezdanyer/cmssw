@@ -225,13 +225,15 @@ DAG::DAG
 
 fs::path DAG::CopyExe (fs::path Exec, fs::path OutDir) const
 {
+    fs::path exec(OutDir / Exec);
+    if (fs::exists(exec)) return exec;
+
     cout << "Copying the executable" << endl;
     fs::create_directories(OutDir);
     static const fs::path execDir = CMSSW_BASE / "bin" / SCRAM_ARCH;
     cout << "Copying " << Exec << " from " << execDir << " to " << OutDir << endl;
     if (!fs::exists(execDir)) throw ConfigError("Unable to find the directory containing the executables");
-    fs::path original(execDir / Exec),
-             exec(OutDir / Exec);
+    fs::path original(execDir / Exec);
     fs::copy(original, exec);
     return exec;
 }

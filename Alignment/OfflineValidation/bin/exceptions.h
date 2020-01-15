@@ -32,7 +32,7 @@ public:
 inline std::string colorify (std::string s)
 {
     const char * red = "\x1B[31m", /** green = "\x1B[32m",*/ * black = "\x1B[30m";
-    return red + s + black;
+    return red + s /*+ black*/; // TODO: clarify colours...
 }
 
 template<int FUNC(int, char **)> int exceptions (int argc, char * argv[])

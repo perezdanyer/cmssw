@@ -1,6 +1,6 @@
 name TheValidation
 LFS /afs/cern.ch/work/p/paconnor/example
-condor default.sub
+;condor default.sub
 
 alignments
 {
@@ -35,42 +35,42 @@ alignments
         title EOY17
     }
 
-    MC17
-    {
-        globaltag 94X_mc2_scenario_v42
-        color kGreen+2
-        style 2102
-        title MC17
-        files
-        {
-            DMR
-            {
-                single
-                {
-                    TheDataIsoMu /path/to/rootfile
-                }
-            }
-        }
-    }
+    ;MC17
+    ;{
+    ;    globaltag 94X_mc2_scenario_v42
+    ;    color kGreen+2
+    ;    style 2102
+    ;    title MC17
+    ;    files
+    ;    {
+    ;        DMR
+    ;        {
+    ;            single
+    ;            {
+    ;                TheDataIsoMu /path/to/rootfile
+    ;            }
+    ;        }
+    ;    }
+    ;}
 }
 
 validations
 {
-    GCP
-    {  
-        MyFirstComparison
-        {
-            reference EOY17
-            test UL17
-            IOV "123456 234567"
-        }
-        The2ndComparison
-        {
-            reference UL17
-            test EOY17
-            IOV "123456 234567"
-        }
-    }
+    ;GCP
+    ;{  
+    ;    MyFirstComparison
+    ;    {
+    ;        reference EOY17
+    ;        test UL17
+    ;        IOV "123456 234567"
+    ;    }
+    ;    The2ndComparison
+    ;    {
+    ;        reference UL17
+    ;        test EOY17
+    ;        IOV "123456 234567"
+    ;    }
+    ;}
 
     DMR
     {
@@ -99,18 +99,7 @@ validations
                 trackcollection ALCARECOTkAlMuonIsolated
                 magneticfield true                      
                 IOV "123456 234567 345678"
-                condor nextweek.sub
-            }
-            MyMCisoMuValidation
-            {
-                alignments MC17
-                maxevents 2000000                       
-                maxtracks 1800000                       
-                maxhits 300                             
-                minhits 15                              
-                dataset MC_Filename_cff.py
-                trackcollection ALCARECOTkAlMuonIsolated
-                magneticfield true                      
+                ;condor nextweek.sub
             }
         }
 
@@ -118,7 +107,7 @@ validations
         {
             DataMC
             {
-                singles "TheDataIsoMu TheDataIsoMu2 MyMCisoMuValidation"
+                singles "TheDataIsoMu TheDataIsoMu2"
                 legendoptions mean
                 usefit false
                 curves plain

@@ -6,6 +6,7 @@
 #include "Options.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/optional.hpp>
 
 using namespace std;
 using namespace AllInOneConfig;
@@ -28,11 +29,13 @@ int merge (int argc, char * argv[])
     pt::ptree validation = main_tree.get_child("validation");
 
     dump(validation);
+
     string single = validation.get<string>("singles");
     cout << '\n' << single << endl;
     for (auto& alignment: alignments) {
-        string file = alignment.second.get<string>("files.DMR.single." + single);
-        cout << alignment.first << '\t' << file << '\n';
+        boost::optional<string> file = alignment.second.get_optional<string>("files.DMR.single." + single);
+        if (!file) break; // I don't want to set up an advanced parser here, it's just a toy
+        cout << alignment.first << '\t' << *file << '\n';
     }
     cout << flush;
 
