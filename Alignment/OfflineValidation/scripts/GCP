@@ -1,0 +1,10 @@
+#!/bin/zsh
+
+config=$1
+
+echo "Hi Marco"
+
+echo "Look, we can also read the tree using the executable 'getINFO'"
+echo "getINFO $config alignments.EOY17.globaltag"
+
+getINFO $config alignments.EOY17.globaltag

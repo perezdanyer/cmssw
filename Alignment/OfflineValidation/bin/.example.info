@@ -56,21 +56,21 @@ alignments
 
 validations
 {
-    ;GCP
-    ;{  
-    ;    MyFirstComparison
-    ;    {
-    ;        reference EOY17
-    ;        test UL17
-    ;        IOV "123456 234567"
-    ;    }
-    ;    The2ndComparison
-    ;    {
-    ;        reference UL17
-    ;        test EOY17
-    ;        IOV "123456 234567"
-    ;    }
-    ;}
+    GCP
+    {  
+        MyFirstComparison
+        {
+            reference EOY17
+            test UL17
+            IOV "123456 234567"
+        }
+        The2ndComparison
+        {
+            reference UL17
+            test EOY17
+            IOV "123456 234567"
+        }
+    }
 
     DMR
     {
