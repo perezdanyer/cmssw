@@ -2,8 +2,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include <experimental/filesystem>
-
+#include <boost/filesystem.hpp>
 #include <boost/version.hpp>
 #include <boost/program_options.hpp>
 
@@ -34,15 +33,21 @@ void set_silent (bool flag)
     if ( flag) cerr.setstate(ios_base::failbit); 
 }
 
-ValidationProgramOptions::ValidationProgramOptions () :
+////////////////////////////////////////////////////////////////////////////////
+/// Constructor for PO:
+/// - contains a parser for the help itself
+/// - contains a parser for the options (unless help was displayed)
+/// - and contains a hidden/position option to get the JSON config file
+Options::Options (bool getter) :
     help{"Helper"}, desc{"Options"}, hide{"Hidden"}
 {
     // define all options
     help.add_options()
         ("help,h", "Help screen")
-        ("example,e", "Print example of config in INFO format")
+        ("example,e", "Print example of config in JSON format")
         ("tutorial,t", "Explain how to use the command");
-    // then (except for getINFO) the running options
+
+    // then (except for getJSON) the running options
     if (!getter) 
         desc.add_options()
             ("dry,d", po::bool_switch(&dry)->default_value(false), "Set up everything, but don't run anything")
@@ -51,7 +56,7 @@ ValidationProgramOptions::ValidationProgramOptions () :
 
     // and finally / most importantly, the config file as apositional argument
     hide.add_options()
-        ("config,c", po::value<string>(&config)->required()->notifier(check_file), "INFO config file");
+        ("config,c", po::value<string>(&config)->required()->notifier(check_file), "JSON config file");
     pos_hide.add("config", 1); // 1 means one (positional) argument
     if (getter) {
         // in case of getIMFO, adding a second positional argument for the key
@@ -96,7 +101,8 @@ void ValidationProgramOptions::helper (int argc, char * argv[])
     po::notify(vm); // necessary for config to be given the value from the cmd line
 
     if (vm.count("help")) {
-        cout << "Basic syntax:\n  " << argv[0] << " config.info\n"
+        fs::path executable = argv[0];
+        cout << "Basic syntax:\n  " << executable.filename().string() << " config.JSON\n"
              << options << '\n'
              << "Boost " << BOOST_LIB_VERSION << endl;
         exit(EXIT_SUCCESS);
@@ -106,8 +112,8 @@ void ValidationProgramOptions::helper (int argc, char * argv[])
         static const char * bold = "\e[1m", * normal = "\e[0m";
         cout << bold << "Example of HTC condor config:" << normal << '\n' << endl;
         system("cat $CMSSW_BASE/src/Alignment/OfflineValidation/bin/.default.sub");
-        cout << '\n' << bold << "Example of INFO config (for `validateAlignment` only):" << normal << '\n' << endl;
-        system("cat $CMSSW_BASE/src/Alignment/OfflineValidation/bin/.example.info");
+        cout << '\n' << bold << "Example of JSON config (for `validateAlignment` only):" << normal << '\n' << endl;
+        system("cat $CMSSW_BASE/src/Alignment/OfflineValidation/bin/.example.JSON");
         cout << '\n' << bold << "NB: " << normal << " for examples of inputs to GCPs, DMRs, etc., just make a dry run of the example" << endl;
         exit(EXIT_SUCCESS);
     }

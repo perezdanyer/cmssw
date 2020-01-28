@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <string>
 #include <iostream>
 
 #include "exceptions.h"
@@ -6,6 +7,8 @@
 #include "Options.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/optional.hpp>
 
 using namespace std;
@@ -22,7 +25,7 @@ int merge (int argc, char * argv[])
     options.parser(argc, argv);
 
     pt::ptree main_tree;
-    pt::read_info(options.config, main_tree);
+    pt::read_json(options.config, main_tree);
 
     pt::ptree alignments = main_tree.get_child("alignments");
     

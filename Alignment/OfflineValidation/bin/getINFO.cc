@@ -1,11 +1,12 @@
 #include <cstdlib>
 #include <iostream>
+#include <string>
 
 #include "exceptions.h"
 #include "Options.h"
 
 #include <boost/filesystem.hpp>
-#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
 using namespace std;
@@ -22,7 +23,7 @@ int getINFO (int argc, char * argv[])
     options.parser(argc, argv);
 
     pt::ptree tree;
-    pt::read_info(options.config, tree);
+    pt::read_json(options.config, tree);
 
     // TODO: use regex on options.key
     //       -> if several entries are possible, return them all?

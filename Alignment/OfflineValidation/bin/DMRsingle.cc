@@ -6,6 +6,8 @@
 #include "Options.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 using namespace std;
 using namespace AllInOneConfig;
@@ -21,7 +23,7 @@ int single (int argc, char * argv[])
     options.parser(argc, argv);
 
     pt::ptree main_tree;
-    pt::read_info(options.config, main_tree);
+    pt::read_json(options.config, main_tree);
 
     pt::ptree alignment = main_tree.get_child("alignment");
     pt::ptree validation = main_tree.get_child("validation");

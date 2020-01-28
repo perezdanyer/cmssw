@@ -1,11 +1,16 @@
 #include <cstdlib>
 #include <iostream>
+#include <vector>
+
+#include <TString.h>
 
 #include "exceptions.h"
 #include "toolbox.h"
 #include "Options.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include "GeometryComparisonPlotter.h"
 
@@ -193,7 +198,7 @@ int GCP (int argc, char * argv[])
     options.parser(argc, argv);
 
     pt::ptree main_tree;
-    pt::read_info(options.config, main_tree);
+    pt::read_json(options.config, main_tree);
 
     // TODO
     // - comments à la doxygen
