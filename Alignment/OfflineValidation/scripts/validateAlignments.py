@@ -454,6 +454,7 @@ class ValidationJobMultiIOV(ValidationBase):
 
 import argparse
 import Alignment.OfflineValidation.TkAlAllInOneTool.GCP as GCP
+import Alignment.OfflineValidation.TkAlAllInOneTool.DMR as DMR
 
 
 def parser():
@@ -764,6 +765,11 @@ To merge the outcome of all validation procedures run TkAlMerge.sh in your valid
         if validation == "GCP":
             jobs.extend(GCP.GCP(config, validationDir))
             subprocess.call(["cp", "-f", "{}/GCP".format(binDir), exeDir])
+
+        if validation == "DMR":
+            jobs.extend(DMR.DMR(config, validationDir))
+            subprocess.call(["cp", "-f", "{}/DMRsingle".format(binDir), exeDir])
+            subprocess.call(["cp", "-f", "{}/DMRmerge".format(binDir), exeDir])
 
      #  else:
        #     raise Exception("Unkown validation method: {}".format(validation)) 

@@ -43,7 +43,7 @@
         "DMR": {
             "single": {
                 "TheDataIsoMu": {
-                    "alignments": "UL17 EOY17",
+                    "alignments": ["UL17", "EOY17"],
                     "maxevents": "2000000",
                     "maxtracks": "1800000",
                     "maxhits": "300",
@@ -51,10 +51,10 @@
                     "dataset": "Data_Filename_*_cff.py",
                     "trackcollection": "ALCARECOTkAlMuonIsolated",
                     "magneticfield": "true",
-                    "IOV": "123456 345678"
+                    "IOV": ["123456", "345678"]
                 },
                 "TheDataIsoMu2": {
-                    "alignments": "UL17 EOY17",
+                    "alignments": ["UL17", "EOY17"],
                     "maxevents": "2000000",
                     "maxtracks": "1800000",
                     "maxhits": "300",
@@ -62,7 +62,7 @@
                     "dataset": "Data_Filename_*_cff.py",
                     "trackcollection": "ALCARECOTkAlMuonIsolated",
                     "magneticfield": "true",
-                    "IOV": "123456 234567 345678"
+                    "IOV": ["123456", "234567", "345678"]
                 }
             },
             "merge": {

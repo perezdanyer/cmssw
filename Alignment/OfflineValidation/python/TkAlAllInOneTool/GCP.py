@@ -1,17 +1,19 @@
+import copy
+
 def GCP(config, validationDir):
     ##List with all jobs
     jobs = []
 
     for comparison in config["validations"]["GCP"]:
         for IOV in config["validations"]["GCP"][comparison]["IOV"]:
-            ##Create directory for each IOV and comparison you want to make
+            ##Work directory for each IOV
             workDir = "{}/GCP/{}/{}".format(validationDir, comparison, IOV)
 
             ##Write local config
             local = {}
             local["output"] = "{}/{}".format(config["LFS"], workDir)
-            local["aligments"] = config["alignments"]
-            local["validation"] = config["validations"]["GCP"][comparison]
+            local["aligments"] = copy.deepcopy(config["alignments"])
+            local["validation"] = copy.deepcopy(config["validations"]["GCP"][comparison])
             local["validation"]["IOV"] = IOV
 
             ##Write job info
