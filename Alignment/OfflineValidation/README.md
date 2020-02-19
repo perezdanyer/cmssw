@@ -25,5 +25,8 @@ then one can just test locally any step, or modify any parameter before simply s
  - documentation (this README)
    - tutorial
    - instructions for developers
+ - details
+   - copy condor config like the executable (or similar) and use soft links instead of hard copy
+   - make dry and local options (i.e. just don't run any condor command)
 (list from mid-January)
 
