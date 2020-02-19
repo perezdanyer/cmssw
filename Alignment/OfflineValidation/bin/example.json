@@ -67,23 +67,23 @@
             },
             "merge": {
                 "DataMC": {
-                    "singles": "TheDataIsoMu TheDataIsoMu2",
-                    "legendoptions": "mean",
+                    "singles": ["TheDataIsoMu", "TheDataIsoMu2"],
+                    "legendoptions": ["mean"],
                     "usefit": "false",
-                    "curves": "plain",
+                    "curves": ["plain"],
                     "customrighttitle": "IOV"
                 },
                 "UL": {
-                    "singles": "TheDataIsoMu",
-                    "legendoptions": "mean rms",
+                    "singles": ["TheDataIsoMu"],
+                    "legendoptions": ["mean", "rms"],
                     "usefit": "false",
-                    "curves": "plain split layers",
+                    "curves": ["plain", "split", "layers"],
                     "customrighttitle": "IOV"
                 }
             },
             "trend": {
                 "UL": {
-                    "merge": "UL",
+                    "merge": ["UL"],
                     "year": "2017",
                     "pixelupdatelist": "true",
                     "showpixelupdate": "true",
