@@ -781,7 +781,7 @@ To merge the outcome of all validation procedures run TkAlMerge.sh in your valid
         for job in jobs:
             ##Create job dir and create symlink for executable
             subprocess.call(["mkdir", "-p", job["dir"]])
-            subprocess.call(["ln", "-s", "{}/{}".format(exeDir, job["exe"]), job["dir"]])
+            subprocess.call(["ln", "-sf", "{}/{}".format(exeDir, job["exe"]), job["dir"]])
 
             ##Write local config file
             with open("{}/validation.json".format(job["dir"]), "w") as jsonFile:
