@@ -1,8 +1,8 @@
 universe = vanilla
 getenv = True
-transfer_input_files = validation.info
+transfer_input_files = validation.json
 executable = ./$(exec)
-arguments = "-v validation.info"
+arguments = "validation.json"
 output = condor.out
 error  = condor.err
 log    = condor.log
