@@ -11,7 +11,7 @@ def GCP(config, validationDir):
 
             ##Write local config
             local = {}
-            local["output"] = "{}/{}".format(config["LFS"], workDir)
+            local["output"] = "{}/{}/{}/{}".format(config["LFS"], config["name"], comparison, IOV)
             local["aligments"] = copy.deepcopy(config["alignments"])
             local["validation"] = copy.deepcopy(config["validations"]["GCP"][comparison])
             local["validation"]["IOV"] = IOV
