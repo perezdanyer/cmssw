@@ -4,6 +4,7 @@ from __future__ import print_function
 from future.utils import lmap
 import subprocess
 import json
+import yaml
 import os
 import argparse
 import Alignment.OfflineValidation.TkAlAllInOneTool.GCP as GCP
@@ -11,7 +12,7 @@ import Alignment.OfflineValidation.TkAlAllInOneTool.DMR as DMR
 
 def parser():
     parser = argparse.ArgumentParser(description = "AllInOneTool for validation of the tracker alignment", formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("config", metavar='config.json', type=str, action="store", help="Global AllInOneTool json config")
+    parser.add_argument("config", metavar='config', type=str, action="store", help="Global AllInOneTool config (json/yaml format)")
 
     return parser.parse_args()
 
@@ -19,10 +20,17 @@ def main():
     ##Read parser arguments
     args = parser()
 
-    ##Read in AllInOne json config
-    with open(args.config, "r") as jsonFile:
-        config = json.load(jsonFile)
+    ##Read in AllInOne config dependent on what format you choose
+    with open(args.config, "r") as configFile:
+        if args.config.split(".")[-1] == "json":
+            config = json.load(configFile)
 
+        elif args.config.split(".")[-1] == "yaml":
+            config = yaml.load(configFile, Loader=yaml.Loader)
+
+        else:
+            raise Exception("Unknown config extension '{}'. Please use json/yaml format!".format(args.config.split(".")[-1])) 
+        
     ##Create working directory
     validationDir = "{}/src/{}".format(os.environ["CMSSW_BASE"], config["name"])
     exeDir = "{}/executables".format(validationDir)
@@ -46,7 +54,7 @@ def main():
             subprocess.call(["cp", "-f", "{}/DMRmerge".format(binDir), exeDir])
 
         else:
-            raise Exception("Unkown validation method: {}".format(validation)) 
+            raise Exception("Unknown validation method: {}".format(validation)) 
             
     ##Create dir for DAG file and loop over all jobs
     subprocess.call(["mkdir", "-p", "{}/DAG/".format(validationDir)])
