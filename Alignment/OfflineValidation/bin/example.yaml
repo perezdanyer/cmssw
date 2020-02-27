@@ -1,0 +1,98 @@
+LFS: /afs/cern.ch/work/p/paconnor/example
+alignments:
+    EOY17:
+        color: kRed
+        globaltag: 94X_dataRun2_ReReco_EOY17_v2
+        style: 2101
+        title: EOY17
+    UL17:
+        color: kBlue
+        conditions:
+            TrackerAlignmentRcd:
+                connect: frontier://FrontierProd/CMS_CONDITIONS
+                label: 
+                tag: TrackerAlignment_2017_ultralegacy_v1
+            TrackerSurfaceDeformationRcd:
+                connect: frontier://FrontierProd/CMS_CONDITIONS
+                label: 
+                tag: TrackerSurfaceDeformations_2017_ultralegacy_v1
+        globaltag: 106X_dataRun2_v4
+        style: 2101
+        title: UL17
+name: TheValidation
+validations:
+    DMR:
+        merge:
+            DataMC:
+                curves:
+                - plain
+                customrighttitle: IOV
+                legendoptions:
+                - mean
+                singles:
+                - TheDataIsoMu
+                - TheDataIsoMu2
+                usefit: false
+            UL:
+                curves:
+                - plain
+                - split
+                - layers
+                customrighttitle: IOV
+                legendoptions:
+                - mean
+                - rms
+                singles:
+                - TheDataIsoMu
+                usefit: false
+        single:
+            TheDataIsoMu:
+                IOV:
+                - 123456
+                - 345678
+                alignments:
+                - UL17
+                - EOY17
+                dataset: Data_Filename_*_cff.py
+                magneticfield: true
+                maxevents: 2000000
+                maxhits: 300
+                maxtracks: 1800000
+                minhits: 15
+                trackcollection: ALCARECOTkAlMuonIsolated
+            TheDataIsoMu2:
+                IOV:
+                - 123456
+                - 234567
+                - 345678
+                alignments:
+                - UL17
+                - EOY17
+                dataset: Data_Filename_*_cff.py
+                magneticfield: true
+                maxevents: 2000000
+                maxhits: 300
+                maxtracks: 1800000
+                minhits: 15
+                trackcollection: ALCARECOTkAlMuonIsolated
+        trend:
+            UL:
+                merge:
+                - UL
+                pixelupdatelist: true
+                showlumi: true
+                showpixelupdate: true
+                year: 2017
+    GCP:
+        MyFirstComparison:
+            IOV:
+            - 123456
+            - 234567
+            reference: EOY17
+            test: UL17
+        The2ndComparison:
+            IOV:
+            - 123456
+            - 234567
+            reference: UL17
+            test: EOY17
