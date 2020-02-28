@@ -98,7 +98,7 @@ def main():
 
             if job["dependencies"]:
                 dag.write("\n")
-                dag.write("PARENT {} CHILD {}".format(job["name"], " ".join(job["dependencies"])))
+                dag.write("PARENT {} CHILD {}".format(" ".join(job["dependencies"]), job["name"]))
 
             dag.write("\n\n")
 
