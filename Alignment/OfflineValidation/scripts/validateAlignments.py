@@ -93,12 +93,14 @@ def main():
             subprocess.call(["cp", "-f", defaultSub, "{}/condor.sub".format(job["dir"])] + (["-v"] if args.verbose else []))
 
             ##Write command in dag file
-            dag.write("JOB {} condor.sub\n".format(job["name"]))
-            dag.write("DIR {} {} \n".format(job["name"], job["dir"]))
-            dag.write('VARS {} exec="{}"\n'.format(job["name"], job["exe"]))
+            dag.write("JOB {} condor.sub DIR {}\n".format(job["name"], job["dir"]))
+            dag.write('VARS {} exec="{}"'.format(job["name"], job["exe"]))
 
             if job["dependencies"]:
-                dag.write("PARENT {} CHILD {}\n".format(job["name"], " ".join(job["dependencies"])))
+                dag.write("\n")
+                dag.write("PARENT {} CHILD {}".format(job["name"], " ".join(job["dependencies"])))
+
+            dag.write("\n\n")
 
     if args.verbose:
         print("DAGman config has been written: '{}'".format("{}/DAG/dagFile".format(validationDir)))            
