@@ -48,12 +48,18 @@ def main():
             raise Exception("Unknown config extension '{}'. Please use json/yaml format!".format(args.config.split(".")[-1])) 
         
     ##Create working directory
-    validationDir = "{}/src/{}".format(os.environ["CMSSW_BASE"], config["name"])
+    if os.path.isdir(config["name"]):
+	raise Exception("Validation directory '{}' already exists! Please choose another name for your directory.".format(config["name"]))	
+
+    validationDir = config["name"]
     exeDir = "{}/executables".format(validationDir)
 
     binDir = "{}/bin/{}".format(os.environ["CMSSW_BASE"], os.environ["SCRAM_ARCH"])
     subprocess.call(["mkdir", "-p", validationDir] + ((["-v"] if args.verbose else [])))
     subprocess.call(["mkdir", "-p", exeDir] + (["-v"] if args.verbose else []))
+
+    ##Copy AllInOne config in working dir in json/yaml format
+    subprocess.call(["cp", "-f", args.config, validationDir] + (["-v"] if args.verbose else []))
 
     ##List with all jobs
     jobs = []
