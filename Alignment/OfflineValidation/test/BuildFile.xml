@@ -1,17 +1,19 @@
 <environment>
-  <bin name="testAlignmentOfflineValidation" file="testAlignmentOfflineValidation.cpp">
+  <bin file="testAlignmentOfflineValidation.cpp" name="validateAlignments">
+    <flags TEST_RUNNER_ARGS=" /bin/bash Alignment/OfflineValidation/test validateAlignments.sh"/>
+    <use name="FWCore/Utilities"/>
+  </bin>
+  <bin file="testAlignmentOfflineValidation.cpp" name="PVsingle">
     <flags TEST_RUNNER_ARGS=" /bin/bash Alignment/OfflineValidation/test test_all.sh"/>
     <use name="FWCore/Utilities"/>
   </bin>
-
   <bin file="testPVPlotting.cpp">
-    <flags PRE_TEST="testAlignmentOfflineValidation"/>
+    <flags PRE_TEST="PVsingle"/>
     <use name="rootmath"/>
     <use name="roothistmatrix"/>
     <use name="rootgraphics"/>
     <use name="Alignment/OfflineValidation"/>
   </bin>
-
   <bin name="testTrackAnalysis" file="testTrackAnalyzers.cc">
     <use name="FWCore/TestProcessor"/>
     <use name="catch2"/>
