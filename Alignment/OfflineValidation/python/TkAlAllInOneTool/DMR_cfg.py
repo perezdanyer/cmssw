@@ -1,7 +1,12 @@
 import FWCore.ParameterSet.Config as cms
+import FWCore.PythonUtilities.LumiList as LumiList
+
 from FWCore.ParameterSet.VarParsing import VarParsing
 
 import json
+
+##Define process
+process = cms.Process("OfflineValidator")
 
 ##Argument parsing
 options = VarParsing()
@@ -16,17 +21,35 @@ valiMode = "StandAlone"
 with open(options.config, "r") as configFile:
     config = json.load(configFile)
 
-##Load dataset
-process.load(config["validation"]["dataset"])
+##Read filenames from given TXT file
+readFiles = []
+
+with open(config["validation"]["dataset"], "r") as datafiles:
+    for fileName in datafiles.readlines():
+        readFiles.append(fileName.replace("\n", ""))
+
+##Get good lumi section
+if "goodlumi" in config["validation"]:
+    goodLumiSecs = cms.untracked.VLuminosityBlockRange(LumiList.LumiList(filename = config["validation"]["goodlumi"]).getCMSSWString().split(','))
+
+else:
+    goodLumiSecs = cms.untracked.VLuminosityBlockRange()
+
+##Define input source
+process.source = cms.Source("PoolSource",
+                            fileNames = cms.untracked.vstring(readFiles),
+                         #   lumisToProcess = goodLumiSecs,
+)
+
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(200000)
+    input = cms.untracked.int32(config["validation"].get("maxevents", 2000000))
 )
 
 ##Bookeeping
 process.options = cms.untracked.PSet(
    wantSummary = cms.untracked.bool(False),
-   Rethrow = cms.untracked.vstring("ProductNotFound")
-   fileMode  =  cms.untracked.string('NOMERGE')
+   Rethrow = cms.untracked.vstring("ProductNotFound"),
+   fileMode  =  cms.untracked.string('NOMERGE'),
 )
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
@@ -38,17 +61,17 @@ process.MessageLogger.statistics.append('cout')
 process.load("RecoVertex.BeamSpotProducer.BeamSpot_cff")
 process.load("Configuration.Geometry.GeometryDB_cff")
 process.load('Configuration.StandardSequences.Services_cff')
-process.load("Configuration.StandardSequences.MagneticField._cff")
+process.load("Configuration.StandardSequences.MagneticField_cff")
 
 ##Track fitting
 import Alignment.CommonAlignment.tools.trackselectionRefitting as trackselRefit
 process.seqTrackselRefit = trackselRefit.getSequence(process, 
-                                                     config["validation"]["trackcollection"]
+                                                     config["validation"]["trackcollection"],
                                                      isPVValidation = False, 
-                                                     TTRHBuilder = config["validation"].get("tthrbuilder", "WithAngleAndTemplate")
+                                                     TTRHBuilder = config["validation"].get("tthrbuilder", "WithAngleAndTemplate"),
                                                      usePixelQualityFlag = False,
                                                      openMassWindow = False,
-                                                     cosmicsDecoMode = ,
+                                                     cosmicsDecoMode = True,
                                                      cosmicsZeroTesla = False,
                                                      momentumConstraint = None,
                                                      cosmicTrackSplitting = False,
@@ -58,7 +81,7 @@ process.seqTrackselRefit = trackselRefit.getSequence(process,
 #Global tag
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, config["alignment"]["globaltag"])
+process.GlobalTag = GlobalTag(process.GlobalTag, config["alignment"].get("globaltag", "106X_dataRun2_v27"))
 
 ##Load conditions if wished
 if "conditions" in config["alignment"]:
@@ -90,7 +113,7 @@ process.noScraping= cms.EDFilter("FilterOutScraping",
                                  applyfilter = cms.untracked.bool(True),
                                  debugOn = cms.untracked.bool(False),
                                  numtrack = cms.untracked.uint32(10),
-                                 thresh = cms.untracked.double(0.25)
+                                 thresh = cms.untracked.double(0.25),
 )
 
 ##Offline validation analyzer
@@ -103,13 +126,13 @@ process.TrackerOfflineValidation = cms.EDAnalyzer("TrackerOfflineValidation",
     moduleLevelHistsTransient = config["validation"].get("moduleLevelHistsTransient", cms.bool(False if valiMode == "DQM" else True)), 
     moduleLevelProfiles       = config["validation"].get("moduleLevelProfiles", cms.bool(False if valiMode == "DQM" else True)),
     localCoorProfilesOn       = cms.bool(False),
-    stripYResiduals           = config["validation"].get("stripYResiduals", False)
+    stripYResiduals           = cms.bool(config["validation"].get("stripYResiduals", False)),
     useFwhm                   = cms.bool(True),
     useFit                    = cms.bool(False),  # Unused in DQM mode, where it has to be specified in TrackerOfflineValidationSummary
     useCombinedTrajectory     = cms.bool(False),
     useOverflowForRMS         = cms.bool(False),
-    maxTracks                 = config["validation"].get("maxtracks", 0)
-    chargeCut                 = config["validation"].get("chargecut", 0)
+    maxTracks                 = cms.uint64(config["validation"].get("maxtracks", 0)),
+    chargeCut                 = cms.int32(config["validation"].get("chargecut", 0)),
     # Normalized X Residuals, normal local coordinates (Strip)
     TH1NormXResStripModules = cms.PSet(
         Nbinx = cms.int32(100), xmin = cms.double(-5.0), xmax = cms.double(5.0)
@@ -178,19 +201,19 @@ process.TrackerOfflineValidation = cms.EDAnalyzer("TrackerOfflineValidation",
     # X Residuals vs reduced local coordinates (Pixel)
     TProfileYResPixelModules = cms.PSet(
         Nbinx = cms.int32(17), xmin = cms.double(-1.02), xmax = cms.double(1.02)
-    )
+    ),
 )
 
 ##Define sequences depending on validation mode
 if valiMode == "StandAlone":
     ##Output file
-    from PhysicsTools.UtilAlgos.TFileService_cfi import *
-    TFileService = cms.Service("TFileService",
-            fileName = cms.string(config["output"]),
-            closeFileFast = cms.untracked.bool(True)
+
+    process.TFileService = cms.Service("TFileService",
+            fileName = cms.string("{}/DMR.root".format(config["output"])),
+            closeFileFast = cms.untracked.bool(True),
     )
 
-    seqTrackerOfflineValidatione = cms.Sequence(TrackerOfflineValidation)
+    seqTrackerOfflineValidation = cms.Sequence(process.TrackerOfflineValidation)
 
 if valiMode == "DQM":
     TrackerOfflineValidationSummary = cms.EDAnalyzer("TrackerOfflineValidationSummary",
@@ -215,7 +238,7 @@ if valiMode == "DQM":
         ),
    
         # DMR (distribution of median of residuals per module) of Y coordinate (Pixel)
-        TH1DmrYprimePixelModules =5cms.PSet(
+        TH1DmrYprimePixelModules = cms.PSet(
             Nbinx = cms.int32(50), xmin = cms.double(-0.005), xmax = cms.double(0.005)
         )
     )
