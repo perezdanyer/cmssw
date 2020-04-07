@@ -1,6 +1,6 @@
 {
     "name": "TheValidation",
-    "LFS": "\/afs\/cern.ch\/work\/p\/paconnor\/example",
+    "LFS": "/eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/Example",
     "alignments": {
         "UL17": {
             "globaltag": "106X_dataRun2_v4",
@@ -32,12 +32,12 @@
             "MyFirstComparison": {
                 "reference": "EOY17",
                 "test": "UL17",
-                "IOV": ["123456", "234567"]
+                "IOV": ["313041", "315257"],
             },
             "The2ndComparison": {
                 "reference": "UL17",
                 "test": "EOY17",
-                "IOV": ["123456", "234567"]
+                "IOV": ["313041", "315257"],
             }
         },
         "DMR": {
@@ -48,10 +48,11 @@
                     "maxtracks": "1800000",
                     "maxhits": "300",
                     "minhits": "15",
-                    "dataset": "Data_Filename_*_cff.py",
-                    "trackcollection": "ALCARECOTkAlMuonIsolated",
+                    "dataset": "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/skimmed_dataset.txt",
+                    "goodlumi": "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/IOV_Vali_{}.json",
+                    "trackcollection": "ALCARECOTkAlMinBias",
                     "magneticfield": "true",
-                    "IOV": ["123456", "345678"]
+                    "IOV": ["313041", "315257"]
                 },
                 "TheDataIsoMu2": {
                     "alignments": ["UL17", "EOY17"],
@@ -59,10 +60,11 @@
                     "maxtracks": "1800000",
                     "maxhits": "300",
                     "minhits": "15",
-                    "dataset": "Data_Filename_*_cff.py",
-                    "trackcollection": "ALCARECOTkAlMuonIsolated",
+                    "dataset": "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/skimmed_dataset.txt",
+                    "goodlumi": "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/IOV_Vali_{}.json",
+                    "trackcollection": "ALCARECOTkAlMinBias",
                     "magneticfield": "true",
-                    "IOV": ["123456", "234567", "345678"]
+                    "IOV": ["313041", "315257", "315488"],
                 }
             },
             "merge": {

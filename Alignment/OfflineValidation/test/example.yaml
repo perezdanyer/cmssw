@@ -1,4 +1,4 @@
-LFS: /afs/cern.ch/work/p/paconnor/example
+LFS: /eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/Example
 alignments:
     EOY17:
         color: kRed
@@ -48,33 +48,35 @@ validations:
         single:
             TheDataIsoMu:
                 IOV:
-                - 123456
-                - 345678
+                - 313041
+                - 315257
                 alignments:
                 - UL17
                 - EOY17
-                dataset: Data_Filename_*_cff.py
+                dataset: /afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/skimmed_dataset.txt
+                goodlumi: /afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/IOV_Vali_{}.json
                 magneticfield: true
                 maxevents: 2000000
                 maxhits: 300
                 maxtracks: 1800000
                 minhits: 15
-                trackcollection: ALCARECOTkAlMuonIsolated
+                trackcollection: ALCARECOTkAlMinBias
             TheDataIsoMu2:
                 IOV:
-                - 123456
-                - 234567
-                - 345678
+                - 313041
+                - 315257
+                - 315488
                 alignments:
                 - UL17
                 - EOY17
-                dataset: Data_Filename_*_cff.py
+                dataset: /afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/skimmed_dataset.txt
+                goodlumi: /afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/IOV_Vali_{}.json
                 magneticfield: true
                 maxevents: 2000000
                 maxhits: 300
                 maxtracks: 1800000
                 minhits: 15
-                trackcollection: ALCARECOTkAlMuonIsolated
+                trackcollection: ALCARECOTkAlMinBias
         trend:
             UL:
                 merge:
@@ -86,13 +88,13 @@ validations:
     GCP:
         MyFirstComparison:
             IOV:
-            - 123456
-            - 234567
+            - 313041
+            - 315257
             reference: EOY17
             test: UL17
         The2ndComparison:
             IOV:
-            - 123456
-            - 234567
+            - 313041
+            - 315257
             reference: UL17
             test: EOY17
