@@ -85,20 +85,21 @@ process.GlobalTag = GlobalTag(process.GlobalTag, config["alignment"].get("global
 
 ##Load conditions if wished
 if "conditions" in config["alignment"]:
-    for condition in ["alignment"]["conditions"]:
-        setattr(process, "conditionsIn{}".format(condition), CalibTracker.Configuration.Common.PoolDBESSource_cfi.poolDBESSource.clone(
-             connect = cms.string(config["alignment"]["conditions"][condition]["connect"]),
+    from CalibTracker.Configuration.Common.PoolDBESSource_cfi import poolDBESSource
+
+    for condition in config["alignment"]["conditions"]:
+        setattr(process, "conditionsIn{}".format(condition), poolDBESSource.clone(
+             connect = cms.string(str(config["alignment"]["conditions"][condition]["connect"])),
              toGet = cms.VPSet(
                         cms.PSet(
-                                 record = cms.string(condition),
-                                 tag = cms.string(config["alignment"]["conditions"][condition]["tag"])
+                                 record = cms.string(str(condition)),
+                                 tag = cms.string(str(config["alignment"]["conditions"][condition]["tag"]))
                         )
                      )
             )
         )
 
         setattr(process, "prefer_conditionsIn{}".format(condition), cms.ESPrefer("PoolDBESSource", "conditionsIn{}".format(condition)))
-
 
 ##Filter good events
 process.oneGoodVertexFilter = cms.EDFilter("VertexSelector",
