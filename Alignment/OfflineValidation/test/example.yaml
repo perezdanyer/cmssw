@@ -1,12 +1,12 @@
 LFS: /eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/Example
 alignments:
     EOY17:
-        color: kRed
+        color: 0
         globaltag: 94X_dataRun2_ReReco_EOY17_v2
         style: 2101
         title: EOY17
     UL17:
-        color: kBlue
+        color: 1
         conditions:
             TrackerAlignmentRcd:
                 connect: frontier://FrontierProd/CMS_CONDITIONS
@@ -24,6 +24,9 @@ validations:
     DMR:
         merge:
             DataMC:
+                methods:
+                - median
+                - rms
                 curves:
                 - plain
                 customrighttitle: IOV
@@ -33,7 +36,12 @@ validations:
                 - TheDataIsoMu
                 - TheDataIsoMu2
                 usefit: false
+                minimum: 15
+
             UL:
+                methods:
+                - median
+                - rms
                 curves:
                 - plain
                 - split
@@ -45,6 +53,8 @@ validations:
                 singles:
                 - TheDataIsoMu
                 usefit: false
+                minimum: 15
+
         single:
             TheDataIsoMu:
                 IOV:
@@ -56,10 +66,8 @@ validations:
                 dataset: /afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/skimmed_dataset.txt
                 goodlumi: /afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/IOV_Vali_{}.json
                 magneticfield: true
-                maxevents: 2000000
-                maxhits: 300
+                maxevents: 2000
                 maxtracks: 1800000
-                minhits: 15
                 trackcollection: ALCARECOTkAlMinBias
             TheDataIsoMu2:
                 IOV:
@@ -72,10 +80,8 @@ validations:
                 dataset: /afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/skimmed_dataset.txt
                 goodlumi: /afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/IOV_Vali_{}.json
                 magneticfield: true
-                maxevents: 2000000
-                maxhits: 300
+                maxevents: 2000
                 maxtracks: 1800000
-                minhits: 15
                 trackcollection: ALCARECOTkAlMinBias
         trend:
             UL:
