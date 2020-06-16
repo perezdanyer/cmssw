@@ -58,8 +58,8 @@ int merge (int argc, char * argv[]){
     filesAndLabels.Remove(filesAndLabels.Length()-1);
 
     //Do file comparisons
-    CompareAlignments comparer;
-   // comparer.doComparison(filesAndLabels);
+    CompareAlignments comparer(main_tree.get<std::string>("output"));
+    comparer.doComparison(filesAndLabels);
 
     //Create plots
     TkAlStyle::legendheader = "";
@@ -82,9 +82,9 @@ int merge (int argc, char * argv[]){
     plotter.setOutputDir(main_tree.get<std::string>("output"));
     plotter.useFitForDMRplots(false);
     plotter.setTreeBaseDir();
-    plotter.plotDMR(getVecTokenized(validation, "methods", ","), validation.get<int>("minimum"), ""); //;getVecTokenized(validation, "curves", ","));
+    plotter.plotDMR(getVecTokenized(validation, "methods", ","), validation.get<int>("minimum"), getVecTokenized(validation, "curves", ","));
     plotter.plotSurfaceShapes("TrackerOfflineValidation");
-    plotter.plotChi2("result.root");
+    plotter.plotChi2((main_tree.get<std::string>("output") + "/result.root").c_str());
 
     vector<int> moduleids; // = {.oO[moduleid]Oo.};
     for (auto moduleid : moduleids) {

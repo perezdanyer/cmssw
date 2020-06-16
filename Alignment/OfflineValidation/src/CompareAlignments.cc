@@ -9,7 +9,7 @@ void CompareAlignments::doComparison(TString namesandlabels, TString legendheade
   gStyle->SetOptStat(111110);
   gStyle->SetOptTitle(0);
 
-  Target = TFile::Open( "result.root", "RECREATE" );
+  Target = TFile::Open((outPath + "/result.root").c_str(), "RECREATE" );
   FileList = new TList();
   LabelList = new TList();
 

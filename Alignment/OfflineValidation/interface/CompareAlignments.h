@@ -35,13 +35,15 @@ class CompareAlignments{
         std::vector<int> theStyles;
         std::vector<int> phases;
 
+        std::string outPath;
+
         void MergeRootfile( TDirectory *target, TList *sourcelist, TList *labellist, bool bigtext );
         void nicePad(Int_t logx,Int_t logy);
         void SetMinMaxRange(TObjArray *hists);
         void ColourStatsBoxes(TObjArray *hists);
 
     public:
-        CompareAlignments(){}
+        CompareAlignments(const std::string& outPath): outPath(outPath){}
         void doComparison(TString namesandlabels, TString legendheader = "", TString lefttitle = "", TString righttitle = "", bool bigtext = false);
 };
 
