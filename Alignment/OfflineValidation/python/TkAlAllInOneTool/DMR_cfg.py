@@ -4,6 +4,7 @@ import FWCore.PythonUtilities.LumiList as LumiList
 from FWCore.ParameterSet.VarParsing import VarParsing
 
 import json
+import os
 
 ##Define process
 process = cms.Process("OfflineValidator")
@@ -30,7 +31,12 @@ with open(config["validation"]["dataset"], "r") as datafiles:
 
 ##Get good lumi section
 if "goodlumi" in config["validation"]:
-    goodLumiSecs = cms.untracked.VLuminosityBlockRange(LumiList.LumiList(filename = config["validation"]["goodlumi"]).getCMSSWString().split(','))
+    if os.path.isfile(config["validation"]["goodlumi"]):
+        goodLumiSecs = cms.untracked.VLuminosityBlockRange(LumiList.LumiList(filename = config["validation"]["goodlumi"]).getCMSSWString().split(','))
+
+    else:
+        print("Does not exist: {}. Continue without good lumi section file.")
+        goodLumiSecs = cms.untracked.VLuminosityBlockRange()
 
 else:
     goodLumiSecs = cms.untracked.VLuminosityBlockRange()
@@ -38,7 +44,7 @@ else:
 ##Define input source
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(readFiles),
-                         #   lumisToProcess = goodLumiSecs,
+                            lumisToProcess = goodLumiSecs,
 )
 
 process.maxEvents = cms.untracked.PSet(
