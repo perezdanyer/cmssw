@@ -135,7 +135,7 @@ TString getName(TString structure, int layer, TString geometry);
 TH1F *ConvertToHist(TGraphErrors *g);
 const map<TString, int> numberOfLayers(TString Year = "2018");
 vector<int> runlistfromlumifile(TString lumifile = "/afs/cern.ch/work/a/acardini/Alignment/MultiIOV/CMSSW_10_5_0_pre2/src/Alignment/OfflineValidation/data/lumiperFullRun2.txt");
-bool checkrunlist(vector<int> runs, vector<int> IOVlist = {}, TString Year = "2018");
+bool checkrunlist(vector<int> runs, vector<int> IOVlist = {});
 TString lumifileperyear(TString Year = "2018", string RunOrIOV = "IOV");
 void scalebylumi(TGraphErrors *g, vector<pair<int, double>> lumiIOVpairs);
 vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString Year = "2018");
@@ -315,38 +315,25 @@ vector<int> runlistfromlumifile(TString lumifile) {
  *  \brief Check whether all runs of interest are present in the luminosity per run txt file and whether all IOVs analized have been correctly processed
  */
 
-bool checkrunlist(vector<int> runs, vector<int> IOVlist, TString lumifile) {
-  vector<int> runlist = runlistfromlumifile(lumifile);
+bool checkrunlist(vector<int> runs, vector<int> IOVlist) {
   vector<int> missingruns;  //runs for which the luminosity is not found
   vector<int> lostruns;     //IOVs for which the DMR were not found
   bool problemfound = false;
-  for (int run : IOVlist) {
-    if (find(runlist.begin(), runlist.end(), run) == runlist.end()) {
-      problemfound = true;
-      missingruns.push_back(run);
-    }
-  }
+  std::sort(runs.begin(), runs.end());
+  std::sort(IOVlist.begin(), IOVlist.end());
   if (!IOVlist.empty())
-    for (int IOV : IOVlist) {
+    for (auto IOV : IOVlist) {
       if (find(runs.begin(), runs.end(), IOV) == runs.end()) {
         problemfound = true;
         lostruns.push_back(IOV);
       }
     }
-  std::sort(missingruns.begin(), missingruns.end());
   if (problemfound) {
     if (!lostruns.empty()) {
       cout << "WARNING: some IOVs where not found among the list of available DMRs" << endl
            << "List of missing IOVs:" << endl;
       for (int lostrun : lostruns)
         cout << to_string(lostrun) << " ";
-      cout << endl;
-    }
-    if (!missingruns.empty()) {
-      cout << "WARNING: some IOVs are missing in the run/luminosity txt file" << endl
-           << "List of missing runs:" << endl;
-      for (int missingrun : missingruns)
-        cout << to_string(missingrun) << " ";
       cout << endl;
     }
   }
@@ -383,18 +370,24 @@ void DMRtrends(vector<int> IOVlist,
     }
   }
   TString LumiFile = getenv("CMSSW_BASE");
-  LumiFile += "/src/Alignment/OfflineValidation/data/";
-  LumiFile += lumifile;
+  if(lumifile.BeginsWith("/")) LumiFile=lumifile;
+  else {
+    LumiFile += "/src/Alignment/OfflineValidation/data/";
+    LumiFile += lumifile;
+  }
   fs::path pathToLumiFile = LumiFile.Data();
   if(!(fs::exists(pathToLumiFile))) {
     cout << "ERROR: lumi-per-run file (" << LumiFile.Data() << ") not found!" << endl
            << "Please check!" << endl;
-      exit(EXIT_FAILURE);
-    
+    exit(EXIT_FAILURE); 
+  }
+  if(!LumiFile.Contains(Year)){
+    cout << "WARNING: lumi-per-run file and year do not match, luminosity on the x-axis and labels might not match!" <<endl;
   }
   vector<pair<int,double>> lumiIOVpairs = lumiperIOV(IOVlist, LumiFile);
-  sort(IOVlist.begin(), IOVlist.end());
-  for (const auto &Variable : Variables) {
+  std::sort(IOVlist.begin(), IOVlist.end());
+  IOVlist.erase( unique( IOVlist.begin(), IOVlist.end() ), IOVlist.end() );
+  for (const auto Variable& : Variables) {
     compileDMRTrends(IOVlist, Variable, labels, Year, myValidation, geometries, showlumi, FORCE);
     cout << "Begin plotting" << endl;
     PlotDMRTrends(IOVlist,
@@ -457,7 +450,7 @@ void compileDMRTrends(vector<int> IOVlist,
             "been stored!"
          << endl;
     exit(EXIT_FAILURE);
-  } else if (checkrunlist(RunNumbers, IOVlist, Year)) {
+  } else if (checkrunlist(RunNumbers, IOVlist)) {
     cout << "Please check the DMRs that have been produced!" << endl;
     if (!FORCE)
       exit(EXIT_FAILURE);
@@ -787,6 +780,7 @@ TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
 
 /*! \fn getintegratedlumiuptorun
  *  \brief Returns the integrated luminosity up to the run of interest
+ *         Use -1 to get integrated luminosity over the whole period
  */
 
 double getintegratedlumiuptorun(int ChosenRun, TString lumifile, double min) {
@@ -799,10 +793,10 @@ double getintegratedlumiuptorun(int ChosenRun, TString lumifile, double min) {
   while (infile >> run >> runLumi) {
     lumiperRun.push_back(make_pair(run,runLumi));
   }
-  size_t iRun = 0;
-  while(ChosenRun >= lumiperRun.at(iRun).first){
+  std::sort(lumiperRun.begin(),lumiperRun.end());
+  for(size_t iRun=0; iRun<lumiperRun.size();iRun++){
+    if(ChosenRun<=lumiperRun.at(iRun).first) break;
     lumi += (lumiperRun.at(iRun).second / lumiFactor);
-    iRun++;
   }
   return lumi;
 }
@@ -823,8 +817,7 @@ void scalebylumi(TGraphErrors *g, vector<pair<int, double>> lumiIOVpairs) {
     g->GetPoint(i, run, yvalue);
     size_t index = -1;
     for (size_t j = 0; j < Nscale; j++) {
-      if (run == (lumiIOVpairs.at(j)
-                      .first)) {  //If the starting run of an IOV is included in the list of IOVs, the index is stored
+      if (run == (lumiIOVpairs.at(j).first)) {  //If the starting run of an IOV is included in the list of IOVs, the index is stored
         index = j;
         continue;
       } else if (run > (lumiIOVpairs.at(j).first))
@@ -872,10 +865,9 @@ vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString lumifile) {
   while (infile >> run >> runLumi) {
     lumiperRun.push_back(make_pair(run,runLumi));
   }
-  size_t nRuns = lumiperRun.size();
   vector<int> xRunFromLumiFile;
   vector<int> missingruns;
-  for (size_t iRun = 0; iRun < nRuns; iRun++)
+  for (size_t iRun = 0; iRun < lumiperRun.size(); iRun++)
     xRunFromLumiFile.push_back(lumiperRun[iRun].first);
   for (int run : IOVlist) {
     if (find(xRunFromLumiFile.begin(), xRunFromLumiFile.end(), run) == xRunFromLumiFile.end()) {
@@ -883,7 +875,7 @@ vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString lumifile) {
       lumiperRun.push_back(make_pair(run,0.));
     }
   }
-  sort(lumiperRun.begin(),lumiperRun.end());
+  std::sort(lumiperRun.begin(),lumiperRun.end());
 
   if (!missingruns.empty()) {
     cout << "WARNING: some IOVs are missing in the run/luminosity txt file: " << lumifile << endl
@@ -908,7 +900,8 @@ vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString lumifile) {
       run = IOVlist.at(i);
     else
       run = 0;
-    for (size_t j = index; j < nRuns; j++) {
+    for (size_t j = index; j < lumiperRun.size(); j++) {
+      //cout << run << " - " << lumiperRun.at(j).first << " - lumi added: " << lumi << endl;
       if (run == lumiperRun.at(j).first) {
 	index = j;
 	break;
@@ -921,7 +914,7 @@ vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString lumifile) {
 	lumiperIOV.push_back(make_pair(IOVlist.at(i - 1), lumi));
     ++i;
   }
-  for (size_t j = 0; j < nRuns; j++)
+  for (size_t j = 0; j < lumiperRun.size(); j++)
     lumiInput += lumiperRun.at(j).second;
   for (size_t j = 0; j < lumiperIOV.size(); j++)
     lumiOutput += lumiperIOV.at(j).second;
@@ -933,14 +926,18 @@ vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString lumifile) {
     cout << "Size of IOVlist " << IOVlist.size() << endl;
     cout << "Size of lumi-per-IOV list " << lumiperIOV.size() << endl;
     //for (size_t j = 0; j < lumiperIOV.size(); j++)
-    //cout << (j==0 ? 0 : IOVlist.at(j-1)) << " == " << lumiperIOV.at(j).first << " " <<lumiperIOV.at(j).second <<endl;
+    //  cout << (j==0 ? 0 : IOVlist.at(j-1)) << " == " << lumiperIOV.at(j).first << " " <<lumiperIOV.at(j).second <<endl;
+    //for (auto pair : lumiperIOV) cout << pair.first << " ";
+    //cout << endl;
+    //for (auto IOV : IOVlist) cout << IOV << " ";
+    //cout << endl;
     exit(EXIT_FAILURE);
 
   }
   cout << "final lumi= "<< lumiOutput<<endl;
   //for debugging
   //for (size_t j = 0; j < lumiperIOV.size(); j++)
-  //cout << lumiperIOV.at(j).first << " " <<lumiperIOV.at(j).second <<endl;
+  //  cout << lumiperIOV.at(j).first << " " <<lumiperIOV.at(j).second <<endl;
     
   return lumiperIOV;
 }
@@ -991,7 +988,7 @@ void PlotDMRTrends(vector<int> IOVlist,
 		   TString lumifile,
 		   vector<pair<int, double>> lumiIOVpairs) {
   gErrorIgnoreLevel = kWarning;
-  checkrunlist(pixelupdateruns, {}, Year);
+  checkrunlist(pixelupdateruns, {});
   vector<TString> structures{"BPIX", "BPIX_y", "FPIX", "FPIX_y", "TIB", "TID", "TOB", "TEC"};
 
   const map<TString, int> nlayers = numberOfLayers(Year);
@@ -1196,11 +1193,11 @@ void PlotDMRTrends(vector<int> IOVlist,
 
     legend->Draw();
 
-    //double LumiTot= getintegratedlumiuptorun(100000,lumifile);
-	//LumiTot=LumiTot;
+    double LumiTot= getintegratedlumiuptorun(-1,lumifile);
+    LumiTot=LumiTot/lumiFactor;
         if (variable == "sigma" || variable == "sigmaplus" || variable == "sigmaminus" ||
               variable == "sigmadeltamu" || variable=="deltamu" || variable=="deltamusigmadeltamu") {
-	  TLine *line = new TLine(0.,0.,144,0.);
+	  TLine *line = new TLine(0.,0.,LumiTot,0.);
 	  line->SetLineColor(kMagenta);
 	  line->Draw();
 	}
@@ -1209,7 +1206,7 @@ void PlotDMRTrends(vector<int> IOVlist,
 	  {     
 	    if ( variable == "musigma" || variable == "muminus" || variable =="mu" || 
 		 variable == "muminussigmaminus" || variable=="muplus" || variable=="muplussigmaplus") {
-	      TLine *line = new TLine(0.,0.,144,0.);
+	      TLine *line = new TLine(0.,0.,LumiTot,0.);
 	      line->SetLineColor(kMagenta);
 	      line->Draw();
 	    }
@@ -1218,7 +1215,7 @@ void PlotDMRTrends(vector<int> IOVlist,
         if (Variable =="DrmsNR"){      
 	  if ( variable == "musigma" ||  variable == "muminus" || variable=="mu" ||
 	       variable == "muminussigmaminus" || variable=="muplus" || variable=="muplussigmaplus") {
-	    TLine *line = new TLine(0.,1.,144,1.);
+	    TLine *line = new TLine(0.,1.,LumiTot,1.);
 	    line->SetLineColor(kMagenta);
 	    line->Draw();
 	  }
@@ -1335,12 +1332,12 @@ vector<int> pixelupdateruns {271866, 272008, 272022, 276315, 276811, 278271, 279
 	{  "Legacy reprocessing", "RadiationEffects"}, 
 	{  kGreen+2, kOrange+1}, 
 		  //"/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/results/alelek/test_12Jun", 
-	"/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/results/acardini/DMRs/test_old",
+	"/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/results/acardini/DMRs/test_recorded",
 	true, 
 	pixelupdateruns,
        // pixeltemplatebasedOnruns,
  	true, 
-        "lumiperFullRun2.txt",
+        "lumiperFullRun2_recorded.csv",
 	true); 
 
 
