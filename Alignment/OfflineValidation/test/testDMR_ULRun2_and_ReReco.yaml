@@ -1,5 +1,5 @@
-LFS: /eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/NewTool
-name: Test
+LFS: /eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/CMSSW_test_units
+name: test_yaml
 alignments:
     ReReco:
         color: 632
@@ -46,8 +46,7 @@ validations:
                 alignments:
                 - ReReco
                 - ULRun2
-                dataset: /afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/DavidScriptFiles2018/IOVscriptTest/filesMinBias.txt
-                goodlumi: /afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/DavidScriptFiles2018/IOVscriptTest/SingleMuon/IOV_Vali_{}.json
+                dataset: /afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/dataset_file_for_unit_test.txt
                 magneticfield: true
                 maxevents: 10
                 maxtracks: 0

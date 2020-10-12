@@ -1,0 +1,13 @@
+alignment:
+    !!python/unicode 'color': !!python/unicode '632'
+    !!python/unicode 'globaltag': !!python/unicode '106X_dataRun2_v10'
+    !!python/unicode 'style': !!python/unicode '2101'
+    !!python/unicode 'title': !!python/unicode 'End-of-year re-reconstruction'
+output: /eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/CMSSW_test_units/test_json/single/ReReco/Legacy/316569
+validation:
+    !!python/unicode 'IOV': !!python/unicode '316569'
+    !!python/unicode 'dataset': !!python/unicode '/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/dataset_file_for_unit_test.txt'
+    !!python/unicode 'magneticfield': !!python/unicode 'true'
+    !!python/unicode 'maxevents': !!python/unicode '10'
+    !!python/unicode 'maxtracks': !!python/unicode '0'
+    !!python/unicode 'trackcollection': !!python/unicode 'ALCARECOTkAlMinBias'

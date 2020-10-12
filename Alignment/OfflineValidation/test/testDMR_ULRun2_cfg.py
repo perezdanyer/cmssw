@@ -6,33 +6,28 @@ import os
 
 #example python config with ULRun2 where some conditions from the globaltag are overridden
 
-##Set validation mode
-valiMode = "StandAlone"
-
 ##Define process
 process = cms.Process("Demo")
 
-##Get good lumi section
+##Set validation mode
+valiMode = "StandAlone"
+
+##Read filenames from given TXT file
+readFiles = []
+
+with open(config["validation"]["dataset"], "r") as datafiles:
+    for fileName in datafiles.readlines():
+        readFiles.append(fileName.replace("\n", ""))
 
 goodLumiSecs = cms.untracked.VLuminosityBlockRange()
 
 ##Define input source
-
 process.source = cms.Source("PoolSource",
-                            fileNames = cms.untracked.vstring(
-                                 '/store/data/Run2018A/HLTPhysics/ALCARECO/TkAlMinBias-06Jun2018-v1/40000/42CE0886-AC92-E811-A502-1866DAEA79C8.root',
-                                 '/store/data/Run2018A/HLTPhysics/ALCARECO/TkAlMinBias-06Jun2018-v1/40000/9619D443-B192-E811-B466-1418774105B6.root',
-                                 '/store/data/Run2018A/HLTPhysics/ALCARECO/TkAlMinBias-06Jun2018-v1/40000/CEF62DB7-B592-E811-8969-B083FED426E4.root',
-                                 '/store/data/Run2018A/HLTPhysics/ALCARECO/TkAlMinBias-06Jun2018-v1/40000/B2637D14-B892-E811-A8E5-C81F66B7910C.root',
-                                 '/store/data/Run2018A/HLTPhysics/ALCARECO/TkAlMinBias-06Jun2018-v1/40000/243EE1AC-3793-E811-8EEA-B083FED045EC.root',
-                                 '/store/data/Run2018A/HLTPhysics/ALCARECO/TkAlMinBias-06Jun2018-v1/40000/96A8BD93-9293-E811-88E2-801844DEEC30.root',
-                                 '/store/data/Run2018A/HLTPhysics/ALCARECO/TkAlMinBias-06Jun2018-v1/40000/6E137D1A-9B93-E811-9605-001EC94A8EF1.root'),
-                                 duplicateCheckMode = cms.untracked.string('checkAllFilesOpened')
+                            fileNames = cms.untracked.vstring(readFiles),
+                            lumisToProcess = goodLumiSecs,
 )
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
-
-process.source.lumisToProcess = goodLumiSecs
 
 ##Bookeeping
 process.options = cms.untracked.PSet(
@@ -202,7 +197,7 @@ if valiMode == "StandAlone":
     ##Output file
 
     process.TFileService = cms.Service("TFileService",
-        fileName = cms.string("$(CMSSW_BASE)/src/Alignment/OfflineValidation/test/Test/DMR/single/Legacy/ULRun2/316569/output/DMR.root"),
+        fileName = cms.string("$(CMSSW_BASE)/src/Alignment/OfflineValidation/test/test_json/DMR/single/Legacy/ULRun2/316569/output/DMR.root"),
         closeFileFast = cms.untracked.bool(True),
     )
 

@@ -1,6 +1,6 @@
 {
-    "name": "Test",
-    "LFS": "/eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/NewTool",
+    "name": "test_json",
+    "LFS": "/eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/CMSSW_test_units",
     "alignments": {
 	"ReReco": {
             "globaltag": "106X_dataRun2_v10",
@@ -33,8 +33,7 @@
                 "Legacy": {
                     "IOV": ["316569"],
                     "alignments": ["ReReco", "ULRun2"],
-                    "dataset": "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/DavidScriptFiles2018/IOVscriptTest/filesMinBias.txt",
-                    "goodlumi": "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/DavidScriptFiles2018/IOVscriptTest/SingleMuon/IOV_Vali_{}.json",
+                    "dataset": "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/dataset_file_for_unit_test.txt",
                     "magneticfield": "true",
                     "maxevents": "10",
                     "maxtracks": "0",

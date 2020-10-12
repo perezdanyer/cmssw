@@ -1,0 +1,22 @@
+alignment:
+    !!python/unicode 'color': !!python/unicode '418'
+    !!python/unicode 'conditions':
+        !!python/unicode 'TrackerAlignmentErrorExtendedRcd':
+            !!python/unicode 'connect': !!python/unicode 'frontier://FrontierProd/CMS_CONDITIONS'
+            !!python/unicode 'label': !!python/unicode ''
+            !!python/unicode 'tag': !!python/unicode 'TrackerAlignmentExtendedErrors_v15_offline_IOVs'
+        !!python/unicode 'TrackerAlignmentRcd':
+            !!python/unicode 'connect': !!python/unicode 'frontier://FrontierProd/CMS_CONDITIONS'
+            !!python/unicode 'label': !!python/unicode ''
+            !!python/unicode 'tag': !!python/unicode 'TrackerAlignment_v28_offline'
+    !!python/unicode 'globaltag': !!python/unicode '106X_dataRun2_UL2016test_v24'
+    !!python/unicode 'style': !!python/unicode '2101'
+    !!python/unicode 'title': !!python/unicode 'Legacy reprocessing'
+output: /eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/CMSSW_test_units/test_json/single/ULRun2/Legacy/316569
+validation:
+    !!python/unicode 'IOV': !!python/unicode '316569'
+    !!python/unicode 'dataset': !!python/unicode '/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/dataset_file_for_unit_test.txt'
+    !!python/unicode 'magneticfield': !!python/unicode 'true'
+    !!python/unicode 'maxevents': !!python/unicode '10'
+    !!python/unicode 'maxtracks': !!python/unicode '0'
+    !!python/unicode 'trackcollection': !!python/unicode 'ALCARECOTkAlMinBias'

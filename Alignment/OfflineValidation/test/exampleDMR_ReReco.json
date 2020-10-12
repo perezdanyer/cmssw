@@ -1,0 +1,17 @@
+{
+    "output": "/eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/CMSSW_test_units/test_json/single/ReReco/Legacy/316569", 
+    "validation": {
+        "IOV": "316569", 
+        "magneticfield": "true", 
+        "dataset": "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/MP/MPproduction/datasetfiles/UltraLegacy/2018/HLTPhysics/dataset_file_for_unit_test.txt", 
+        "maxevents": "10", 
+        "trackcollection": "ALCARECOTkAlMinBias", 
+        "maxtracks": "0"
+    }, 
+    "alignment": {
+        "color": "632", 
+        "style": "2101", 
+        "globaltag": "106X_dataRun2_v10", 
+        "title": "End-of-year re-reconstruction"
+    }
+}

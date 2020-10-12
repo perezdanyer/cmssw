@@ -1,5 +1,5 @@
 {
-    "output": "$(CMSSW_BASE)/src/Alignment/OfflineValidation/test/Test/DMR/merge/Legacy/316569",
+    "output": "/eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/CMSSW_test_units/test_yaml/merge/Legacy/316569", 
     "validation": {
         "usefit": true, 
         "methods": [
@@ -25,7 +25,7 @@
             "globaltag": "106X_dataRun2_UL2016test_v24", 
             "title": "Legacy reprocessing", 
             "color": 418, 
-            "file": "$(CMSSW_BASE)/src/Alignment/OfflineValidation/test/Test/DMR/single/Legacy/ULRun2/316569/output",
+            "file": "/eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/CMSSW_test_units/test_yaml/single/ULRun2/Legacy/316569", 
             "conditions": {
                 "TrackerAlignmentRcd": {
                     "tag": "TrackerAlignment_v28_offline", 
@@ -42,7 +42,7 @@
         "ReReco": {
             "color": 632, 
             "style": 2101, 
-            "file": "$(CMSSW_BASE)/src/Alignment/OfflineValidation/test/Test/DMR/single/Legacy/ReReco/316569/output", 
+            "file": "/eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/CMSSW_test_units/test_yaml/single/ReReco/Legacy/316569", 
             "globaltag": "106X_dataRun2_v10", 
             "title": "End-of-year re-reconstruction"
         }
