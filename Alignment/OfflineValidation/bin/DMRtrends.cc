@@ -134,14 +134,18 @@ struct Point {
 TString getName(TString structure, int layer, TString geometry);
 TH1F *ConvertToHist(TGraphErrors *g);
 const map<TString, int> numberOfLayers(TString Year = "2018");
-vector<int> runlistfromlumifile(TString lumifile = "/afs/cern.ch/work/a/acardini/Alignment/MultiIOV/CMSSW_10_5_0_pre2/src/Alignment/OfflineValidation/data/lumiperFullRun2.txt");
+vector<int> runlistfromlumifile(TString lumifile =
+                                    "/afs/cern.ch/work/a/acardini/Alignment/MultiIOV/CMSSW_10_5_0_pre2/src/Alignment/"
+                                    "OfflineValidation/data/lumiperFullRun2.txt");
 bool checkrunlist(vector<int> runs, vector<int> IOVlist = {});
 TString lumifileperyear(TString Year = "2018", string RunOrIOV = "IOV");
 void scalebylumi(TGraphErrors *g, vector<pair<int, double>> lumiIOVpairs);
 vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString Year = "2018");
 double getintegratedlumiuptorun(int run, TString lumifile, double min = 0.);
 void PixelUpdateLines(TCanvas *c,
-                      TString lumifile = "/afs/cern.ch/work/a/acardini/Alignment/MultiIOV/CMSSW_10_5_0_pre2/src/Alignment/OfflineValidation/data/lumiperFullRun2.txt",
+                      TString lumifile =
+                          "/afs/cern.ch/work/a/acardini/Alignment/MultiIOV/CMSSW_10_5_0_pre2/src/Alignment/"
+                          "OfflineValidation/data/lumiperFullRun2.txt",
                       bool showlumi = false,
                       vector<int> pixelupdateruns = {314881, 316758, 317527, 318228, 320377});
 void PlotDMRTrends(
@@ -157,8 +161,10 @@ void PlotDMRTrends(
     bool pixelupdate = false,
     vector<int> pixelupdateruns = {314881, 316758, 317527, 318228, 320377},
     bool showlumi = false,
-    TString lumifile = "/afs/cern.ch/work/a/acardini/Alignment/MultiIOV/CMSSW_10_5_0_pre2/src/Alignment/OfflineValidation/data/lumiperFullRun2.txt",
-    vector<pair<int,double>> lumiIOVpairs = {make_pair(0,0.),make_pair(0,0.)});
+    TString lumifile =
+        "/afs/cern.ch/work/a/acardini/Alignment/MultiIOV/CMSSW_10_5_0_pre2/src/Alignment/OfflineValidation/data/"
+        "lumiperFullRun2.txt",
+    vector<pair<int, double>> lumiIOVpairs = {make_pair(0, 0.), make_pair(0, 0.)});
 void compileDMRTrends(
     vector<int> IOVlist,
     TString Variable = "median",
@@ -181,7 +187,9 @@ void DMRtrends(
     bool pixelupdate = false,
     vector<int> pixelupdateruns = {314881, 316758, 317527, 318228, 320377},
     bool showlumi = false,
-    TString lumifile = "/afs/cern.ch/work/a/acardini/Alignment/MultiIOV/CMSSW_10_5_0_pre2/src/Alignment/OfflineValidation/data/lumiperFullRun2.txt",
+    TString lumifile =
+        "/afs/cern.ch/work/a/acardini/Alignment/MultiIOV/CMSSW_10_5_0_pre2/src/Alignment/OfflineValidation/data/"
+        "lumiperFullRun2.txt",
     bool FORCE = false);
 
 /*! \class Geometry
@@ -302,7 +310,7 @@ vector<int> runlistfromlumifile(TString lumifile) {
   int run;
   double runLumi;
   while (infile >> run >> runLumi) {
-    lumiperRun.push_back(make_pair(run,runLumi));
+    lumiperRun.push_back(make_pair(run, runLumi));
   }
   size_t nRuns = lumiperRun.size();
   vector<int> xRunFromLumiFile;
@@ -355,7 +363,7 @@ void DMRtrends(vector<int> IOVlist,
                bool pixelupdate,
                vector<int> pixelupdateruns,
                bool showlumi,
-	       TString lumifile,
+               TString lumifile,
                bool FORCE) {
   fs::path path(outputdir.Data());
   if (!(fs::exists(path))) {
@@ -370,24 +378,25 @@ void DMRtrends(vector<int> IOVlist,
     }
   }
   TString LumiFile = getenv("CMSSW_BASE");
-  if(lumifile.BeginsWith("/")) LumiFile=lumifile;
+  if (lumifile.BeginsWith("/"))
+    LumiFile = lumifile;
   else {
     LumiFile += "/src/Alignment/OfflineValidation/data/";
     LumiFile += lumifile;
   }
   fs::path pathToLumiFile = LumiFile.Data();
-  if(!(fs::exists(pathToLumiFile))) {
-    cout << "ERROR: lumi-per-run file (" << LumiFile.Data() << ") not found!" << endl
-           << "Please check!" << endl;
-    exit(EXIT_FAILURE); 
+  if (!(fs::exists(pathToLumiFile))) {
+    cout << "ERROR: lumi-per-run file (" << LumiFile.Data() << ") not found!" << endl << "Please check!" << endl;
+    exit(EXIT_FAILURE);
   }
-  if(!LumiFile.Contains(Year)){
-    cout << "WARNING: lumi-per-run file and year do not match, luminosity on the x-axis and labels might not match!" <<endl;
+  if (!LumiFile.Contains(Year)) {
+    cout << "WARNING: lumi-per-run file and year do not match, luminosity on the x-axis and labels might not match!"
+         << endl;
   }
-  vector<pair<int,double>> lumiIOVpairs = lumiperIOV(IOVlist, LumiFile);
+  vector<pair<int, double>> lumiIOVpairs = lumiperIOV(IOVlist, LumiFile);
   std::sort(IOVlist.begin(), IOVlist.end());
-  IOVlist.erase( unique( IOVlist.begin(), IOVlist.end() ), IOVlist.end() );
-  for (const auto Variable& : Variables) {
+  IOVlist.erase(unique(IOVlist.begin(), IOVlist.end()), IOVlist.end());
+  for (const auto &Variable : Variables) {
     compileDMRTrends(IOVlist, Variable, labels, Year, myValidation, geometries, showlumi, FORCE);
     cout << "Begin plotting" << endl;
     PlotDMRTrends(IOVlist,
@@ -401,8 +410,8 @@ void DMRtrends(vector<int> IOVlist,
                   pixelupdate,
                   pixelupdateruns,
                   showlumi,
-		  LumiFile,
-		  lumiIOVpairs);
+                  LumiFile,
+                  lumiIOVpairs);
   }
 };
 
@@ -581,7 +590,6 @@ void compileDMRTrends(vector<int> IOVlist,
   fout->Close();
 }
 
-
 /*! \fn PixelUpdateLines
  *  \brief  Adds to the canvas vertical lines corresponding to the pixelupdateruns
  */
@@ -608,15 +616,12 @@ void PixelUpdateLines(TCanvas *c, TString lumifile, bool showlumi, vector<int> p
   double rx1, ry1, rx2, ry2;
   gPad->GetRange(rx1, ry1, rx2, ry2);
   double rx = (x2ndc - x1ndc) / (rx2 - rx1);
-  int ola=0;
+  int ola = 0;
 
   for (int pixelupdaterun : pixelupdateruns) {
     double lumi = 0.;
-  
- 
 
-    char YearsNames[5][5]={"2016", "2017", "2018"};
-
+    char YearsNames[5][5] = {"2016", "2017", "2018"};
 
     if (showlumi)
       lumi = getintegratedlumiuptorun(
@@ -624,27 +629,29 @@ void PixelUpdateLines(TCanvas *c, TString lumifile, bool showlumi, vector<int> p
           lumifile);  //The vertical line needs to be drawn at the beginning of the run where the pixel update was implemented, thus only the integrated luminosity up to that run is required.
     else
       lumi = pixelupdaterun;
-  
-// here to plot with one style runs from which pixel iov was otained 
 
-//  below to plot with one style pixel uptade runs
+    // here to plot with one style runs from which pixel iov was otained
+
+    //  below to plot with one style pixel uptade runs
 
     TLine *line = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
- if (pixelupdaterun==271866|| pixelupdaterun==272008|| pixelupdaterun==276315|| pixelupdaterun==278271|| pixelupdaterun==280928|| pixelupdaterun==290543|| pixelupdaterun==294927|| pixelupdaterun== 297281|| pixelupdaterun==298653|| pixelupdaterun==299443|| pixelupdaterun==300389|| pixelupdaterun==301046|| pixelupdaterun==302131|| pixelupdaterun==303790|| pixelupdaterun==303998|| pixelupdaterun==304911|| pixelupdaterun==313041|| pixelupdaterun==314881|| pixelupdaterun==315257|| pixelupdaterun==316758|| pixelupdaterun==317475|| pixelupdaterun==317485|| pixelupdaterun==317527|| pixelupdaterun==317661|| pixelupdaterun==317664|| pixelupdaterun==318227|| pixelupdaterun==320377|| pixelupdaterun==321831|| pixelupdaterun==322510|| pixelupdaterun==322603|| pixelupdaterun==323232|| pixelupdaterun==324245)
-{
-    line->SetLineColor(kBlack);
-    line->SetLineStyle(3); // it was 9, For public plots changed to 3
-    line->Draw();
-} 
+    if (pixelupdaterun == 271866 || pixelupdaterun == 272008 || pixelupdaterun == 276315 || pixelupdaterun == 278271 ||
+        pixelupdaterun == 280928 || pixelupdaterun == 290543 || pixelupdaterun == 294927 || pixelupdaterun == 297281 ||
+        pixelupdaterun == 298653 || pixelupdaterun == 299443 || pixelupdaterun == 300389 || pixelupdaterun == 301046 ||
+        pixelupdaterun == 302131 || pixelupdaterun == 303790 || pixelupdaterun == 303998 || pixelupdaterun == 304911 ||
+        pixelupdaterun == 313041 || pixelupdaterun == 314881 || pixelupdaterun == 315257 || pixelupdaterun == 316758 ||
+        pixelupdaterun == 317475 || pixelupdaterun == 317485 || pixelupdaterun == 317527 || pixelupdaterun == 317661 ||
+        pixelupdaterun == 317664 || pixelupdaterun == 318227 || pixelupdaterun == 320377 || pixelupdaterun == 321831 ||
+        pixelupdaterun == 322510 || pixelupdaterun == 322603 || pixelupdaterun == 323232 || pixelupdaterun == 324245) {
+      line->SetLineColor(kBlack);
+      line->SetLineStyle(3);  // it was 9, For public plots changed to 3
+      line->Draw();
+    }
 
-//  324245 those iovs are in both lists so I need to drwa both on top of each other
-//the problem is around these lines: the IOVs so small that they overlap
-//298653, 299061, 299443,
-//318887, 320377, 320674,
-
-
-
-
+    //  324245 those iovs are in both lists so I need to drwa both on top of each other
+    //the problem is around these lines: the IOVs so small that they overlap
+    //298653, 299061, 299443,
+    //318887, 320377, 320674,
 
     double _sx;
     // Left limit of the TPaveText
@@ -652,123 +659,114 @@ void PixelUpdateLines(TCanvas *c, TString lumifile, bool showlumi, vector<int> p
     _sx = rx * (lumi - rx1) + x1ndc;
     // To avoid an overlap between the TPaveText a vertical shift is done when the IOVs are too close
     if (_sx < lastlumi) {
-  //    index++;     // ola: I commented it out becaouse if I plot only the names of years I dint need to change the position of the label
+      //    index++;     // ola: I commented it out becaouse if I plot only the names of years I dint need to change the position of the label
     } else
       index = 0;
-   
-    // FirstRunOftheYear 272008,294927,315257  
-    //// first run of 2018 and run from which pixel template was obtained 314527 is very close 
-// also first run of 2016 and 272022 are very close
 
-    if (pixelupdaterun == 272008 || pixelupdaterun == 294927 || pixelupdaterun == 315257 || pixelupdaterun==314527 || pixelupdaterun ==272022)  
-    {
-    TPaveText *box = new TPaveText(_sx + 0.0028, 0.865 - index * 0.035, _sx + 0.055, 0.895 - index * 0.035, "blNDC"); 
-   if (pixelupdaterun == 272008 || pixelupdaterun == 294927 || pixelupdaterun == 315257 ){
+    // FirstRunOftheYear 272008,294927,315257
+    //// first run of 2018 and run from which pixel template was obtained 314527 is very close
+    // also first run of 2016 and 272022 are very close
 
-    box->SetFillColor(10);
-    box->SetBorderSize(1);
-    box->SetLineColor(kBlack);
+    if (pixelupdaterun == 272008 || pixelupdaterun == 294927 || pixelupdaterun == 315257 || pixelupdaterun == 314527 ||
+        pixelupdaterun == 272022) {
+      TPaveText *box = new TPaveText(_sx + 0.0028, 0.865 - index * 0.035, _sx + 0.055, 0.895 - index * 0.035, "blNDC");
+      if (pixelupdaterun == 272008 || pixelupdaterun == 294927 || pixelupdaterun == 315257) {
+        box->SetFillColor(10);
+        box->SetBorderSize(1);
+        box->SetLineColor(kBlack);
 
+        TText *textFirstRunOfYear = box->AddText(Form("%s", YearsNames[int(ola)]));  // Ola for public plots
+        //  TText *textFirstRunOfYear = box->AddText(Form("%i", int(pixelupdaterun)));
+        textFirstRunOfYear->SetTextSize(0.025);
+        labels.push_back(box);
+        ola = ola + 1;
+      }
 
-  TText *textFirstRunOfYear = box->AddText(Form("%s", YearsNames[int(ola)])); // Ola for public plots
-  //  TText *textFirstRunOfYear = box->AddText(Form("%i", int(pixelupdaterun))); 
-    textFirstRunOfYear->SetTextSize(0.025); 
-    labels.push_back(box);
-     ola=ola+1;
+      if (pixelupdaterun == 294927) {
+        line->SetLineColor(kBlack);
+        line->SetLineStyle(1);
+        line->SetLineWidth(4);
+        line->Draw();
+      }
 
-}
+      if (pixelupdaterun == 315257 || pixelupdaterun == 314527) {
+        //if (pixelupdaterun == 315257 ){
+        line->SetLineColor(kBlack);
+        line->SetLineStyle(1);
+        line->SetLineWidth(4);
+        line->Draw();
+        TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
 
-if (pixelupdaterun == 294927 ){
-    line->SetLineColor(kBlack);
-    line->SetLineStyle(1);
-    line->SetLineWidth(4);
-    line->Draw();}
-   
-if (pixelupdaterun == 315257 || pixelupdaterun==314527 ){
-//if (pixelupdaterun == 315257 ){
-    line->SetLineColor(kBlack);
-    line->SetLineStyle(1);
-    line->SetLineWidth(4);
-    line->Draw();
-    TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
+        // line2->SetLineColor(kYellow+1);  //it is problematic because it should be the same and it is not
+        line2->SetLineColor(kRed + 1);
+        line2->SetLineStyle(1);  //
+        line2->Draw();
+      }
 
-   // line2->SetLineColor(kYellow+1);  //it is problematic because it should be the same and it is not
-    line2->SetLineColor(kRed+1);
-    line2->SetLineStyle(1); // 
-    line2->Draw();
+      // the yellow line has to be thicker here to be not exactly at 0 and visible from below the y axis...
 
- }
+      if (pixelupdaterun == 272008 || pixelupdaterun == 272022) {
+        line->SetLineColor(kBlack);
+        line->SetLineStyle(1);
+        line->SetLineWidth(4);
+        // line->Draw();
+        TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
 
-// the yellow line has to be thicker here to be not exactly at 0 and visible from below the y axis... 
-
- if (pixelupdaterun == 272008 || pixelupdaterun ==272022){
-    line->SetLineColor(kBlack);
-    line->SetLineStyle(1);
-    line->SetLineWidth(4);
-   // line->Draw();
-    TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
-
-    line2->SetLineColor(kYellow+1);
-    line2->SetLineStyle(1); // 
-    line->SetLineWidth(10);
-    line2->Draw();
-
- }
-
+        line2->SetLineColor(kYellow + 1);
+        line2->SetLineStyle(1);  //
+        line->SetLineWidth(10);
+        line2->Draw();
+      }
     }
 
-
     TLine *line11 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
-if (pixelupdaterun==272022|| pixelupdaterun==276811|| pixelupdaterun==279767|| pixelupdaterun==283308|| pixelupdaterun==297057|| pixelupdaterun==297503||
- pixelupdaterun==299061|| 
-pixelupdaterun==300157||
- pixelupdaterun==300401|| pixelupdaterun==301183|| pixelupdaterun==302472|| pixelupdaterun==303885|| pixelupdaterun==304292|| pixelupdaterun==305898|| pixelupdaterun==314527|| pixelupdaterun==316766|| pixelupdaterun==317484|| pixelupdaterun==317641|| pixelupdaterun==318887|| pixelupdaterun==320674|| pixelupdaterun==321833|| pixelupdaterun==324245)
-{
-//315257
+    if (pixelupdaterun == 272022 || pixelupdaterun == 276811 || pixelupdaterun == 279767 || pixelupdaterun == 283308 ||
+        pixelupdaterun == 297057 || pixelupdaterun == 297503 || pixelupdaterun == 299061 || pixelupdaterun == 300157 ||
+        pixelupdaterun == 300401 || pixelupdaterun == 301183 || pixelupdaterun == 302472 || pixelupdaterun == 303885 ||
+        pixelupdaterun == 304292 || pixelupdaterun == 305898 || pixelupdaterun == 314527 || pixelupdaterun == 316766 ||
+        pixelupdaterun == 317484 || pixelupdaterun == 317641 || pixelupdaterun == 318887 || pixelupdaterun == 320674 ||
+        pixelupdaterun == 321833 || pixelupdaterun == 324245) {
+      //315257
 
-    line11->SetLineColor(kYellow+1);
-    line11->SetLineStyle(1); // 
-    line11->Draw();
+      line11->SetLineColor(kYellow + 1);
+      line11->SetLineStyle(1);  //
+      line11->Draw();
+    }
 
-}
-    
- if (pixelupdaterun == 298653 || pixelupdaterun ==  299061 || pixelupdaterun ==  320377 || pixelupdaterun ==  320674 || pixelupdaterun == 324245 )
-{
+    if (pixelupdaterun == 298653 || pixelupdaterun == 299061 || pixelupdaterun == 320377 || pixelupdaterun == 320674 ||
+        pixelupdaterun == 324245) {
+      TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
 
-TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
+      line2->SetLineColor(kYellow + 1);
+      line2->SetLineStyle(1);  //
+      line2->Draw();
 
-    line2->SetLineColor(kYellow+1);
-    line2->SetLineStyle(1); // 
-    line2->Draw();
+      line->SetLineColor(kBlack);
+      line->SetLineStyle(3);  // it was 9, For public plots changed to 3
+      line->Draw();
+    }
 
-    line->SetLineColor(kBlack);
-    line->SetLineStyle(3); // it was 9, For public plots changed to 3
-    line->Draw();
+    TLine *line33 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
+    //if (pixelupdaterun == 298653 || pixelupdaterun ==  299061 || pixelupdaterun ==  320377 || pixelupdaterun ==  320674){
+    if (pixelupdaterun == 299061 || pixelupdaterun == 301183 || pixelupdaterun == 304292 || pixelupdaterun == 314527 ||
+        pixelupdaterun == 317484 || pixelupdaterun == 317641 || pixelupdaterun == 320674 || pixelupdaterun == 321833) {
+      line33->SetLineColor(kRed + 1);
+      line33->SetLineWidth(1);
+      line33->SetLineStyle(1);
+      line33->Draw();
 
-}
+      if (pixelupdaterun == 299061 || pixelupdaterun == 317484 || pixelupdaterun == 320674) {
+        TLine *line333 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
+        line333->SetLineColor(kBlack);
+        line333->SetLineWidth(1);
+        line333->SetLineStyle(3);
+        line333->Draw();
+      }
+    }
 
- TLine *line33 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
- //if (pixelupdaterun == 298653 || pixelupdaterun ==  299061 || pixelupdaterun ==  320377 || pixelupdaterun ==  320674){
- if (pixelupdaterun ==299061 || pixelupdaterun == 301183 || pixelupdaterun == 304292 || pixelupdaterun == 314527 || pixelupdaterun == 317484 || pixelupdaterun == 317641 || pixelupdaterun == 320674 || pixelupdaterun == 321833 ) { 
-   
-   line33->SetLineColor(kRed+1);
-   line33->SetLineWidth(1);
-   line33->SetLineStyle(1); 
-   line33->Draw();
+    lastlumi = _sx + 0.075;
 
-   if (pixelupdaterun == 299061 || pixelupdaterun == 317484 || pixelupdaterun == 320674 ){
-     TLine *line333 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
-     line333->SetLineColor(kBlack);
-     line333->SetLineWidth(1);
-     line333->SetLineStyle(3); 
-     line333->Draw();
-   }
- }
- 
- lastlumi = _sx + 0.075; 
- 
- 
- //  gPad->RedrawAxis();
+    //  gPad->RedrawAxis();
   }
   //Drawing in a separate loop to ensure that the labels are drawn on top of the lines
   for (auto label : labels) {
@@ -776,7 +774,6 @@ TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
   }
   c->Update();
 }
-
 
 /*! \fn getintegratedlumiuptorun
  *  \brief Returns the integrated luminosity up to the run of interest
@@ -791,11 +788,12 @@ double getintegratedlumiuptorun(int ChosenRun, TString lumifile, double min) {
   int run;
   double runLumi;
   while (infile >> run >> runLumi) {
-    lumiperRun.push_back(make_pair(run,runLumi));
+    lumiperRun.push_back(make_pair(run, runLumi));
   }
-  std::sort(lumiperRun.begin(),lumiperRun.end());
-  for(size_t iRun=0; iRun<lumiperRun.size();iRun++){
-    if(ChosenRun<=lumiperRun.at(iRun).first) break;
+  std::sort(lumiperRun.begin(), lumiperRun.end());
+  for (size_t iRun = 0; iRun < lumiperRun.size(); iRun++) {
+    if (ChosenRun <= lumiperRun.at(iRun).first)
+      break;
     lumi += (lumiperRun.at(iRun).second / lumiFactor);
   }
   return lumi;
@@ -817,7 +815,8 @@ void scalebylumi(TGraphErrors *g, vector<pair<int, double>> lumiIOVpairs) {
     g->GetPoint(i, run, yvalue);
     size_t index = -1;
     for (size_t j = 0; j < Nscale; j++) {
-      if (run == (lumiIOVpairs.at(j).first)) {  //If the starting run of an IOV is included in the list of IOVs, the index is stored
+      if (run == (lumiIOVpairs.at(j)
+                      .first)) {  //If the starting run of an IOV is included in the list of IOVs, the index is stored
         index = j;
         continue;
       } else if (run > (lumiIOVpairs.at(j).first))
@@ -863,7 +862,7 @@ vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString lumifile) {
   int run;
   double runLumi;
   while (infile >> run >> runLumi) {
-    lumiperRun.push_back(make_pair(run,runLumi));
+    lumiperRun.push_back(make_pair(run, runLumi));
   }
   vector<int> xRunFromLumiFile;
   vector<int> missingruns;
@@ -872,18 +871,20 @@ vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString lumifile) {
   for (int run : IOVlist) {
     if (find(xRunFromLumiFile.begin(), xRunFromLumiFile.end(), run) == xRunFromLumiFile.end()) {
       missingruns.push_back(run);
-      lumiperRun.push_back(make_pair(run,0.));
+      lumiperRun.push_back(make_pair(run, 0.));
     }
   }
-  std::sort(lumiperRun.begin(),lumiperRun.end());
+  std::sort(lumiperRun.begin(), lumiperRun.end());
 
   if (!missingruns.empty()) {
     cout << "WARNING: some IOVs are missing in the run/luminosity txt file: " << lumifile << endl
-	 << "List of missing runs:" << endl;
+         << "List of missing runs:" << endl;
     for (int missingrun : missingruns)
       cout << to_string(missingrun) << " ";
     cout << endl;
-    cout << "NOTE: the missing runs are added in the code with luminosity = 0 (they are not stored in the input file), please check that the IOV numbers are correct!" << endl;
+    cout << "NOTE: the missing runs are added in the code with luminosity = 0 (they are not stored in the input file), "
+            "please check that the IOV numbers are correct!"
+         << endl;
   }
 
   size_t i = 0;
@@ -903,15 +904,15 @@ vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString lumifile) {
     for (size_t j = index; j < lumiperRun.size(); j++) {
       //cout << run << " - " << lumiperRun.at(j).first << " - lumi added: " << lumi << endl;
       if (run == lumiperRun.at(j).first) {
-	index = j;
-	break;
+        index = j;
+        break;
       } else
-	lumi += lumiperRun.at(j).second;
+        lumi += lumiperRun.at(j).second;
     }
     if (i == 0)
       lumiperIOV.push_back(make_pair(0, lumi));
-      else
-	lumiperIOV.push_back(make_pair(IOVlist.at(i - 1), lumi));
+    else
+      lumiperIOV.push_back(make_pair(IOVlist.at(i - 1), lumi));
     ++i;
   }
   for (size_t j = 0; j < lumiperRun.size(); j++)
@@ -920,9 +921,9 @@ vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString lumifile) {
     lumiOutput += lumiperIOV.at(j).second;
   if (abs(lumiInput - lumiOutput) > 0.5) {
     cout << "ERROR: luminosity retrieved for IOVs does not match the one for the runs." << endl
-	 << "Please check that all IOV first runs are part of the run-per-lumi file!" << endl;
-    cout << "Total lumi from lumi-per-run file: " << lumiInput <<endl;
-    cout << "Total lumi saved for IOVs: " << lumiOutput <<endl;
+         << "Please check that all IOV first runs are part of the run-per-lumi file!" << endl;
+    cout << "Total lumi from lumi-per-run file: " << lumiInput << endl;
+    cout << "Total lumi saved for IOVs: " << lumiOutput << endl;
     cout << "Size of IOVlist " << IOVlist.size() << endl;
     cout << "Size of lumi-per-IOV list " << lumiperIOV.size() << endl;
     //for (size_t j = 0; j < lumiperIOV.size(); j++)
@@ -932,13 +933,12 @@ vector<pair<int, double>> lumiperIOV(vector<int> IOVlist, TString lumifile) {
     //for (auto IOV : IOVlist) cout << IOV << " ";
     //cout << endl;
     exit(EXIT_FAILURE);
-
   }
-  cout << "final lumi= "<< lumiOutput<<endl;
+  cout << "final lumi= " << lumiOutput << endl;
   //for debugging
   //for (size_t j = 0; j < lumiperIOV.size(); j++)
   //  cout << lumiperIOV.at(j).first << " " <<lumiperIOV.at(j).second <<endl;
-    
+
   return lumiperIOV;
 }
 
@@ -985,8 +985,8 @@ void PlotDMRTrends(vector<int> IOVlist,
                    bool pixelupdate,
                    vector<int> pixelupdateruns,
                    bool showlumi,
-		   TString lumifile,
-		   vector<pair<int, double>> lumiIOVpairs) {
+                   TString lumifile,
+                   vector<pair<int, double>> lumiIOVpairs) {
   gErrorIgnoreLevel = kWarning;
   checkrunlist(pixelupdateruns, {});
   vector<TString> structures{"BPIX", "BPIX_y", "FPIX", "FPIX_y", "TIB", "TID", "TOB", "TEC"};
@@ -1142,7 +1142,7 @@ void PlotDMRTrends(vector<int> IOVlist,
 
         c->Update();
 
-	TLegend *legend = c->BuildLegend(0.08,0.1,0.25,0.3);
+        TLegend *legend = c->BuildLegend(0.08, 0.1, 0.25, 0.3);
         // TLegend *legend = c->BuildLegend(0.15,0.18,0.15,0.18);
         int Ngeom = geometries.size();
         if (Ngeom >= 6)
@@ -1169,73 +1169,73 @@ void PlotDMRTrends(vector<int> IOVlist,
         structtitle += "}";
         PixelUpdateLines(c, lumifile, showlumi, pixelupdateruns);
 
- TLine *lineOla2 = new TLine();
-    lineOla2->SetLineColor(kBlack);
-    lineOla2->SetLineStyle(1);
-    lineOla2->SetLineWidth(4);
-        legend->AddEntry(lineOla2,"First run of the year","l");
+        TLine *lineOla2 = new TLine();
+        lineOla2->SetLineColor(kBlack);
+        lineOla2->SetLineStyle(1);
+        lineOla2->SetLineWidth(4);
+        legend->AddEntry(lineOla2, "First run of the year", "l");
 
-    TLine *lineOla = new TLine();
-    lineOla->SetLineColor(kBlack);
-    lineOla->SetLineStyle(3);
-        legend->AddEntry(lineOla,"Pixel calibration update","l");
+        TLine *lineOla = new TLine();
+        lineOla->SetLineColor(kBlack);
+        lineOla->SetLineStyle(3);
+        legend->AddEntry(lineOla, "Pixel calibration update", "l");
 
-    TLine *lineOla3 = new TLine();
-    lineOla3->SetLineColor(kYellow+1);
-    lineOla3->SetLineStyle(1);
-        legend->AddEntry(lineOla3,"Base Run for pixel template","l");
+        TLine *lineOla3 = new TLine();
+        lineOla3->SetLineColor(kYellow + 1);
+        lineOla3->SetLineStyle(1);
+        legend->AddEntry(lineOla3, "Base Run for pixel template", "l");
 
-    TLine *lineOla4 = new TLine();
-    lineOla4->SetLineColor(kRed+1);
-    lineOla4->SetLineStyle(1);
-    legend->AddEntry(lineOla4,"Problematic base runs","l");
+        TLine *lineOla4 = new TLine();
+        lineOla4->SetLineColor(kRed + 1);
+        lineOla4->SetLineStyle(1);
+        legend->AddEntry(lineOla4, "Problematic base runs", "l");
 
+        legend->Draw();
 
-    legend->Draw();
+        double LumiTot = getintegratedlumiuptorun(-1, lumifile);
+        LumiTot = LumiTot / lumiFactor;
+        if (variable == "sigma" || variable == "sigmaplus" || variable == "sigmaminus" || variable == "sigmadeltamu" ||
+            variable == "deltamu" || variable == "deltamusigmadeltamu") {
+          TLine *line = new TLine(0., 0., LumiTot, 0.);
+          line->SetLineColor(kMagenta);
+          line->Draw();
+        }
 
-    double LumiTot= getintegratedlumiuptorun(-1,lumifile);
-    LumiTot=LumiTot/lumiFactor;
-        if (variable == "sigma" || variable == "sigmaplus" || variable == "sigmaminus" ||
-              variable == "sigmadeltamu" || variable=="deltamu" || variable=="deltamusigmadeltamu") {
-	  TLine *line = new TLine(0.,0.,LumiTot,0.);
-	  line->SetLineColor(kMagenta);
-	  line->Draw();
-	}
+        if (Variable == "median") {
+          if (variable == "musigma" || variable == "muminus" || variable == "mu" || variable == "muminussigmaminus" ||
+              variable == "muplus" || variable == "muplussigmaplus") {
+            TLine *line = new TLine(0., 0., LumiTot, 0.);
+            line->SetLineColor(kMagenta);
+            line->Draw();
+          }
+        }
 
-        if (Variable =="median")
-	  {     
-	    if ( variable == "musigma" || variable == "muminus" || variable =="mu" || 
-		 variable == "muminussigmaminus" || variable=="muplus" || variable=="muplussigmaplus") {
-	      TLine *line = new TLine(0.,0.,LumiTot,0.);
-	      line->SetLineColor(kMagenta);
-	      line->Draw();
-	    }
-	  }
-	
-        if (Variable =="DrmsNR"){      
-	  if ( variable == "musigma" ||  variable == "muminus" || variable=="mu" ||
-	       variable == "muminussigmaminus" || variable=="muplus" || variable=="muplussigmaplus") {
-	    TLine *line = new TLine(0.,1.,LumiTot,1.);
-	    line->SetLineColor(kMagenta);
-	    line->Draw();
-	  }
-	}
+        if (Variable == "DrmsNR") {
+          if (variable == "musigma" || variable == "muminus" || variable == "mu" || variable == "muminussigmaminus" ||
+              variable == "muplus" || variable == "muplussigmaplus") {
+            TLine *line = new TLine(0., 1., LumiTot, 1.);
+            line->SetLineColor(kMagenta);
+            line->Draw();
+          }
+        }
 
-	TPaveText *CMSworkInProgress = new TPaveText(
-           0, mg->GetYaxis()->GetXmax() + range * 0.02, 2.5, mg->GetYaxis()->GetXmax() + range * 0.12, "nb");
-      
-        CMSworkInProgress->AddText("#scale[1.1]{CMS} #it{Preliminary}");//ola changed it for public plots
+        TPaveText *CMSworkInProgress = new TPaveText(
+            0, mg->GetYaxis()->GetXmax() + range * 0.02, 2.5, mg->GetYaxis()->GetXmax() + range * 0.12, "nb");
+
+        CMSworkInProgress->AddText("#scale[1.1]{CMS} #it{Preliminary}");  //ola changed it for public plots
         CMSworkInProgress->SetTextAlign(12);
         CMSworkInProgress->SetTextSize(0.04);
         CMSworkInProgress->SetFillColor(10);
         //CMSworkInProgress->Draw();
-        TPaveText *TopRightCorner = new TPaveText(0.85 * (mg->GetXaxis()->GetXmax()),                       
+        TPaveText *TopRightCorner = new TPaveText(0.85 * (mg->GetXaxis()->GetXmax()),
                                                   mg->GetYaxis()->GetXmax() + range * 0.08,
                                                   0.95 * (mg->GetXaxis()->GetXmax()),
                                                   mg->GetYaxis()->GetXmax() + range * 0.18,
-                                                "nb");
-	if(Year=="Run2")TopRightCorner->AddText("#bf{CMS} #it{Work in progress} (2016+2017+2018 pp collisions)");
-        else TopRightCorner->AddText("#bf{CMS} #it{Work in progress} (" + Year + " pp collisions)");
+                                                  "nb");
+        if (Year == "Run2")
+          TopRightCorner->AddText("#bf{CMS} #it{Work in progress} (2016+2017+2018 pp collisions)");
+        else
+          TopRightCorner->AddText("#bf{CMS} #it{Work in progress} (" + Year + " pp collisions)");
         TopRightCorner->SetTextAlign(32);
         TopRightCorner->SetTextSize(0.04);
         TopRightCorner->SetFillColor(10);
@@ -1294,15 +1294,29 @@ void PlotDMRTrends(vector<int> IOVlist,
 
 int main(int argc, char *argv[]) {
   if (argc == 1) {
+    vector<int> IOVlist = {
+        271866, 272761, 272828, 273158, 273301, 274094, 274954, 274968, 275059, 275635, 276054, 276237, 276315, 276327,
+        276832, 276952, 277935, 278017, 278271, 279479, 279588, 279681, 279881, 279976, 280187, 280242, 280365, 280928,
+        281663, 281693, 282649, 282917, 283305, 283681, 284025, 284038, 290543, 294034, 296641, 297049, 297179, 297224,
+        297283, 297429, 297467, 297484, 297494, 297503, 297557, 297598, 297620, 297660, 297670, 298996, 299062, 299096,
+        299184, 299327, 299368, 299370, 299381, 299443, 299480, 299592, 299594, 299649, 300087, 300155, 300233, 300237,
+        300280, 300364, 300389, 300399, 300459, 300497, 300515, 300551, 300574, 300636, 300673, 300780, 300806, 300812,
+        301046, 301417, 302131, 302573, 302635, 303790, 303825, 303998, 304170, 304505, 304661, 304672, 305040, 305113,
+        305178, 305188, 305204, 305809, 305842, 305898, 305967, 306029, 306042, 306126, 306169, 306417, 306459, 306460,
+        306936, 314881, 315257, 315488, 315489, 315506, 315640, 315689, 315690, 315713, 315790, 315800, 315973, 316058,
+        316060, 316082, 316187, 316199, 316200, 316216, 316218, 316239, 316271, 316361, 316363, 316378, 316456, 316470,
+        316505, 316569, 316665, 316758, 317080, 317182, 317212, 317295, 317339, 317382, 317438, 317527, 317661, 317664,
+        318227, 318712, 319337, 319460, 320377, 320841, 320854, 320856, 320888, 320916, 320933, 320941, 320980, 321009,
+        321119, 321134, 321162, 321164, 321261, 321294, 321310, 321393, 321397, 321431, 321461, 321710, 321735, 321773,
+        321774, 321778, 321820, 321831, 321880, 321960, 322014, 322510, 322603, 323232, 323423, 323472, 323475, 323693,
+        323794, 323976, 324202, 324206, 324245, 324729, 324764, 324840, 324999, 325097, 325110};  // FullRun2Approval
 
+    vector<int> pixelupdateruns{271866, 272008, 272022, 276315, 276811, 278271, 279767, 280928, 283308, 290543, 294927,
+                                297057, 297281, 297503, 298653, 299061, 299443, 300157, 300389, 300401, 301046, 301183,
+                                302131, 302472, 303790, 303885, 303998, 304292, 304911, 305898, 313041, 314527, 314881,
+                                315257, 316758, 316766, 317475, 317484, 317485, 317527, 317641, 317661, 317664, 318227,
+                                318887, 320377, 320674, 321831, 321833, 322510, 322603, 323232, 324245};
 
-vector<int> IOVlist = {271866,272761, 272828, 273158, 273301, 274094, 274954, 274968, 275059, 275635, 276054, 276237, 276315, 276327, 276832, 276952, 277935, 278017, 278271, 279479, 279588, 279681, 279881, 279976, 280187, 280242, 280365, 280928, 281663, 281693, 282649, 282917, 283305, 283681, 284025, 284038, 290543, 294034, 296641, 297049, 297179, 297224, 297283, 297429, 297467, 297484, 297494, 297503, 297557, 297598, 297620, 297660, 297670, 298996, 299062, 299096, 299184, 299327, 299368, 299370, 299381, 299443, 299480, 299592, 299594, 299649, 300087, 300155, 300233, 300237, 300280, 300364, 300389, 300399, 300459, 300497, 300515, 300551, 300574, 300636, 300673, 300780, 300806, 300812, 301046, 301417, 302131, 302573, 302635, 303790, 303825, 303998, 304170, 304505, 304661, 304672, 305040, 305113, 305178, 305188, 305204, 305809, 305842, 305898, 305967, 306029, 306042, 306126, 306169, 306417, 306459, 306460, 306936, 314881, 315257, 315488, 315489, 315506, 315640, 315689, 315690, 315713, 315790, 315800, 315973, 316058, 316060, 316082, 316187, 316199, 316200, 316216, 316218, 316239, 316271, 316361, 316363, 316378, 316456, 316470, 316505, 316569, 316665, 316758, 317080, 317182, 317212, 317295, 317339, 317382, 317438, 317527, 317661, 317664, 318227, 318712, 319337, 319460, 320377, 320841, 320854, 320856, 320888, 320916, 320933, 320941, 320980, 321009, 321119, 321134, 321162, 321164, 321261, 321294, 321310, 321393, 321397, 321431, 321461, 321710, 321735, 321773, 321774, 321778, 321820, 321831, 321880, 321960, 322014, 322510, 322603, 323232, 323423, 323472, 323475, 323693, 323794, 323976, 324202, 324206, 324245, 324729, 324764, 324840, 324999, 325097, 325110}; // FullRun2Approval
-
-
-
-vector<int> pixelupdateruns {271866, 272008, 272022, 276315, 276811, 278271, 279767, 280928, 283308, 290543, 294927,  297057,  297281, 297503, 298653, 299061, 299443, 300157, 300389, 300401, 301046, 301183, 302131, 302472, 303790, 303885, 303998, 304292, 304911, 305898, 313041, 314527, 314881, 315257, 316758, 316766, 317475,  317484, 317485, 317527, 317641, 317661, 317664, 318227,  318887, 320377, 320674, 321831, 321833, 322510, 322603, 323232, 324245};
-
-    
     /*
     vector<int> IOVlist = {314881, 315257, 315488, 315489, 315506, 316239, 316271, 316361, 316363, 316378, 316456,
                            316470, 316505, 316569, 316665, 316758, 317080, 317182, 317212, 317295, 317339, 317382,
@@ -1321,25 +1335,25 @@ vector<int> pixelupdateruns {271866, 272008, 272022, 276315, 276811, 278271, 279
          << "DMRtrends labels pathtoDMRs geometriesandcolourspairs outputdirectory showpixelupdate showlumi FORCE"
          << endl;
 
-
-	DMRtrends(IOVlist,
- 	{"median", "DrmsNR"},
-  	 {"minbias"},
-	"Run2", 
-	"/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/results/alelek/DMR_RunA-D_Radiation27FebCorrected20April", 
-	//{ "Alignment during data taking", "End-of-year re-reconstruction", "Legacy reprocessing", "GT test", "RadiationEffects"}, 
-	//{ kBlue, kRed, kGreen+2, kCyan, kOrange+1}, 
-	{  "Legacy reprocessing", "RadiationEffects"}, 
-	{  kGreen+2, kOrange+1}, 
-		  //"/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/results/alelek/test_12Jun", 
-	"/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/results/acardini/DMRs/test_recorded",
-	true, 
-	pixelupdateruns,
-       // pixeltemplatebasedOnruns,
- 	true, 
+    DMRtrends(
+        IOVlist,
+        {"median", "DrmsNR"},
+        {"minbias"},
+        "Run2",
+        "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/results/alelek/"
+        "DMR_RunA-D_Radiation27FebCorrected20April",
+        //{ "Alignment during data taking", "End-of-year re-reconstruction", "Legacy reprocessing", "GT test", "RadiationEffects"},
+        //{ kBlue, kRed, kGreen+2, kCyan, kOrange+1},
+        {"Legacy reprocessing", "RadiationEffects"},
+        {kGreen + 2, kOrange + 1},
+        //"/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/results/alelek/test_12Jun",
+        "/afs/cern.ch/cms/CAF/CMSALCA/ALCA_TRACKERALIGN/data/commonValidation/results/acardini/DMRs/test_recorded",
+        true,
+        pixelupdateruns,
+        // pixeltemplatebasedOnruns,
+        true,
         "lumiperFullRun2_recorded.csv",
-	true); 
-
+        true);
 
     /*
     //PLEASE READ: for debugging purposes please keep at least one example that works commented.
@@ -1369,7 +1383,7 @@ vector<int> pixelupdateruns {271866, 272008, 272022, 276315, 276811, 278271, 279
 
   TString runlist = argv[1], all_variables = argv[2], all_labels = argv[3], Year = argv[4], pathtoDMRs = argv[5],
           geometrieandcolours = argv[6],  //name1:title1:color1,name2:title2:color2,name3:title3:color3
-    outputdirectory = argv[7], pixelupdatelist = argv[8], lumifile=argv[11];
+      outputdirectory = argv[7], pixelupdatelist = argv[8], lumifile = argv[11];
   bool showpixelupdate = argv[9], showlumi = argv[10], FORCE = argv[12];
   TObjArray *vararray = all_variables.Tokenize(",");
   vector<string> Variables;
@@ -1411,7 +1425,7 @@ vector<int> pixelupdateruns {271866, 272008, 272022, 276315, 276811, 278271, 279
             showpixelupdate,
             pixelupdateruns,
             showlumi,
-	    lumifile,
+            lumifile,
             FORCE);
 
   return 0;
