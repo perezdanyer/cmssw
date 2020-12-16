@@ -2,14 +2,13 @@
 
 function die { echo $1: status $2 ; exit $2; }
 
-cd $CMSSW_BASE/src/Alignment/OfflineValidation/test
+echo "TESTING Alignment/DMR single configuration with json..."
+cd $CMSSW_BASE/src/Alignment/OfflineValidation/test/test_yaml_new/DMR/single/testUnits/unitTest/317655/
+./cmsRun validation_cfg.py config=validation.json || die "Failure running DMR single configuration with json" $?
 
-echo "TESTING Alignment/OfflineValidation..."
-test_yaml/DMR/single/Legacy/ULRun2/316569/cmsRun test_yaml/DMR/single/Legacy/ULRun2/316569/validation_cfg.py config=test_yaml/DMR/single/Legacy/ULRun2/316569/validation.json
-test_yaml/DMR/single/Legacy/ReReco/316569/cmsRun test_yaml/DMR/single/Legacy/ReReco/316569/validation_cfg.py config=test_yaml/DMR/single/Legacy/ReReco/316569/validation.json
-
-#cmsRun testDMR_ULRun2_cfg.py || die "Failure running testDMR_ULRun2_cfg.py" $?
-#cmsRun testDMR_ReReco_cfg.py || die "Failure running testDMR_ReReco_cfg.py" $?
+echo "TESTING Alignment/DMR single configuration standalone..."
+./cmsRun validation_cfg.py || die "Failure running DMR single configuration standalone" $?
 
 echo "TESTING DMR merge step"
-test_yaml/DMR/merge/Legacy/316569/DMRmerge test_yaml/DMR/merge/Legacy/316569/validation.json || die "Failure running DMR merge step" $?
+cd $CMSSW_BASE/src/Alignment/OfflineValidation/test/test_yaml_new/DMR/merge/testUnits/317655/
+./DMRmerge validation.json || die "Failure running DMR merge step" $?

@@ -6,7 +6,7 @@ echo "Printing help"
 validateAlignments.py -h
 
 echo "Running over YAML"
-validateAlignments.py -v -f -d testDMR_ULRun2_and_ReReco.yaml
+validateAlignments.py -v -f -d unit_test.yaml
 
-echo "Running over JSON"
-validateAlignments.py -v -d -f testDMR_ULRun2_and_ReReco.json
+#echo "Running over JSON"
+#validateAlignments.py -v -d -f unit_test.json
