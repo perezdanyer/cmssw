@@ -3,6 +3,7 @@
 #include <iostream>
 #include <numeric>
 #include <functional>
+#include "TASImage.h"
 
 #include "exceptions.h"
 #include "toolbox.h"
@@ -16,7 +17,7 @@
 #include <TString.h>
 
 #include <Alignment/OfflineValidation/interface/CompareAlignments.h>
-#include "Alignment/OfflineValidation/macros/FitPVResiduals_2.C"
+#include "Alignment/OfflineValidation/macros/FitPVResiduals.C"
 #include <Alignment/OfflineValidation/interface/TkAlStyle.h>
 
 using namespace std;
@@ -26,6 +27,7 @@ namespace pt = boost::property_tree;
 
 int merge (int argc, char * argv[]){
     // parse the command line
+
     Options options;
     options.helper(argc, argv);
     options.parser(argc, argv);
@@ -64,7 +66,7 @@ int merge (int argc, char * argv[]){
     TString filesAndLabels;
 
     for(std::pair<std::string, pt::ptree> childTree : alignments){
-        filesAndLabels += childTree.second.get<std::string>("file") + "/PV.root=" + childTree.second.get<std::string>("title") + "|" + childTree.second.get<std::string>("color") + "|" + childTree.second.get<std::string>("style") + " , ";
+        filesAndLabels += childTree.second.get<std::string>("file") + "/PV.root" + childTree.second.get<std::string>("title") + "|" + childTree.second.get<std::string>("color") + "|" + childTree.second.get<std::string>("style") + " , ";
     }
 
     filesAndLabels.Remove(filesAndLabels.Length()-3);
@@ -93,8 +95,11 @@ int merge (int argc, char * argv[]){
                         w_dzEtaNormMax       // width of dz  vs Eta (norm)
 		      );
 
+    for(std::pair<std::string, pt::ptree> childTree : alignments){
+      loadFileList((childTree.second.get<std::string>("file") + "/PV.root").c_str(), "PVValidation", childTree.second.get<std::string>("title"), childTree.second.get<int>("color"), childTree.second.get<int>("style"));
+    }
+
     FitPVResiduals("",stdResiduals,doMaps,"",autoLimits);
-    
 
     return EXIT_SUCCESS; 
 }

@@ -25,11 +25,13 @@ def PV(config, validationDir):
 
                 ##Write local config
                 local = {}
-                local["output"] = "{}/{}/{}/{}/{}/{}".format(config["LFS"], config["name"], PVType, alignment, datasetName, IOV)
+                local["output"] = "{}/{}/PV/{}/{}/{}/{}".format(config["LFS"], config["name"], PVType, alignment, datasetName, IOV)
                 local["alignment"] = copy.deepcopy(config["alignments"][alignment])
                 local["validation"] = copy.deepcopy(config["validations"]["PV"][PVType][datasetName])
                 local["validation"].pop("alignments")
                 local["validation"]["IOV"] = IOV
+                if "dataset" in local["validation"]:
+                    local["validation"]["dataset"] = local["validation"]["dataset"].format(IOV)
                 if "goodlumi" in local["validation"]:
                     local["validation"]["goodlumi"] = local["validation"]["goodlumi"].format(IOV)
 
@@ -75,7 +77,7 @@ def PV(config, validationDir):
                     local.setdefault("alignments", {})
                     local["alignments"][alignment] = copy.deepcopy(config["alignments"][alignment])
                     local["validation"] = copy.deepcopy(config["validations"]["PV"][PVType][mergeName])
-                    local["output"] = "{}/{}/{}/{}/{}".format(config["LFS"], config["name"], PVType, mergeName, IOV)
+                    local["output"] = "{}/{}/PV/{}/{}/{}".format(config["LFS"], config["name"], PVType, mergeName, IOV)
 
                 ##Loop over all single jobs
                 for singleJob in jobs:

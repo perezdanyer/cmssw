@@ -1,4 +1,4 @@
-<flags CXXFLAGS="-g -Wall -DDEBUG -O3 -Wall -std=c++17" />
+<flags CXXFLAGS="-g -Wall -DDEBUG -O3 -Wall -std=c++17 -lASImage" />
 
 <use name="root" />
 <use name="rootgraphics"/>
