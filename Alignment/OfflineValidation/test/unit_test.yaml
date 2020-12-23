@@ -47,11 +47,11 @@ validations:
         single:
             testUnits:
                 IOV:
-                - 317655
+                - 1
                 alignments:
                 - unitTest
                 trackcollection: generalTracks
                 vertexcollection: offlinePrimaryVertices
-                maxevents: 1
+                maxevents: 10
                 isda: true
                 ismc: true
