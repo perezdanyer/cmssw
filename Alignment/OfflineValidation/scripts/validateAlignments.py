@@ -126,8 +126,13 @@ def main():
                     "source /cvmfs/cms.cern.ch/cmsset_default.sh",
                     "eval `scram runtime -sh`",
                     "cd {}".format(job["dir"]),
-                    "./{} {}validation.json".format(job["exe"], "validation_cfg.py config=" if "cms-config" in job else ""),
+                    #"./{} {}validation.json".format(job["exe"], "validation_cfg.py config=" if "cms-config" in job else ""),
                 ]
+
+                #FIXME add actual executing line
+                if 'python' == job["exe"]: cmd = "python validation.py config=validation.json"
+                else: cmd = "./{} {}validation.json".format(job["exe"], "validation_cfg.py config=" if "cms-config" in job else "")
+                runContent.append(cmd)
 
                 for line in runContent:
                     runFile.write(line + "\n")

@@ -12,7 +12,8 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
-#include "GeometryComparisonPlotter.h"
+#include <Alignment/OfflineValidation/interface/GeometryComparisonPlotter.h>
+//#include "GeometryComparisonPlotter.h"
 
 using namespace std;
 using namespace AllInOneConfig;
@@ -247,10 +248,74 @@ int GCP(int argc, char* argv[]) {
   pt::ptree main_tree;
   pt::read_json(options.config, main_tree);
 
+  pt::ptree alignments = main_tree.get_child("alignments");
+  pt::ptree validation = main_tree.get_child("validation");
+
+  pt::ptree GCPoptions = validation.get_child("GCP");
+
+  pt::ptree comAl = alignments.get_child("comp");
+  pt::ptree refAl = alignments.get_child("ref");
+
+  // Read the options
+  TString inFile = main_tree.get<std::string>("output") + "/GCPtree.root";
+  TString outDir = main_tree.get<std::string>("output");
+  TString modulesToPlot = "all";
+  TString alignmentName = comAl.get<std::string>("title");
+  TString referenceName = refAl.get<std::string>("title");
+  bool useDefaultRange  = GCPoptions.get_child_optional("useDefaultRange") ? GCPoptions.get<bool>("useDefaultRange") : false;
+  bool plotOnlyGlobal   = GCPoptions.get_child_optional("plotOnlyGlobal") ? GCPoptions.get<bool>("plotOnlyGlobal") : false;
+  bool plotPng          = GCPoptions.get_child_optional("plotPng") ? GCPoptions.get<bool>("plotPng") : false;
+  bool makeProfilePlots = GCPoptions.get_child_optional("makeProfilePlots") ? GCPoptions.get<bool>("makeProfilePlots") : true;
+  float dx_min = GCPoptions.get_child_optional("dx_min") ? GCPoptions.get<float>("dx_min") : -99999;
+  float dx_max = GCPoptions.get_child_optional("dx_max") ? GCPoptions.get<float>("dx_max") : -99999;
+  float dy_min = GCPoptions.get_child_optional("dy_min") ? GCPoptions.get<float>("dy_min") : -99999;
+  float dy_max = GCPoptions.get_child_optional("dy_max") ? GCPoptions.get<float>("dy_max") : -99999;
+  float dz_min = GCPoptions.get_child_optional("dz_min") ? GCPoptions.get<float>("dz_min") : -99999;
+  float dz_max = GCPoptions.get_child_optional("dz_max") ? GCPoptions.get<float>("dz_max") : -99999;
+  float dr_min = GCPoptions.get_child_optional("dr_min") ? GCPoptions.get<float>("dr_min") : -99999;
+  float dr_max = GCPoptions.get_child_optional("dr_max") ? GCPoptions.get<float>("dr_max") : -99999;
+  float rdphi_min  = GCPoptions.get_child_optional("rdphi_min") ? GCPoptions.get<float>("rdphi_min") : -99999;
+  float rdphi_max  = GCPoptions.get_child_optional("rdphi_max") ? GCPoptions.get<float>("rdphi_max") : -99999;
+  float dalpha_min = GCPoptions.get_child_optional("dalpha_min") ? GCPoptions.get<float>("dalpha_min") : -99999;
+  float dalpha_max = GCPoptions.get_child_optional("dalpha_max") ? GCPoptions.get<float>("dalpha_max") : -99999;
+  float dbeta_min  = GCPoptions.get_child_optional("dbeta_min") ? GCPoptions.get<float>("dbeta_min") : -99999;
+  float dbeta_max  = GCPoptions.get_child_optional("dbeta_max") ? GCPoptions.get<float>("dbeta_max") : -99999;
+  float dgamma_min = GCPoptions.get_child_optional("dgamma_min") ? GCPoptions.get<float>("dgamma_min") : -99999;
+  float dgamma_max = GCPoptions.get_child_optional("dgamma_max") ? GCPoptions.get<float>("dgamma_max") : -99999;
+
+
+  comparisonScript(inFile,
+                   outDir,
+                   modulesToPlot,
+                   alignmentName,
+                   referenceName,
+                   useDefaultRange,
+                   plotOnlyGlobal,
+                   plotPng,
+                   makeProfilePlots,
+                   dx_min,
+                   dx_max,
+                   dy_min,
+                   dy_max,
+                   dz_min,
+                   dz_max,
+                   dr_min,
+                   dr_max,
+                   rdphi_min,
+                   rdphi_max,
+                   dalpha_min,
+                   dalpha_max,
+                   dbeta_min,
+                   dbeta_max,
+                   dgamma_min,
+                   dgamma_max);
+  
+
   // TODO
   // - comments à la doxygen
   // - get ROOT file (look into All-In-One Tool)
   // - use Boost to read config file
+  return EXIT_SUCCESS;
 }
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
