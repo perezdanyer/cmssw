@@ -42,9 +42,9 @@ void DrawRPhiLegend(double xLim, double yLim, double barrelRPhiRescale)
   float testBlockSize = 0.2*xLim; //5cm in axis unit
   float disty = 0;
   float dYTest =0.1*xLim;
-  float dZTest =2;
-  float xLegObj = 20;
-  float yLegObj = 18;
+  //float dZTest =2;
+  //float xLegObj = 20;
+  //float yLegObj = 18;
 
   Plot10Mu("#Delta r:",xTest,yTest,testBlockSize);
   Plot10Mu("500 #mum",xTest,yTest-3*dYTest,testBlockSize);
@@ -261,7 +261,7 @@ void makeArrowPlots(const char* filename, const char* outputDir)
   // PXB slices
   int totalPXB_modules = 0;
   int totalPXB_modules_zphi = 0;
-  int dummy = 0;
+  //int dummy = 0;
   if (plotPXB){
     double pxbScale = 30.0;
     totalPXB_modules += makeRPhiArrowPlot( data, "PXB_BarrelXY-4", 20, 20, 1, 1, -26, -20, 0, 19, pxbScale);
@@ -332,7 +332,7 @@ void makeArrowPlots(const char* filename, const char* outputDir)
 
   // PXF slices
   int totalPXF_modules = 0;
-  int totalPXF_modules_rz = 0;
+  //int totalPXF_modules_rz = 0;
   if (plotPXF){
     double pxfScale = 30.0;
     totalPXF_modules += makeRPhiArrowPlot( data, "PXF_DiskXY+1", 20, 20, 1, 2, 25, 36, 0, 120, pxfScale);
@@ -352,7 +352,7 @@ void makeArrowPlots(const char* filename, const char* outputDir)
 
   // TID slices
   int totalTID_modules = 0;
-  int totalTID_modules_rz = 0;
+  //int totalTID_modules_rz = 0;
   if (plotTID){
     double tidScale = 50.0;
     totalTID_modules += makeRPhiArrowPlot( data, "TID_DiskXY+1", 70, 70, 1, 4, 70, 80, 0, 120, tidScale);
