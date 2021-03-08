@@ -302,6 +302,17 @@ void vizualizationScript(
 }
 
 int GCP(int argc, char* argv[]) {
+  /*
+  TObject* printer = new TObject();
+  printer->Info("GCPvalidation", "Hello!");
+  // Hack to push through messages even without -v running
+  // Very ugly coding, to run with std::cout -> run with -v option (GCP cfg.json -v)
+  */
+
+
+  std::cout << " ----- GCP validation plots -----" << std::endl;
+  std::cout << " --- Digesting configuration" << std::endl;
+
   // parse the command line
   Options options;
   options.helper(argc, argv);
@@ -346,6 +357,7 @@ int GCP(int argc, char* argv[]) {
   float dgamma_max = GCPoptions.get_child_optional("dgamma_max") ? GCPoptions.get<float>("dgamma_max") : -99999;
 
 
+  std::cout << " --- Running comparison script" << std::endl;
   // Compare script
   comparisonScript(
           inFile,
@@ -375,6 +387,7 @@ int GCP(int argc, char* argv[]) {
           dgamma_max);
 
 
+  std::cout << " --- Running visualization script" << std::endl;
   // Visualization script
   vizualizationScript(
         inFile,
@@ -382,6 +395,7 @@ int GCP(int argc, char* argv[]) {
         alignmentName, 
         referenceName);
 
+  std::cout << " --- Running arrow plot script" << std::endl;
   // Arrow plot
   TString arrowDir = outDir+"/ArrowPlots"; 
   makeArrowPlots(
