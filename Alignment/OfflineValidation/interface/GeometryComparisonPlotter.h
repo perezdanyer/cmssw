@@ -87,7 +87,8 @@ public:
                               TString referenceName="Ideal",
                               TString alignmentName="Alignment",
                               bool plotOnlyGlobal=false,
-                              bool makeProfilePlots=false);
+                              bool makeProfilePlots=false, 
+                              int canvas_idx=0);
     ~GeometryComparisonPlotter ();
 
     // main methods

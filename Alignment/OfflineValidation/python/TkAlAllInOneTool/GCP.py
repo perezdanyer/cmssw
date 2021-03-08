@@ -116,7 +116,7 @@ def GCP(config, validationDir):
                         job['exe'] = 'GCP'
                         job['dependencies'] = parents + ["GCP_{}_{}_{}_{}".format(comparison, ali_pair, IOV_pair, 'GCPtree')]
                     else: 
-                        job['exe'] = 'python'
+                        job['exe'] = 'GCPpyPlots.py'
                         job['dependencies'] = parents + ["GCP_{}_{}_{}_{}".format(comparison, ali_pair, IOV_pair, 'GCPtree')]
 
                     jobs.append(job)

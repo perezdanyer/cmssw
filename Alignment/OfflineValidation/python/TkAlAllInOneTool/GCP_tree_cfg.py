@@ -82,6 +82,10 @@ process.TrackerGeometryCompare.inputROOTFile2 = str(config['input_comp']+'/Ntupl
 process.TrackerGeometryCompare.moduleList = 'emptyModuleList.txt'
 process.TrackerGeometryCompare.outputFile = str(config['output'])+'/GCPtree.root'
 
+surf_dir = str(config['output'])+'/SurfDeform'
+os.mkdir(surf_dir)
+process.TrackerGeometryCompare.surfDir = surf_dir 
+
 process.load("CommonTools.UtilAlgos.TFileService_cfi")  
 process.TFileService.fileName = cms.string("TkSurfDeform.root") 
 

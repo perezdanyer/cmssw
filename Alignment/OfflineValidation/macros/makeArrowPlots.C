@@ -6,6 +6,9 @@
 #include "TList.h"
 #include "TNtuple.h"
 #include "TString.h"
+#include "TArrow.h"
+#include "TFrame.h"
+#include "TString.h"
 
 double arrowSize = 0.0095;
 float y_,x_,z_,phi_,r_,dphi_,dr_,dx_,dz_,dy_;
@@ -74,10 +77,14 @@ int makeRPhiArrowPlot( TTree* data, const char* name, double xLim, double yLim, 
     }
   DrawRPhiLegend( xLim, yLim, barrelRPhiRescale );
 
-  char sliceLeg[192];
-  sprintf( sliceLeg, "%s: %f < z <= %f", name, zMin, zMax );
+  //char sliceLeg[192];
+  std::ostringstream sliceLeg_s;
+  sliceLeg_s << name << ": " << zMin << " < z <= " << zMax;
+  TString sliceLeg(sliceLeg_s.str());
+  //sprintf( sliceLeg, "%s: %f < z <= %f", name, zMin, zMax );
   //Plot10Mu( name, xLim/2, yLim, 0.2*xLim );
   TPaveText* atext = new TPaveText(0.2*xLim,0.85*yLim,0.66*xLim,0.99*yLim);
+  //atext->AddText(sliceLeg);
   atext->AddText(sliceLeg);
   atext->SetLineColor(0);
   atext->SetFillColor(0);
@@ -87,11 +94,19 @@ int makeRPhiArrowPlot( TTree* data, const char* name, double xLim, double yLim, 
 
 
 
-  char outfile[192];
-  sprintf( outfile, "%s/%s.png", outputDir_, name );
+  //char outfile[192];
+  //sprintf( outfile, "%s/%s.png", outputDir_, name );
+  //OBPCanvas->Print( outfile );
+  std::ostringstream outfile_s;
+  outfile_s << outputDir_ << "/" << name << ".png";
+  TString outfile(outfile_s.str());
   OBPCanvas->Print( outfile );
-  sprintf(outfile, "%s/%s.pdf", outputDir_, name);
-  OBPCanvas->SaveAs(outfile);
+  std::ostringstream outfile2_s;
+  outfile2_s << outputDir_ << "/" << name << ".pdf";
+  TString outfile2(outfile2_s.str());
+  //sprintf(outfile, "%s/%s.pdf", outputDir_, name);
+  //OBPCanvas->SaveAs(outfile);
+  OBPCanvas->SaveAs(outfile2);
 
   return passcut;
 }
@@ -121,8 +136,11 @@ int makeZPhiArrowPlot( TTree* data, const char* name, double zLim, double phiLim
     }
   DrawRPhiLegend( zLim, phiLim, barrelRPhiRescale );
 
-  char sliceLeg[192];
-  sprintf( sliceLeg, "%s: %f < r <= %f", name, rMin, rMax );
+  //char sliceLeg[192];
+  //sprintf( sliceLeg, "%s: %f < r <= %f", name, rMin, rMax );
+  std::ostringstream sliceLeg_s;
+  sliceLeg_s << name << ": " << rMin << " < r <= " << rMax;
+  TString sliceLeg(sliceLeg_s.str());
   //Plot10Mu( name, xLim/2, yLim, 0.2*xLim );
   TPaveText* atext = new TPaveText(0.2*zLim,0.85*phiLim,0.66*zLim,0.99*phiLim);
   atext->AddText(sliceLeg);
@@ -134,11 +152,18 @@ int makeZPhiArrowPlot( TTree* data, const char* name, double zLim, double phiLim
 
 
 
-  char outfile[192];
-  sprintf( outfile, "%s/%s.png", outputDir_, name );
+  //char outfile[192];
+  //sprintf( outfile, "%s/%s.png", outputDir_, name );
+  std::ostringstream outfile_s;
+  outfile_s << outputDir_ << "/" << name << ".png";
+  TString outfile(outfile_s.str());
   OBPCanvas->Print( outfile );
-  sprintf(outfile, "%s/%s.pdf", outputDir_, name);
-  OBPCanvas->SaveAs(outfile);
+  //sprintf(outfile, "%s/%s.pdf", outputDir_, name);
+  //OBPCanvas->SaveAs(outfile);
+  std::ostringstream outfile2_s;
+  outfile2_s << outputDir_ << "/" << name << ".pdf";
+  TString outfile2(outfile2_s.str());
+  OBPCanvas->SaveAs(outfile2);
 
   return passcut;
 }

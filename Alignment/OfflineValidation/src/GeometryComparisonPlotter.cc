@@ -53,7 +53,8 @@ GeometryComparisonPlotter::GeometryComparisonPlotter (TString tree_file_name,
                                                       TString alignmentName,
                                                       TString referenceName,
                                                       bool printOnlyGlobal,
-                                                      bool makeProfilePlots
+                                                      bool makeProfilePlots,
+                                                      int canvas_idx
                                                       ) :
     _output_directory(output_directory + TString(output_directory.EndsWith("/") ? "" : "/")),
     _output_filename("comparison.root"),
@@ -80,7 +81,7 @@ GeometryComparisonPlotter::GeometryComparisonPlotter (TString tree_file_name,
     _grid_y(0),         // by default no display the grid in the canvases
     _window_width(DEFAULT_WINDOW_WIDTH),
     _window_height(DEFAULT_WINDOW_HEIGHT),
-    _canvas_index(0)
+    _canvas_index(canvas_idx)
 {
 #ifdef TALKATIVE
     std::cout << ">>> TALKATIVE MODE ACTIVATED <<<" << std::endl;
