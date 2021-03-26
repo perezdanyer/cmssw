@@ -81,11 +81,11 @@ validations:
                 triggerBits: HLT_*
                 maxevents: 10
     GCP:
-        testUnits:
+        GCPdetUnits:
             levels: DetUnit
             plotPng: true
         compare:
-            testUnits:
+            GCPdetUnits:
                 legacyVSprompt:
                     reference: legacy
                     compared: prompt
