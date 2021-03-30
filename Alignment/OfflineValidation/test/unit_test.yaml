@@ -1,4 +1,4 @@
-LFS: /eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/CMSSW_test_units
+LFS: $CMSSW_BASE/src/UnitTest
 name: test_yaml_new
 alignments:
     unitTest:
