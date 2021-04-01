@@ -28,135 +28,64 @@ namespace pt = boost::property_tree;
 namespace fs = boost::filesystem;
 
 void comparisonScript(
+        pt::ptree GCPoptions, 
         TString inFile,  //="mp1510_vs_mp1509.Comparison_commonTracker.root", // TODO: get ROOT file
         TString outDir = "outputDir/",
-        TString modulesToPlot = "all",
         TString alignmentName = "Alignment",
-        TString referenceName = "Ideal",
-        bool useDefaultRange = false,
-        bool plotOnlyGlobal = false,
-        bool plotPng = true,
-        bool makeProfilePlots = true,
-        float dx_min = -99999,
-        float dx_max = -99999,
-        float dy_min = -99999,
-        float dy_max = -99999,
-        float dz_min = -99999,
-        float dz_max = -99999,
-        float dr_min = -99999,
-        float dr_max = -99999,
-        float rdphi_min = -99999,
-        float rdphi_max = -99999,
-        float dalpha_min = -99999,
-        float dalpha_max = -99999,
-        float dbeta_min = -99999,
-        float dbeta_max = -99999,
-        float dgamma_min = -99999,
-        float dgamma_max = -99999) 
+        TString referenceName = "Ideal")
 {
   // the output directory is created if it does not exist
   fs::create_directories(outDir.Data());
 
+  TString modulesToPlot = "all";
   TString transDir = outDir+"/Translations";
   TString rotDir = outDir+"/Rotations";
   fs::create_directories(transDir.Data());
   fs::create_directories(rotDir.Data());
 
   // store y-ranges temporaly for the case when the default range is used together with individual ranges
-  float dx_min_temp = dx_min;
-  float dx_max_temp = dx_max;
-  float dy_min_temp = dy_min;
-  float dy_max_temp = dy_max;
-  float dz_min_temp = dz_min;
-  float dz_max_temp = dz_max;
-  float dr_min_temp = dr_min;
-  float dr_max_temp = dr_max;
-  float rdphi_min_temp = rdphi_min;
-  float rdphi_max_temp = rdphi_max;
-  float dalpha_min_temp = dalpha_min;
-  float dalpha_max_temp = dalpha_max;
-  float dbeta_min_temp = dbeta_min;
-  float dbeta_max_temp = dbeta_max;
-  float dgamma_min_temp = dgamma_min;
-  float dgamma_max_temp = dgamma_max;
+  float dx_min = -99999;
+  float dx_max = -99999;
+  float dy_min = -99999;
+  float dy_max = -99999;
+  float dz_min = -99999;
+  float dz_max = -99999;
+  float dr_min = -99999;
+  float dr_max = -99999;
+  float rdphi_min  = -99999;
+  float rdphi_max  = -99999;
+  float dalpha_min = -99999;
+  float dalpha_max = -99999;
+  float dbeta_min  = -99999;
+  float dbeta_max  = -99999;
+  float dgamma_min = -99999;
+  float dgamma_max = -99999;
+
+  bool useDefaultRange  = GCPoptions.get_child_optional("useDefaultRange") ? GCPoptions.get<bool>("useDefaultRange") : false;
+  bool plotOnlyGlobal   = GCPoptions.get_child_optional("plotOnlyGlobal") ? GCPoptions.get<bool>("plotOnlyGlobal") : false;
+  bool plotPng          = GCPoptions.get_child_optional("plotPng") ? GCPoptions.get<bool>("plotPng") : false;
+  bool makeProfilePlots = GCPoptions.get_child_optional("makeProfilePlots") ? GCPoptions.get<bool>("makeProfilePlots") : true;
 
   if (useDefaultRange) {
-    dx_min = -200;
-    dx_max = 200;
-    dy_min = -200;
-    dy_max = 200;
-    dz_min = -200;
-    dz_max = 200;
-    dr_min = -200;
-    dr_max = 200;
-    rdphi_min = -200;
-    rdphi_max = 200;
+    dx_min = GCPoptions.get_child_optional("dx_min") ? GCPoptions.get<float>("dx_min") : -200;
+    dx_max = GCPoptions.get_child_optional("dx_max") ? GCPoptions.get<float>("dx_max") : 200;
+    dy_min = GCPoptions.get_child_optional("dy_min") ? GCPoptions.get<float>("dy_min") : -200;
+    dy_max = GCPoptions.get_child_optional("dy_max") ? GCPoptions.get<float>("dy_max") : 200;
+    dz_min = GCPoptions.get_child_optional("dz_min") ? GCPoptions.get<float>("dz_min") : -200;
+    dz_max = GCPoptions.get_child_optional("dz_max") ? GCPoptions.get<float>("dz_max") : 200;
+    dr_min = GCPoptions.get_child_optional("dr_min") ? GCPoptions.get<float>("dr_min") : -200;
+    dr_max = GCPoptions.get_child_optional("dr_max") ? GCPoptions.get<float>("dr_max") : 200;
+    rdphi_min = GCPoptions.get_child_optional("rdphi_min") ? GCPoptions.get<float>("rdphi_min") : -200;
+    rdphi_max = GCPoptions.get_child_optional("rdphi_max") ? GCPoptions.get<float>("rdphi_max") : 200;
 
-    dalpha_min = -100;
-    dalpha_max = 100;
-    dbeta_min = -100;
-    dbeta_max = 100;
-    dgamma_min = -100;
-    dgamma_max = 100;
+    dalpha_min = GCPoptions.get_child_optional("dalpha_min") ? GCPoptions.get<float>("dalpha_min") : -100;
+    dalpha_max = GCPoptions.get_child_optional("dalpha_max") ? GCPoptions.get<float>("dalpha_max") : 100;
+    dbeta_min  = GCPoptions.get_child_optional("dbeta_min") ? GCPoptions.get<float>("dbeta_min") : -100;
+    dbeta_max  = GCPoptions.get_child_optional("dbeta_max") ? GCPoptions.get<float>("dbeta_max") : 100;
+    dgamma_min = GCPoptions.get_child_optional("dgamma_min") ? GCPoptions.get<float>("dgamma_min") : -100;
+    dgamma_max = GCPoptions.get_child_optional("dgamma_max") ? GCPoptions.get<float>("dgamma_max") : 100;
 
-    // Overwrite single default values if individual ones are given
-    if (dx_min_temp != -99999) {
-      dx_min = dx_min_temp;
-    }
-    if (dx_max_temp != -99999) {
-      dx_max = dx_max_temp;
-    }
-    if (dy_min_temp != -99999) {
-      dy_min = dy_min_temp;
-    }
-    if (dy_max_temp != -99999) {
-      dy_max = dy_max_temp;
-    }
-    if (dz_min_temp != -99999) {
-      dz_min = dz_min_temp;
-    }
-    if (dz_max_temp != -99999) {
-      dz_max = dz_max_temp;
-    }
-    if (dr_min_temp != -99999) {
-      dr_min = dr_min_temp;
-    }
-    if (dr_max_temp != -99999) {
-      dr_max = dr_max_temp;
-    }
-    if (rdphi_min_temp != -99999) {
-      rdphi_min = rdphi_min_temp;
-    }
-    if (rdphi_max_temp != -99999) {
-      rdphi_max = rdphi_max_temp;
-    }
-
-    if (dalpha_min_temp != -99999) {
-      dalpha_min = dalpha_min_temp;
-    }
-    if (dalpha_max_temp != -99999) {
-      dalpha_max = dalpha_max_temp;
-    }
-    if (dbeta_min_temp != -99999) {
-      dbeta_min = dbeta_min_temp;
-    }
-    if (dbeta_max_temp != -99999) {
-      dbeta_max = dbeta_max_temp;
-    }
-    if (dgamma_min_temp != -99999) {
-      dgamma_min = dgamma_min_temp;
-    }
-    if (dgamma_max_temp != -99999) {
-      dgamma_max = dgamma_max_temp;
-    }
   }
-
-  // display canvases: be careful, as there are many many ... canvases
-
-  // the name of the variables are the names of the branches
-  // REMARK: an additional branch for rdphi is calculated automatically from r and dphi
-
-  // now the object to produce the comparison plots is created
 
   // Plot Translations
   GeometryComparisonPlotter* trans = new GeometryComparisonPlotter(
@@ -335,56 +264,15 @@ int GCP(int argc, char* argv[]) {
   TString modulesToPlot = "all";
   TString alignmentName = comAl.get<std::string>("title");
   TString referenceName = refAl.get<std::string>("title");
-  bool useDefaultRange  = GCPoptions.get_child_optional("useDefaultRange") ? GCPoptions.get<bool>("useDefaultRange") : false;
-  bool plotOnlyGlobal   = GCPoptions.get_child_optional("plotOnlyGlobal") ? GCPoptions.get<bool>("plotOnlyGlobal") : false;
-  bool plotPng          = GCPoptions.get_child_optional("plotPng") ? GCPoptions.get<bool>("plotPng") : false;
-  bool makeProfilePlots = GCPoptions.get_child_optional("makeProfilePlots") ? GCPoptions.get<bool>("makeProfilePlots") : true;
-  float dx_min = GCPoptions.get_child_optional("dx_min") ? GCPoptions.get<float>("dx_min") : -99999;
-  float dx_max = GCPoptions.get_child_optional("dx_max") ? GCPoptions.get<float>("dx_max") : -99999;
-  float dy_min = GCPoptions.get_child_optional("dy_min") ? GCPoptions.get<float>("dy_min") : -99999;
-  float dy_max = GCPoptions.get_child_optional("dy_max") ? GCPoptions.get<float>("dy_max") : -99999;
-  float dz_min = GCPoptions.get_child_optional("dz_min") ? GCPoptions.get<float>("dz_min") : -99999;
-  float dz_max = GCPoptions.get_child_optional("dz_max") ? GCPoptions.get<float>("dz_max") : -99999;
-  float dr_min = GCPoptions.get_child_optional("dr_min") ? GCPoptions.get<float>("dr_min") : -99999;
-  float dr_max = GCPoptions.get_child_optional("dr_max") ? GCPoptions.get<float>("dr_max") : -99999;
-  float rdphi_min  = GCPoptions.get_child_optional("rdphi_min") ? GCPoptions.get<float>("rdphi_min") : -99999;
-  float rdphi_max  = GCPoptions.get_child_optional("rdphi_max") ? GCPoptions.get<float>("rdphi_max") : -99999;
-  float dalpha_min = GCPoptions.get_child_optional("dalpha_min") ? GCPoptions.get<float>("dalpha_min") : -99999;
-  float dalpha_max = GCPoptions.get_child_optional("dalpha_max") ? GCPoptions.get<float>("dalpha_max") : -99999;
-  float dbeta_min  = GCPoptions.get_child_optional("dbeta_min") ? GCPoptions.get<float>("dbeta_min") : -99999;
-  float dbeta_max  = GCPoptions.get_child_optional("dbeta_max") ? GCPoptions.get<float>("dbeta_max") : -99999;
-  float dgamma_min = GCPoptions.get_child_optional("dgamma_min") ? GCPoptions.get<float>("dgamma_min") : -99999;
-  float dgamma_max = GCPoptions.get_child_optional("dgamma_max") ? GCPoptions.get<float>("dgamma_max") : -99999;
-
 
   std::cout << " --- Running comparison script" << std::endl;
   // Compare script
   comparisonScript(
+          GCPoptions,
           inFile,
           outDir,
-          modulesToPlot,
           alignmentName,
-          referenceName,
-          useDefaultRange,
-          plotOnlyGlobal,
-          plotPng,
-          makeProfilePlots,
-          dx_min,
-          dx_max,
-          dy_min,
-          dy_max,
-          dz_min,
-          dz_max,
-          dr_min,
-          dr_max,
-          rdphi_min,
-          rdphi_max,
-          dalpha_min,
-          dalpha_max,
-          dbeta_min,
-          dbeta_max,
-          dgamma_min,
-          dgamma_max);
+          referenceName);
 
 
   std::cout << " --- Running visualization script" << std::endl;
