@@ -12,6 +12,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/foreach.hpp>
 
 #include <Alignment/OfflineValidation/interface/GeometryComparisonPlotter.h>
 #include <Alignment/OfflineValidation/scripts/visualizationTracker.C>
@@ -43,49 +44,9 @@ void comparisonScript(
   fs::create_directories(transDir.Data());
   fs::create_directories(rotDir.Data());
 
-  // store y-ranges temporaly for the case when the default range is used together with individual ranges
-  float dx_min = -99999;
-  float dx_max = -99999;
-  float dy_min = -99999;
-  float dy_max = -99999;
-  float dz_min = -99999;
-  float dz_max = -99999;
-  float dr_min = -99999;
-  float dr_max = -99999;
-  float rdphi_min  = -99999;
-  float rdphi_max  = -99999;
-  float dalpha_min = -99999;
-  float dalpha_max = -99999;
-  float dbeta_min  = -99999;
-  float dbeta_max  = -99999;
-  float dgamma_min = -99999;
-  float dgamma_max = -99999;
-
-  bool useDefaultRange  = GCPoptions.get_child_optional("useDefaultRange") ? GCPoptions.get<bool>("useDefaultRange") : false;
   bool plotOnlyGlobal   = GCPoptions.get_child_optional("plotOnlyGlobal") ? GCPoptions.get<bool>("plotOnlyGlobal") : false;
   bool plotPng          = GCPoptions.get_child_optional("plotPng") ? GCPoptions.get<bool>("plotPng") : false;
   bool makeProfilePlots = GCPoptions.get_child_optional("makeProfilePlots") ? GCPoptions.get<bool>("makeProfilePlots") : true;
-
-  if (useDefaultRange) {
-    dx_min = GCPoptions.get_child_optional("dx_min") ? GCPoptions.get<float>("dx_min") : -200;
-    dx_max = GCPoptions.get_child_optional("dx_max") ? GCPoptions.get<float>("dx_max") : 200;
-    dy_min = GCPoptions.get_child_optional("dy_min") ? GCPoptions.get<float>("dy_min") : -200;
-    dy_max = GCPoptions.get_child_optional("dy_max") ? GCPoptions.get<float>("dy_max") : 200;
-    dz_min = GCPoptions.get_child_optional("dz_min") ? GCPoptions.get<float>("dz_min") : -200;
-    dz_max = GCPoptions.get_child_optional("dz_max") ? GCPoptions.get<float>("dz_max") : 200;
-    dr_min = GCPoptions.get_child_optional("dr_min") ? GCPoptions.get<float>("dr_min") : -200;
-    dr_max = GCPoptions.get_child_optional("dr_max") ? GCPoptions.get<float>("dr_max") : 200;
-    rdphi_min = GCPoptions.get_child_optional("rdphi_min") ? GCPoptions.get<float>("rdphi_min") : -200;
-    rdphi_max = GCPoptions.get_child_optional("rdphi_max") ? GCPoptions.get<float>("rdphi_max") : 200;
-
-    dalpha_min = GCPoptions.get_child_optional("dalpha_min") ? GCPoptions.get<float>("dalpha_min") : -100;
-    dalpha_max = GCPoptions.get_child_optional("dalpha_max") ? GCPoptions.get<float>("dalpha_max") : 100;
-    dbeta_min  = GCPoptions.get_child_optional("dbeta_min") ? GCPoptions.get<float>("dbeta_min") : -100;
-    dbeta_max  = GCPoptions.get_child_optional("dbeta_max") ? GCPoptions.get<float>("dbeta_max") : 100;
-    dgamma_min = GCPoptions.get_child_optional("dgamma_min") ? GCPoptions.get<float>("dgamma_min") : -100;
-    dgamma_max = GCPoptions.get_child_optional("dgamma_max") ? GCPoptions.get<float>("dgamma_max") : 100;
-
-  }
 
   // Plot Translations
   GeometryComparisonPlotter* trans = new GeometryComparisonPlotter(
@@ -93,57 +54,38 @@ void comparisonScript(
   // x and y contain the couples to plot
   // -> every combination possible will be performed
   // /!\ always give units (otherwise, unexpected bug from root...)
-  vector<TString> x, y, xmean;
-  vector<float> dyMin, dyMax;
-  x.push_back("r");
-  trans->SetBranchUnits("r", "cm");
-  x.push_back("phi");
-  trans->SetBranchUnits("phi", "rad");
-  x.push_back("z");
-  trans->SetBranchUnits("z", "cm");  //trans->SetBranchMax("z", 100); trans->SetBranchMin("z", -100);
-  y.push_back("dr");
-  trans->SetBranchSF("dr", 10000);
-  trans->SetBranchUnits("dr", "#mum");
-  dyMin.push_back(dr_min);
-  dyMax.push_back(dr_max);
-  y.push_back("dz");
-  trans->SetBranchSF("dz", 10000);
-  trans->SetBranchUnits("dz", "#mum");
-  dyMin.push_back(dz_min);
-  dyMax.push_back(dz_max);
-  y.push_back("rdphi");
-  trans->SetBranchSF("rdphi", 10000);
-  trans->SetBranchUnits("rdphi", "#mum rad");
-  dyMin.push_back(rdphi_min);
-  dyMax.push_back(rdphi_max);
-  y.push_back("dx");
-  trans->SetBranchSF("dx", 10000);
-  trans->SetBranchUnits("dx", "#mum");  //trans->SetBranchMax("dx", 10); trans->SetBranchMin("dx", -10);
-  dyMin.push_back(dx_min);
-  dyMax.push_back(dx_max);
-  y.push_back("dy");
-  trans->SetBranchSF("dy", 10000);
-  trans->SetBranchUnits("dy", "#mum");  //trans->SetBranchMax("dy", 10); trans->SetBranchMin("dy", -10);
-  dyMin.push_back(dy_min);
-  dyMax.push_back(dy_max);
+  vector<TString> x{"r", "phi", "z"};
+  vector<TString> y{"dr", "dz", "rdphi", "dx", "dy"};
+  vector<TString> xmean{"x", "y", "z", "r"};
 
-  xmean.push_back("x");
   trans->SetBranchUnits("x", "cm");
-  xmean.push_back("y");
   trans->SetBranchUnits("y", "cm");
-  xmean.push_back("z");
-  xmean.push_back("r");
+  trans->SetBranchUnits("z", "cm");  //trans->SetBranchMax("z", 100); trans->SetBranchMin("z", -100);
+  trans->SetBranchUnits("r", "cm");
+  trans->SetBranchUnits("phi", "rad");
+  trans->SetBranchUnits("dx", "#mum");  //trans->SetBranchMax("dx", 10); trans->SetBranchMin("dx", -10);
+  trans->SetBranchUnits("dy", "#mum");  //trans->SetBranchMax("dy", 10); trans->SetBranchMin("dy", -10);
+  trans->SetBranchUnits("dz", "#mum");
+  trans->SetBranchUnits("dr", "#mum");
+  trans->SetBranchUnits("rdphi", "#mum rad");
+
+  trans->SetBranchSF("dx", 10000);
+  trans->SetBranchSF("dy", 10000);
+  trans->SetBranchSF("dz", 10000);
+  trans->SetBranchSF("dr", 10000);
+  trans->SetBranchSF("rdphi", 10000);
+
 
   trans->SetGrid(1, 1);
-  trans->MakePlots(x, y, dyMin, dyMax);  // default output is pdf, but png gives a nicer result, so we use it as well
+  trans->MakePlots(x, y, GCPoptions);  // default output is pdf, but png gives a nicer result, so we use it as well
   // remark: what takes the more time is the creation of the output files,
   //         not the looping on the tree (because the code is perfect, of course :p)
   if (plotPng) {
     trans->SetPrintOption("png");
-    trans->MakePlots(x, y, dyMin, dyMax);
+    trans->MakePlots(x, y, GCPoptions);
   }
 
-  trans->MakeTables(xmean, y, dyMin, dyMax);
+  trans->MakeTables(xmean, y, GCPoptions);
 
   // Plot Rotations
   GeometryComparisonPlotter* rot = new GeometryComparisonPlotter(
@@ -151,33 +93,25 @@ void comparisonScript(
   // x and y contain the couples to plot
   // -> every combination possible will be performed
   // /!\ always give units (otherwise, unexpected bug from root...)
-  vector<TString> b;
-  vector<float> dbMin, dbMax;
+  vector<TString> b{"dalpha", "dbeta", "dgamma"};
+
+  rot->SetBranchUnits("z", "cm");
   rot->SetBranchUnits("r", "cm");
   rot->SetBranchUnits("phi", "rad");
-  rot->SetBranchUnits("z", "cm");
-  b.push_back("dalpha");
-  rot->SetBranchSF("dalpha", 1000);
   rot->SetBranchUnits("dalpha", "mrad");
-  dbMin.push_back(dalpha_min);
-  dbMax.push_back(dalpha_max);
-  b.push_back("dbeta");
-  rot->SetBranchSF("dbeta", 1000);
   rot->SetBranchUnits("dbeta", "mrad");
-  dbMin.push_back(dbeta_min);
-  dbMax.push_back(dbeta_max);
-  b.push_back("dgamma");
-  rot->SetBranchSF("dgamma", 1000);
   rot->SetBranchUnits("dgamma", "mrad");
-  dbMin.push_back(dgamma_min);
-  dbMax.push_back(dgamma_max);
+
+  rot->SetBranchSF("dalpha", 1000);
+  rot->SetBranchSF("dbeta", 1000);
+  rot->SetBranchSF("dgamma", 1000);
 
   rot->SetGrid(1, 1);
   rot->SetPrintOption("pdf");
-  rot->MakePlots(x, b, dbMin, dbMax);
+  rot->MakePlots(x, b, GCPoptions);
   if (plotPng) {
     rot->SetPrintOption("png");
-    rot->MakePlots(x, b, dbMin, dbMax);
+    rot->MakePlots(x, b, GCPoptions);
   }
 }
 
@@ -239,13 +173,13 @@ int GCP(int argc, char* argv[]) {
   */
 
 
-  std::cout << " ----- GCP validation plots -----" << std::endl;
-  std::cout << " --- Digesting configuration" << std::endl;
-
   // parse the command line
   Options options;
   options.helper(argc, argv);
   options.parser(argc, argv);
+
+  std::cout << " ----- GCP validation plots -----" << std::endl;
+  std::cout << " --- Digesting configuration" << std::endl;
 
   pt::ptree main_tree;
   pt::read_json(options.config, main_tree);
@@ -253,7 +187,24 @@ int GCP(int argc, char* argv[]) {
   pt::ptree alignments = main_tree.get_child("alignments");
   pt::ptree validation = main_tree.get_child("validation");
 
+  
   pt::ptree GCPoptions = validation.get_child("GCP");
+
+  // Read default ranges
+  pt::ptree default_range;
+  TString cmssw_base=std::getenv("CMSSW_BASE");
+  TString default_range_path = cmssw_base + "/src/Alignment/OfflineValidation/test/GCP_defaultRange.json";
+  pt::read_json(default_range_path.Data(), default_range);
+
+  // If useDefaultRange, update ranges if not defined in GCPoptions
+  bool useDefaultRange  = GCPoptions.get_child_optional("useDefaultRange") ? GCPoptions.get<bool>("useDefaultRange") : false;
+  if (useDefaultRange) {
+      BOOST_FOREACH(pt::ptree::value_type &v, default_range.get_child("")){
+          if (GCPoptions.count(v.first) < 1) {
+              GCPoptions.put(v.first, v.second.data());
+          }
+      }
+  }
 
   pt::ptree comAl = alignments.get_child("comp");
   pt::ptree refAl = alignments.get_child("ref");
@@ -292,8 +243,6 @@ int GCP(int argc, char* argv[]) {
 
   // TODO
   // - comments à la doxygen
-  // - get ROOT file (look into All-In-One Tool)
-  // - use Boost to read config file
   return EXIT_SUCCESS;
 }
 

@@ -219,8 +219,7 @@ GeometryComparisonPlotter::~GeometryComparisonPlotter ()
 // MAIN METHOD
 void GeometryComparisonPlotter::MakePlots (std::vector<TString> x, // axes to combine to plot
                                            std::vector<TString> y, // every combination (except the ones such that x=y) will be perfomed
-                                           std::vector<float> dyMin, // Minimum of y-variable to enable fixed ranges of the histogram
-                                           std::vector<float> dyMax) // Minimum of y-variable
+                                           pt::ptree CFG) // property tree storing the min and max values under <var>_min and <var>_max
 {
     /// -1) check that only existing branches are called 
     // (we use a macro to avoid copy/paste)
@@ -691,11 +690,11 @@ void GeometryComparisonPlotter::MakePlots (std::vector<TString> x, // axes to co
                 c[ix][iy][imgr]->SetGrid(_grid_x,_grid_y); // grid
                 
                 if (mgraphs[ix][iy][imgr]->GetListOfGraphs() != 0) {
-	                if (dyMin[iy] != -99999) {
-						mgraphs[ix][iy][imgr]->SetMinimum(dyMin[iy]);						
+	                if (CFG.count(TString::Format("%s_min", y[iy].Data()).Data()) > 0) {
+						mgraphs[ix][iy][imgr]->SetMinimum(CFG.get<float>(TString::Format("%s_min", y[iy].Data()).Data()));						
 					}
-	                if (dyMax[iy] != -99999) {
-						mgraphs[ix][iy][imgr]->SetMaximum(dyMax[iy]);
+	                if (CFG.count(TString::Format("%s_max", y[iy].Data()).Data()) > 0) {
+						mgraphs[ix][iy][imgr]->SetMaximum(CFG.get<float>(TString::Format("%s_max", y[iy].Data()).Data()));
 					}				
 					mgraphs[ix][iy][imgr]->Draw("A");
 				}
@@ -710,11 +709,11 @@ void GeometryComparisonPlotter::MakePlots (std::vector<TString> x, // axes to co
                 c_global[imgr]->GetPad(INDEX_IN_GLOBAL_CANVAS(ix,iy))->SetFillStyle(4000); //  make the pad transparent
                 c_global[imgr]->GetPad(INDEX_IN_GLOBAL_CANVAS(ix,iy))->SetGrid(_grid_x,_grid_y); // grid
                 if (mgraphs[ix][iy][imgr]->GetListOfGraphs() != 0) {
-	                if (dyMin[iy] != -99999) {
-						mgraphs[ix][iy][imgr]->SetMinimum(dyMin[iy]);						
+	                if (CFG.count(TString::Format("%s_min", y[iy].Data()).Data()) > 0) {
+						mgraphs[ix][iy][imgr]->SetMinimum(CFG.get<float>(TString::Format("%s_min", y[iy].Data()).Data()));						
 					}
-	                if (dyMax[iy] != -99999) {
-						mgraphs[ix][iy][imgr]->SetMaximum(dyMax[iy]);
+	                if (CFG.count(TString::Format("%s_max", y[iy].Data()).Data()) > 0) {
+						mgraphs[ix][iy][imgr]->SetMaximum(CFG.get<float>(TString::Format("%s_max", y[iy].Data()).Data()));
 					}
 					mgraphs[ix][iy][imgr]->Draw("A");
 				}
@@ -870,9 +869,9 @@ void GeometryComparisonPlotter::MakePlots (std::vector<TString> x, // axes to co
 				// Draw the frame that will contain the histograms
 				// One needs to specify the binning and title
 				c_hist[ix][iy][0]->GetPad(0)->DrawFrame(_min[x[ix]],
-														dyMin[iy] != -99999 ? dyMin[iy] : _min[y[iy]],
+														CFG.count(TString::Format("%s_min", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_min", y[iy].Data()).Data()) : _min[y[iy]],
 														_max[x[ix]],
-														dyMax[iy] != -99999 ? dyMax[iy] : _max[y[iy]],
+														CFG.count(TString::Format("%s_max", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_max", y[iy].Data()).Data()) : _max[y[iy]],
 														TString (";") + LateXstyle(x[ix]) + " /" + _units[x[ix]]
 														+ TString (";") + LateXstyle(y[iy]) + " /" + _units[y[iy]]);
 				if (_legend) legend->Draw("same"); 
@@ -901,9 +900,9 @@ void GeometryComparisonPlotter::MakePlots (std::vector<TString> x, // axes to co
 				c_global_hist[0]->GetPad(INDEX_IN_GLOBAL_CANVAS(ix,iy))->SetFillStyle(4000); //  make the pad transparent
 				c_global_hist[0]->GetPad(INDEX_IN_GLOBAL_CANVAS(ix,iy))->SetGrid(_grid_x,_grid_y); // grid
 				c_global_hist[0]->GetPad(INDEX_IN_GLOBAL_CANVAS(ix,iy))->DrawFrame(_min[x[ix]],
-														dyMin[iy] != -99999 ? dyMin[iy] : _min[y[iy]],
+														CFG.count(TString::Format("%s_min", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_min", y[iy].Data()).Data()) : _min[y[iy]],
 														_max[x[ix]],
-														dyMax[iy] != -99999 ? dyMax[iy] : _max[y[iy]],
+														CFG.count(TString::Format("%s_max", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_max", y[iy].Data()).Data()) : _max[y[iy]],
 														TString (";") + LateXstyle(x[ix]) + " /" + _units[x[ix]]
 														+ TString (";") + LateXstyle(y[iy]) + " /" + _units[y[iy]]);
 				
@@ -927,9 +926,9 @@ void GeometryComparisonPlotter::MakePlots (std::vector<TString> x, // axes to co
 				// Draw the frame that will contain the histograms
 				// One needs to specify the binning and title
 				c_hist[ix][iy][7]->GetPad(0)->DrawFrame(_min[x[ix]],
-														dyMin[iy] != -99999 ? dyMin[iy] : _min[y[iy]],
+														CFG.count(TString::Format("%s_min", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_min", y[iy].Data()).Data()) : _min[y[iy]],
 														_max[x[ix]],
-														dyMax[iy] != -99999 ? dyMax[iy] : _max[y[iy]],
+														CFG.count(TString::Format("%s_max", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_max", y[iy].Data()).Data()) : _max[y[iy]],
 														TString (";") + LateXstyle(x[ix]) + " /" + _units[x[ix]]
 														+ TString (";") + LateXstyle(y[iy]) + " /" + _units[y[iy]]);
 				if (_legend) legend->Draw("same"); 
@@ -961,9 +960,9 @@ void GeometryComparisonPlotter::MakePlots (std::vector<TString> x, // axes to co
 				c_global_hist[7]->GetPad(INDEX_IN_GLOBAL_CANVAS(ix,iy))->SetFillStyle(4000); //  make the pad transparent
 				c_global_hist[7]->GetPad(INDEX_IN_GLOBAL_CANVAS(ix,iy))->SetGrid(_grid_x,_grid_y); // grid
 				c_global_hist[7]->GetPad(INDEX_IN_GLOBAL_CANVAS(ix,iy))->DrawFrame(_min[x[ix]],
-														dyMin[iy] != -99999 ? dyMin[iy] : _min[y[iy]],
+														CFG.count(TString::Format("%s_min", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_min", y[iy].Data()).Data()) : _min[y[iy]],
 														_max[x[ix]],
-														dyMax[iy] != -99999 ? dyMax[iy] : _max[y[iy]],
+														CFG.count(TString::Format("%s_max", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_max", y[iy].Data()).Data()) : _max[y[iy]],
 														TString (";") + LateXstyle(x[ix]) + " /" + _units[x[ix]]
 														+ TString (";") + LateXstyle(y[iy]) + " /" + _units[y[iy]]);
 				
@@ -989,9 +988,9 @@ void GeometryComparisonPlotter::MakePlots (std::vector<TString> x, // axes to co
 	                                               _window_height);
 	                c_hist[ix][iy][isublevel]->SetGrid(_grid_x,_grid_y); // grid
 	                c_hist[ix][iy][isublevel]->GetPad(0)->DrawFrame(_min[x[ix]],
-														dyMin[iy] != -99999 ? dyMin[iy] : _min[y[iy]],
+														CFG.count(TString::Format("%s_min", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_min", y[iy].Data()).Data()) : _min[y[iy]],
 														_max[x[ix]],
-														dyMax[iy] != -99999 ? dyMax[iy] : _max[y[iy]],
+														CFG.count(TString::Format("%s_max", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_max", y[iy].Data()).Data()) : _max[y[iy]],
 														TString (";") + LateXstyle(x[ix]) + " /" + _units[x[ix]]
 														+ TString (";") + LateXstyle(y[iy]) + " /" + _units[y[iy]]);
 	                
@@ -1015,9 +1014,9 @@ void GeometryComparisonPlotter::MakePlots (std::vector<TString> x, // axes to co
 	                c_global_hist[isublevel]->GetPad(INDEX_IN_GLOBAL_CANVAS(ix,iy))->SetFillStyle(4000); //  make the pad transparent
 	                c_global_hist[isublevel]->GetPad(INDEX_IN_GLOBAL_CANVAS(ix,iy))->SetGrid(_grid_x,_grid_y); // grid
 	                c_global_hist[isublevel]->GetPad(INDEX_IN_GLOBAL_CANVAS(ix,iy))->DrawFrame(_min[x[ix]],
-														dyMin[iy] != -99999 ? dyMin[iy] : _min[y[iy]],
+														CFG.count(TString::Format("%s_min", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_min", y[iy].Data()).Data()) : _min[y[iy]],
 														_max[x[ix]],
-														dyMax[iy] != -99999 ? dyMax[iy] : _max[y[iy]],
+														CFG.count(TString::Format("%s_max", y[iy].Data()).Data()) > 0 ? CFG.get<float>(TString::Format("%s_max", y[iy].Data()).Data()) : _max[y[iy]],
 														TString (";") + LateXstyle(x[ix]) + " /" + _units[x[ix]]
 														+ TString (";") + LateXstyle(y[iy]) + " /" + _units[y[iy]]);
 	                
@@ -1106,12 +1105,10 @@ void GeometryComparisonPlotter::MakePlots (std::vector<TString> x, // axes to co
 
 }
 
-
 // Make additional table for the mean/RMS values of differences
 void GeometryComparisonPlotter::MakeTables (std::vector<TString> x, // axes to combine to plot
                                            std::vector<TString> y, // only requires the differences (y values in the plots) and ranges
-                                           std::vector<float> dyMin, // Minimum of y-variable to enable fixed ranges of the histogram
-                                           std::vector<float> dyMax) // Maximum of y-variable to enable fixed ranges of the histogram 
+                                           pt::ptree CFG) // property tree storing the min and max values under <var>_min and <var>_max 
 {
 
     /// -1) check that only existing branches are called 
