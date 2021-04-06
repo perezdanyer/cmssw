@@ -7,12 +7,12 @@
 #include "exceptions.h"
 #include "toolbox.h"
 #include "Options.h"
+//#include "assert.h"
 
 #include <boost/regex.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include <boost/foreach.hpp>
 
 #include <Alignment/OfflineValidation/interface/GeometryComparisonPlotter.h>
 #include <Alignment/OfflineValidation/scripts/visualizationTracker.C>
@@ -190,18 +190,19 @@ int GCP(int argc, char* argv[]) {
   
   pt::ptree GCPoptions = validation.get_child("GCP");
 
-  // Read default ranges
-  pt::ptree default_range;
-  TString cmssw_base=std::getenv("CMSSW_BASE");
-  TString default_range_path = cmssw_base + "/src/Alignment/OfflineValidation/test/GCP_defaultRange.json";
-  pt::read_json(default_range_path.Data(), default_range);
-
   // If useDefaultRange, update ranges if not defined in GCPoptions
   bool useDefaultRange  = GCPoptions.get_child_optional("useDefaultRange") ? GCPoptions.get<bool>("useDefaultRange") : false;
   if (useDefaultRange) {
-      BOOST_FOREACH(pt::ptree::value_type &v, default_range.get_child("")){
-          if (GCPoptions.count(v.first) < 1) {
-              GCPoptions.put(v.first, v.second.data());
+      // Read default ranges
+      pt::ptree default_range;
+      fs::path default_range_path=std::getenv("CMSSW_BASE");
+      default_range_path /= "/src/Alignment/OfflineValidation/test/GCP_defaultRange.json";
+      assert((fs::exists(default_range_path)) && "Check if 'Alignment/OfflineValidation/test/GCP_defaultRange.json' exists");
+      pt::read_json(default_range_path.c_str(), default_range);
+
+      for (pair<string,pt::ptree> it: default_range) {
+          if (GCPoptions.count(it.first) < 1) {
+              GCPoptions.put(it.first, it.second.data());
           }
       }
   }
