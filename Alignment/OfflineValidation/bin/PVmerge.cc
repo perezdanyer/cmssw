@@ -65,7 +65,7 @@ int merge(int argc, char* argv[]) {
   TString filesAndLabels;
 
   for (const std::pair<std::string, pt::ptree>& childTree : alignments) {
-    filesAndLabels += childTree.second.get<std::string>("file") + "/PV.root" +
+    filesAndLabels += childTree.second.get<std::string>("file") +
                       childTree.second.get<std::string>("title") + "|" + childTree.second.get<std::string>("color") +
                       "|" + childTree.second.get<std::string>("style") + " , ";
   }
@@ -97,7 +97,7 @@ int merge(int argc, char* argv[]) {
   );
 
   for (const std::pair<std::string, pt::ptree>& childTree : alignments) {
-    loadFileList((childTree.second.get<std::string>("file") + "/PV.root").c_str(),
+    loadFileList((childTree.second.get<std::string>("file")).c_str(),
                  "PVValidation",
                  childTree.second.get<std::string>("title"),
                  childTree.second.get<int>("color"),

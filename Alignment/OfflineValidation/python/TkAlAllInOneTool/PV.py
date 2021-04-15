@@ -1,9 +1,12 @@
 import copy
 import os
+import pprint
 
 def PV(config, validationDir):
     ##List with all jobs
-    jobs = []
+    #jobs = []
+    jobs, singleJobs = [], []
+    #singleJobs = []
     PVType = "single"
 
     ##List with all wished IOVs
@@ -14,6 +17,7 @@ def PV(config, validationDir):
         raise Exception("No 'single' key word in config for PV") 
 
     for datasetName in config["validations"]["PV"][PVType]:
+        print("Reading datasetName = {}".format(datasetName))
         for IOV in config["validations"]["PV"][PVType][datasetName]["IOV"]:
             ##Save IOV to loop later for merge jobs
             if not IOV in IOVs:
@@ -46,25 +50,29 @@ def PV(config, validationDir):
                     "config": local, 
                 }
 
-                jobs.append(job)
+                #jobs.append(job)
+                singleJobs.append(job)
+
+    jobs.extend(singleJobs)
 
     ##Do merge PV if wished
     if "merge" in config["validations"]["PV"]:
         ##List with merge jobs, will be expanded to jobs after looping
         mergeJobs = []
-        PVType = "merge"
+        pvType = "merge"
 
         ##Loop over all merge jobs/IOVs which are wished
-        for mergeName in config["validations"]["PV"][PVType]:
+        for mergeName in config["validations"]["PV"][pvType]:
             for IOV in IOVs:
+                print("mergeName = {}".format(mergeName))
                 ##Work directory for each IOV
-                workDir = "{}/PV/{}/{}/{}".format(validationDir, PVType, mergeName, IOV)
+                workDir = "{}/PV/{}/{}/{}".format(validationDir, pvType, mergeName, IOV)
 
                 ##Write job info
                 local = {}
 
                 job = {
-                    "name": "PV_{}_{}_{}".format(PVType, mergeName, IOV),
+                    "name": "PV_{}_{}_{}".format(pvType, mergeName, IOV),
                     "dir": workDir,
                     "exe": "PVmerge",
                     "run-mode": "Condor",
@@ -76,20 +84,65 @@ def PV(config, validationDir):
                     ##Deep copy necessary things from global config
                     local.setdefault("alignments", {})
                     local["alignments"][alignment] = copy.deepcopy(config["alignments"][alignment])
-                    local["validation"] = copy.deepcopy(config["validations"]["PV"][PVType][mergeName])
-                    local["output"] = "{}/{}/PV/{}/{}/{}".format(config["LFS"], config["name"], PVType, mergeName, IOV)
+
+                local["validation"] = copy.deepcopy(config["validations"]["PV"][pvType][mergeName])
+                local["output"] = "{}/{}/{}/{}/{}".format(config["LFS"], config["name"], pvType, mergeName, IOV)
 
                 ##Loop over all single jobs
                 for singleJob in jobs:
                     ##Get single job info and append to merge job if requirements fullfilled
                     alignment, datasetName, singleIOV = singleJob["name"].split("_")[2:]    
 
-                    if int(singleIOV) == IOV and datasetName in config["validations"]["PV"][PVType][mergeName]["singles"]:
+                    if int(singleIOV) == IOV and datasetName in config["validations"]["PV"][pvType][mergeName]["singles"]:
                         local["alignments"][alignment]["file"] = singleJob["config"]["output"]
                         job["dependencies"].append(singleJob["name"])
                         
                 mergeJobs.append(job)
 
         jobs.extend(mergeJobs)
+
+    if "trends" in config["validations"]["PV"]:
+
+        ##List with merge jobs, will be expanded to jobs after looping
+        trendJobs = []
+        pvType = "trends"
+
+        for trendName in config["validations"]["PV"][pvType]:
+            print("trendName = {}".format(trendName))
+            ##Work directory for each IOV
+            workDir = "{}/PV/{}/{}".format(validationDir, pvType, trendName)
+
+            ##Write job info
+            local = {}
+
+            job = {
+                "name": "PV_{}_{}".format(pvType, trendName),
+                "dir": workDir,
+                "exe": "PVtrends",
+                "run-mode": "Condor",
+                "dependencies": [],
+                "config": local,
+            }
+
+            for alignment in config["alignments"]:
+                ##Deep copy necessary things from global config
+                local.setdefault("alignments", {})
+                local["alignments"][alignment] = copy.deepcopy(config["alignments"][alignment])
+                local["alignments"][alignment]["files"] = []
+                local["validation"] = copy.deepcopy(config["validations"]["PV"][pvType][trendName])
+                local["output"] = "{}/{}/{}/{}/".format(config["LFS"], config["name"], pvType, trendName)
+
+            #Loop over all single jobs
+            for singleJob in singleJobs:
+                #Get single job info and append to job if requirements fullfilled
+                alignment, datasetName, singleIOV = singleJob["name"].split("_")[2:]    
+                
+            if int(singleIOV) == IOV and datasetName in config["validations"]["PV"][pvType][trendName]["singles"]:
+                local["alignments"][alignment]["files"].append(singleJob["config"]["output"] + "/PVValidation_{}_{}.root".format(alignment, IOV))
+                job["dependencies"].append(singleJob["name"])
+            
+            trendJobs.append(job)
+
+        jobs.extend(trendJobs)
 
     return jobs
