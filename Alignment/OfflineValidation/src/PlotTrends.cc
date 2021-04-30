@@ -619,8 +619,8 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
     //}
     std::string name_of_y_axis;
     if (PlotType_ == "PV") {
-      if(Variable == "median")
-	name_of_y_axis = "Bias " + YaxisNames_.at(i);
+      if(Variable == "mean")
+	name_of_y_axis = "Mean " + YaxisNames_.at(i);
       else if (Variable == "RMS")
 	name_of_y_axis = "RMS " + YaxisNames_.at(i);
       else

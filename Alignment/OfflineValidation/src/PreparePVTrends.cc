@@ -394,25 +394,25 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
                  LegLabels[j]);
 
     TString modified_label = (LegLabels[j].ReplaceAll(" ", "_"));
-    g_dxy_phi_vs_run[j]->Write("median_"+modified_label+"_dxy_phi_vs_run");
+    g_dxy_phi_vs_run[j]->Write("mean_"+modified_label+"_dxy_phi_vs_run");
     g_chi2_dxy_phi_vs_run[j]->Write("chi2_"+modified_label+"_dxy_phi_vs_run");
     g_KS_dxy_phi_vs_run[j]->Write("KS_"+modified_label+"_dxy_phi_vs_run");
     g_dxy_phi_hi_vs_run[j]->Write("hi_"+modified_label+"_dxy_phi_hi_vs_run");
     g_dxy_phi_lo_vs_run[j]->Write("lo_"+modified_label+"_dxy_phi_lo_vs_run");
 
-    g_dxy_eta_vs_run[j]->Write("median_"+modified_label+"_dxy_eta_vs_run");
+    g_dxy_eta_vs_run[j]->Write("mean_"+modified_label+"_dxy_eta_vs_run");
     g_chi2_dxy_eta_vs_run[j]->Write("chi2_"+modified_label+"_dxy_eta_vs_run");
     g_KS_dxy_eta_vs_run[j]->Write("KS_"+modified_label+"_dxy_eta_vs_run");
     g_dxy_eta_hi_vs_run[j]->Write("hi_"+modified_label+"_dxy_eta_hi_vs_run");
     g_dxy_eta_lo_vs_run[j]->Write("lo_"+modified_label+"_dxy_eta_lo_vs_run");
 
-    g_dz_phi_vs_run[j]->Write("median_"+modified_label+"_dz_phi_vs_run");
+    g_dz_phi_vs_run[j]->Write("mean_"+modified_label+"_dz_phi_vs_run");
     g_chi2_dz_phi_vs_run[j]->Write("chi2_"+modified_label+"_dz_phi_vs_run");
     g_KS_dz_phi_vs_run[j]->Write("KS_"+modified_label+"_dz_phi_vs_run");
     g_dz_phi_hi_vs_run[j]->Write("hi_"+modified_label+"_dz_phi_hi_vs_run");
     g_dz_phi_lo_vs_run[j]->Write("lo_"+modified_label+"_dz_phi_lo_vs_run");
 
-    g_dz_eta_vs_run[j]->Write("median_"+modified_label+"_dz_eta_vs_run");
+    g_dz_eta_vs_run[j]->Write("mean_"+modified_label+"_dz_eta_vs_run");
     g_chi2_dz_eta_vs_run[j]->Write("chi2_"+modified_label+"_dz_eta_vs_run");
     g_KS_dz_eta_vs_run[j]->Write("KS_"+modified_label+"_dz_eta_vs_run");
     g_dz_eta_hi_vs_run[j]->Write("hi_"+modified_label+"_dz_eta_hi_vs_run");

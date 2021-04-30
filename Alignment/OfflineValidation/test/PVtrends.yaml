@@ -25,7 +25,7 @@ validations:
                 - testUnits
                 doLumiAxisFormat: true
                 Variable:
-                - median
+                - mean
                 - RMS
         merge:
             testUnits:
