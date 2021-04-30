@@ -31,14 +31,10 @@ namespace pt = boost::property_tree;
 int trends(int argc, char* argv[]) {
 
   // parse the command line
-  cout << "line 34" << flush;
 
   Options options;
   options.helper(argc, argv);
   options.parser(argc, argv);
-
-
-  cout << "line 41" << flush;
   
   //Read in AllInOne json config
   pt::ptree main_tree;
@@ -46,25 +42,23 @@ int trends(int argc, char* argv[]) {
   
   pt::ptree alignments = main_tree.get_child("alignments");
   pt::ptree validation = main_tree.get_child("validation");
-
-  cout << "line 50" << flush;
   
   //Read all configure variables and set default for missing keys
+  string myValidation = main_tree.get<std::string>("output");
+  TString outputdir = main_tree.get<std::string>("output");
   bool doRMS = validation.get_child_optional("doRMS") ? validation.get<bool>("doRMS") : true;
   bool pixelupdate = validation.get_child_optional("pixelupdate") ? validation.get<bool>("pixelupdate") : true;
   bool showlumi = validation.get_child_optional("showlumi") ? validation.get<bool>("showlumi") : true;
   TString Year = validation.get_child_optional("Year") ? validation.get<string>("Year") : "Run2";
-  string myValidation = validation.get<string>("output");
-  TString outputdir = validation.get<string>("output");
   TString lumiInputFile = validation.get_child_optional("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
   
-  vector<int> IOVlist;
-  if (validation.get_child_optional("IOV")) {
-    for (const pair<string, pt::ptree>& childTree : validation.get_child("IOV")) {
-      IOVlist.push_back(childTree.second.get_value<int>());
-      cout << childTree.second.get_value<int>() << flush;
-    }
-  }
+  //vector<int> IOVlist;
+  //if (validation.get_child_optional("IOV")) {
+  //  for (const pair<string, pt::ptree>& childTree : validation.get_child("IOV")) {
+  //    IOVlist.push_back(childTree.second.get_value<int>());
+  //    cout << childTree.second.get_value<int>() << flush;
+  //  }
+  //}
   
   vector<string> labels{""};
   if (validation.get_child_optional("label")) {
@@ -82,26 +76,15 @@ int trends(int argc, char* argv[]) {
   }
   
   vector<int> pixelupdateruns{271866, 272008, 276315, 278271, 280928, 290543, 294927, 297281, 298653, 299443, 300389, 301046, 302131, 303790, 303998, 304911, 313041, 314881, 315257, 316758, 317475, 317485, 317527, 317661, 317664, 318227, 320377, 321831, 322510, 322603, 323232, 324245};
-  //
-  ////Set configuration string for CompareAlignments class
-  TString filesAndLabels;
 
-  //for (const pair<string, pt::ptree>& childTree : alignments) {
-  //  fs::create_directory(childTree.second.get<string>("input"));
-  //  for (const pair<string, pt::ptree>& childTreeFiles : alignments.get_child("files"))
-  //    fs::create_symlink(childTreeFiles.second.get_value<string>(), childTree.second.get<string>("input"));
-  //}
-
+  vector<string> names_of_alignments;
   vector<string> geometries;
   vector<Color_t> colors{kBlue, kRed, kGreen};
   for (const pair<string, pt::ptree>& childTree : alignments) {
-    cout << childTree.second.get<string>("file") << flush;
-    cout << childTree.second.get<string>("title") << flush;
-    cout << childTree.second.get<int>("color") << flush;
-    filesAndLabels += childTree.second.get<string>("file") + "=" +
-                      childTree.second.get<string>("title") + ",";
+    //cout << childTree.second.get<string>("title") << flush;
+    //cout << childTree.second.get<int>("color") << flush;
+    names_of_alignments.push_back(childTree.first.c_str());
     geometries.push_back(childTree.second.get<string>("title"));
-    //colors.push_back(childTree.second.get<int>("color"));
   }
 
   TString LumiFile = getenv("CMSSW_BASE");
@@ -125,27 +108,29 @@ int trends(int argc, char* argv[]) {
                             "dxy_eta_vs_run",
                             "dz_phi_vs_run",
                             "dz_eta_vs_run"};
-  vector<string> YaxisNames{"Bias of d_{xy}(#phi) vs run number",
-                            "Bias of d_{xy}(#eta) vs run number",
-                            "Bias of d_{z}(#phi) vs run number",
-                            "Bias of d_{z}(#eta) vs run number"};
+  vector<string> YaxisNames{"of d_{xy}(#phi) [#mum]",
+                            "of d_{xy}(#eta) [#mum]",
+                            "of d_{z}(#phi) [#mum]",
+                            "of d_{z}(#eta) [#mum]"};
 
-  cout << "line 123" << flush;
+  PreparePVTrends prepareTrends(outputdir, names_of_alignments, geometries);
+  prepareTrends.MultiRunPVValidation(doRMS, LumiFile);
+  vector<int> new_iov_list = prepareTrends.getIncludedRuns();
 
-  cout << filesAndLabels << flush;
-  cout << LumiFile << flush;
+ //for(const auto &iov: IOVlist) {
+ //  if(std::find(new_iov_list.begin(), new_iov_list.end(), iov) == new_iov_list.end())
+ //    cout << iov << " not included in trend plot" << std::endl;
+ //}
 
-  PreparePVTrends prepareTrends;
-  prepareTrends.MultiRunPVValidation(filesAndLabels, doRMS, LumiFile);
+  PlotTrends plotter(variables, YaxisNames, "PV");
 
-  PlotTrends plotter(variables, YaxisNames);
-
-  vector<pair<int, double>> lumiIOVpairs = plotter.lumiperIOV(IOVlist, LumiFile);
-  sort(IOVlist.begin(), IOVlist.end());
-  IOVlist.erase(unique(IOVlist.begin(), IOVlist.end()), IOVlist.end());
+  vector<pair<int, double>> lumiIOVpairs = plotter.lumiperIOV(new_iov_list, LumiFile);
+  sort(new_iov_list.begin(), new_iov_list.end());
+  new_iov_list.erase(unique(new_iov_list.begin(), new_iov_list.end()), new_iov_list.end());
 
   for (const auto &Variable : Variables) {
-    plotter.PlotDMRTrends(IOVlist, Variable, labels, Year, myValidation, {"Alignment during data taking", "End of year re reconstruction", "Legacy reprocessing"}, colors, outputdir, pixelupdate, pixelupdateruns, showlumi, LumiFile, lumiIOVpairs, "", 0);
+    //plotter.PlotDMRTrends(new_iov_list, Variable, labels, Year, myValidation, {"Alignment during data-taking", "End-of-year re-reconstruction", "Legacy reprocessing"}, colors, outputdir, pixelupdate, pixelupdateruns, showlumi, LumiFile, lumiIOVpairs, "", 0);
+    plotter.PlotDMRTrends(new_iov_list, Variable, labels, Year, myValidation, geometries, colors, outputdir, pixelupdate, pixelupdateruns, showlumi, LumiFile, lumiIOVpairs, "", 0);
   }
 
 

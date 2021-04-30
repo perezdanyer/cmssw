@@ -3,8 +3,9 @@
 using namespace std;
 namespace fs = std::experimental::filesystem;
 
-PlotTrends::PlotTrends(vector<TString> variables, vector<string> YaxisNames)
+PlotTrends::PlotTrends(vector<TString> variables, vector<string> YaxisNames, TString PlotType)
 {
+  PlotType_ = PlotType;
   setVariables(variables, YaxisNames);
 }
 
@@ -215,12 +216,12 @@ void PlotTrends::PixelUpdateLines(TCanvas *c, TString lumifile, bool showlumi, v
         line->SetLineStyle(1);
         line->SetLineWidth(4);
         line->Draw();
-        TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
+        //TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
 
-        // line2->SetLineColor(kYellow+1);  //it is problematic because it should be the same and it is not
-        line2->SetLineColor(kRed + 1);
-        line2->SetLineStyle(1);  //
-        line2->Draw();
+        //// line2->SetLineColor(kYellow+1);  //it is problematic because it should be the same and it is not
+        //line2->SetLineColor(kRed + 1);
+        //line2->SetLineStyle(1);  //
+        //line2->Draw();
       }
 
       // the yellow line has to be thicker here to be not exactly at 0 and visible from below the y axis...
@@ -230,59 +231,59 @@ void PlotTrends::PixelUpdateLines(TCanvas *c, TString lumifile, bool showlumi, v
         line->SetLineStyle(1);
         line->SetLineWidth(4);
         // line->Draw();
-        TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
+        //TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
 
-        line2->SetLineColor(kYellow + 1);
-        line2->SetLineStyle(1);  //
-        line->SetLineWidth(10);
-        line2->Draw();
+        //line2->SetLineColor(kYellow + 1);
+        //line2->SetLineStyle(1);  //
+        //line->SetLineWidth(10);
+        //line2->Draw();
       }
     }
 
-    TLine *line11 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
-    if (pixelupdaterun == 272022 || pixelupdaterun == 276811 || pixelupdaterun == 279767 || pixelupdaterun == 283308 ||
-        pixelupdaterun == 297057 || pixelupdaterun == 297503 || pixelupdaterun == 299061 || pixelupdaterun == 300157 ||
-        pixelupdaterun == 300401 || pixelupdaterun == 301183 || pixelupdaterun == 302472 || pixelupdaterun == 303885 ||
-        pixelupdaterun == 304292 || pixelupdaterun == 305898 || pixelupdaterun == 314527 || pixelupdaterun == 316766 ||
-        pixelupdaterun == 317484 || pixelupdaterun == 317641 || pixelupdaterun == 318887 || pixelupdaterun == 320674 ||
-        pixelupdaterun == 321833 || pixelupdaterun == 324245) {
-      //315257
-
-      line11->SetLineColor(kYellow + 1);
-      line11->SetLineStyle(1);  //
-      line11->Draw();
-    }
+    //TLine *line11 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
+    //if (pixelupdaterun == 272022 || pixelupdaterun == 276811 || pixelupdaterun == 279767 || pixelupdaterun == 283308 ||
+    //    pixelupdaterun == 297057 || pixelupdaterun == 297503 || pixelupdaterun == 299061 || pixelupdaterun == 300157 ||
+    //    pixelupdaterun == 300401 || pixelupdaterun == 301183 || pixelupdaterun == 302472 || pixelupdaterun == 303885 ||
+    //    pixelupdaterun == 304292 || pixelupdaterun == 305898 || pixelupdaterun == 314527 || pixelupdaterun == 316766 ||
+    //    pixelupdaterun == 317484 || pixelupdaterun == 317641 || pixelupdaterun == 318887 || pixelupdaterun == 320674 ||
+    //    pixelupdaterun == 321833 || pixelupdaterun == 324245) {
+    //  //315257
+    //
+    //  line11->SetLineColor(kYellow + 1);
+    //  line11->SetLineStyle(1);  //
+    //  line11->Draw();
+    //}
 
     if (pixelupdaterun == 298653 || pixelupdaterun == 299061 || pixelupdaterun == 320377 || pixelupdaterun == 320674 ||
         pixelupdaterun == 324245) {
-      TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
-
-      line2->SetLineColor(kYellow + 1);
-      line2->SetLineStyle(1);  //
-      line2->Draw();
+      //TLine *line2 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
+      //
+      //line2->SetLineColor(kYellow + 1);
+      //line2->SetLineStyle(1);  //
+      //line2->Draw();
 
       line->SetLineColor(kBlack);
       line->SetLineStyle(3);  // it was 9, For public plots changed to 3
       line->Draw();
     }
 
-    TLine *line33 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
-    //if (pixelupdaterun == 298653 || pixelupdaterun ==  299061 || pixelupdaterun ==  320377 || pixelupdaterun ==  320674){
-    if (pixelupdaterun == 299061 || pixelupdaterun == 301183 || pixelupdaterun == 304292 || pixelupdaterun == 314527 ||
-        pixelupdaterun == 317484 || pixelupdaterun == 317641 || pixelupdaterun == 320674 || pixelupdaterun == 321833) {
-      line33->SetLineColor(kRed + 1);
-      line33->SetLineWidth(1);
-      line33->SetLineStyle(1);
-      line33->Draw();
-
-      if (pixelupdaterun == 299061 || pixelupdaterun == 317484 || pixelupdaterun == 320674) {
-        TLine *line333 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
-        line333->SetLineColor(kBlack);
-        line333->SetLineWidth(1);
-        line333->SetLineStyle(3);
-        line333->Draw();
-      }
-    }
+    //TLine *line33 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
+    ////if (pixelupdaterun == 298653 || pixelupdaterun ==  299061 || pixelupdaterun ==  320377 || pixelupdaterun ==  320674){
+    //if (pixelupdaterun == 299061 || pixelupdaterun == 301183 || pixelupdaterun == 304292 || pixelupdaterun == 314527 ||
+    //    pixelupdaterun == 317484 || pixelupdaterun == 317641 || pixelupdaterun == 320674 || pixelupdaterun == 321833) {
+    //  line33->SetLineColor(kRed + 1);
+    //  line33->SetLineWidth(1);
+    //  line33->SetLineStyle(1);
+    //  line33->Draw();
+    //
+    //  if (pixelupdaterun == 299061 || pixelupdaterun == 317484 || pixelupdaterun == 320674) {
+    //    TLine *line333 = new TLine(lumi, c->GetUymin(), lumi, c->GetUymax());
+    //    line333->SetLineColor(kBlack);
+    //    line333->SetLineWidth(1);
+    //    line333->SetLineStyle(3);
+    //    line333->Draw();
+    //  }
+    //}
 
     lastlumi = _sx + 0.075;
 
@@ -512,24 +513,20 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
   gErrorIgnoreLevel = kWarning;
   checkrunlist(pixelupdateruns, {});
 
-  vector<TString> variables{"dxy_phi_vs_lumi"};
-  vector<string> YaxisNames{"dxy_phi_vs_lumi"};
-
   TString filename = myValidation + "PVtrends";
-  //for (const auto &label : labels) {
-  //  if(label != 0) {
-  //    filename += "_";
-  //    filename += label;
-  //  }
-  //}
+  for (const auto &label : labels) {
+    if(label != "") {
+      filename += "_";
+      filename += label;
+    }
+  }
   filename += ".root";
-  cout << filename << endl;
   TFile *in = new TFile(filename);
   TString structname = structure;
   //structname.ReplaceAll("_y", "");
   //For debugging purposes we still might want to have a look at plots for a variable without errors, once ready for the PR those variables will be removed and the iterator will start from 0
-  for (size_t i = 0; i < variables.size(); i++) {
-    TString variable = variables.at(i);
+  for (size_t i = 0; i < variables_.size(); i++) {
+    TString variable = variables_.at(i);
     if (variable.Contains("plus") || variable.Contains("minus") || variable.Contains("delta")) {
       if (structname == "TEC" || structname == "TID")
         continue;  //Lorentz drift cannot appear in TEC and TID. These structures are skipped when looking at outward and inward pointing modules.
@@ -538,22 +535,22 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
 
     vector<Color_t>::iterator colour = colours.begin();
 
-    cout << "line 538" << endl;
-
     TMultiGraph *mg = new TMultiGraph(structure, structure);
     THStack *mh = new THStack(structure, structure);
     size_t igeom = 0;
     for (const string &geometry : geometries) {
-      TString name = getName(structure, layer, geometry);
-      //TString name = Variable + "_" + getName(structure, layer, geometry); TODO fix
-      TGraphErrors *g = dynamic_cast<TGraphErrors *>(in->Get(name + "_" + variables.at(i)));
-      //g->SetName(name + "_" + variables.at(i)); TODO fix
-      g->SetName(name + "_" + variables.at(i));
-      if (i >= 8) {
-        g->SetLineWidth(1);
-        g->SetLineColor(*colour);
-        g->SetFillColorAlpha(*colour, 0.2);
-      }
+      //TString name = getName(structure, layer, geometry);
+      TString name = Variable + "_" + getName(structure, layer, geometry);
+      TGraphErrors *g = dynamic_cast<TGraphErrors *>(in->Get(name + "_" + variables_.at(i)));
+      g->SetName(name + "_" + variables_.at(i));
+      g->SetLineWidth(1);
+      g->SetLineColor(*colour);
+      g->SetFillColorAlpha(*colour, 0.2);
+      //if (i >= 8) {
+      //  g->SetLineWidth(1);
+      //  g->SetLineColor(*colour);
+      //  g->SetFillColorAlpha(*colour, 0.2);
+      //}
       vector<vector<double>> vectors;
       //if(showlumi&&i<8)scalebylumi(dynamic_cast<TGraph*>(g));
       if (showlumi)
@@ -566,13 +563,15 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
       h->SetMarkerSize(0);
       h->SetLineWidth(1);
 
-      if (i < 8) {
-        mg->Add(g, "PL");
-        mh->Add(h, "E");
-      } else {
-        mg->Add(g, "2");
-        mh->Add(h, "E");
-      }
+      mg->Add(g, "2");
+      mh->Add(h, "E");
+      //if (i < 8) {
+      //  mg->Add(g, "PL");
+      //  mh->Add(h, "E");
+      //} else {
+      //  mg->Add(g, "2");
+      //  mh->Add(h, "E");
+      //}
       ++colour;
       ++igeom;
     }
@@ -584,8 +583,8 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
     gPad->SetTicky();
     gStyle->SetLegendTextSize(0.025);
 
-    double max = 6;
-    double min = -4;
+    double max = 10.;
+    double min = -10.;
     if (Variable == "DrmsNR") {
       if (variable.Contains("delta")) {
         max = 0.15;
@@ -595,8 +594,12 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
         min = 0.6;
       }
     }
-    double range = max - min;
+    else if (Variable == "RMS") {
+      max = 90;
+      min = 0;
+    }
 
+    double range = max - min;
     if (((variable == "sigma" || variable == "sigmaplus" || variable == "sigmaminus" ||
           variable == "sigmadeltamu") &&
          range >= 2)) {
@@ -607,13 +610,23 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
       mg->SetMinimum(min - range * 0.3);
     }
 
-    if (i < 8) {
-      mg->Draw("a");
-    } else {
-      mg->Draw("a2");
+    mg->Draw("a");
+    mg->Draw("a2");
+    //if (i < 8) {
+    //  mg->Draw("a");
+    //} else {
+    //  mg->Draw("a2");
+    //}
+    std::string name_of_y_axis;
+    if (PlotType_ == "PV") {
+      if(Variable == "median")
+	name_of_y_axis = "Bias " + YaxisNames_.at(i);
+      else if (Variable == "RMS")
+	name_of_y_axis = "RMS " + YaxisNames_.at(i);
+      else
+	name_of_y_axis = YaxisNames_.at(i);
     }
-
-    char *Ytitle = (char *)YaxisNames.at(i).c_str();
+    char *Ytitle = (char *)name_of_y_axis.c_str();
     mg->GetYaxis()->SetTitle(Ytitle);
     mg->GetXaxis()->SetTitle(showlumi ? "Integrated lumi [1/fb]" : "IOV number");
     mg->GetXaxis()->CenterTitle(true);
@@ -625,7 +638,6 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
       mg->GetXaxis()->SetLimits(0., mg->GetXaxis()->GetXmax());
 
     c->Update();
-
     TLegend *legend = c->BuildLegend(0.08, 0.1, 0.25, 0.3);
     // TLegend *legend = c->BuildLegend(0.15,0.18,0.15,0.18);
     int Ngeom = geometries.size();
@@ -635,44 +647,47 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
       legend->SetNColumns(3);
     else
       legend->SetNColumns(1);
-    //TString structtitle = "#bf{";
-    //if (structure.Contains("PIX") && !(structure.Contains("_y")))
-    //  structtitle += structure + " (x)";
-    //else if (structure.Contains("_y")) {
-    //  TString substring(structure(0, 4));
-    //  structtitle += substring + " (y)";
-    //} else
-    //  structtitle += structure;
-    //if (layer != 0) {
-    //  if (structure == "TID" || structure == "TEC" || structure == "FPIX" || structure == "FPIX_y")
-    //    structtitle += "  disc ";
-    //  else
-    //    structtitle += "  layer ";
-    //  structtitle += layer;
-    //}
-    //structtitle += "}";
+    TString structtitle;
+    if (PlotType_ == "DMR") {
+      structtitle = "#bf{";
+      if (structure.Contains("PIX") && !(structure.Contains("_y")))
+	structtitle += structure + " (x)";
+      else if (structure.Contains("_y")) {
+	TString substring(structure(0, 4));
+	structtitle += substring + " (y)";
+      } else
+	structtitle += structure;
+      if (layer != 0) {
+	if (structure == "TID" || structure == "TEC" || structure == "FPIX" || structure == "FPIX_y")
+	  structtitle += "  disc ";
+	else
+	  structtitle += "  layer ";
+	structtitle += layer;
+      }
+      structtitle += "}";
+    }
     PixelUpdateLines(c, lumifile, showlumi, pixelupdateruns);
 
-    TLine *lineOla2 = new TLine();
-    lineOla2->SetLineColor(kBlack);
-    lineOla2->SetLineStyle(1);
-    lineOla2->SetLineWidth(4);
-    legend->AddEntry(lineOla2, "First run of the year", "l");
+    //TLine *lineOla2 = new TLine();
+    //lineOla2->SetLineColor(kBlack);
+    //lineOla2->SetLineStyle(1);
+    //lineOla2->SetLineWidth(4);
+    //legend->AddEntry(lineOla2, "First run of the year", "l");
 
     TLine *lineOla = new TLine();
     lineOla->SetLineColor(kBlack);
     lineOla->SetLineStyle(3);
     legend->AddEntry(lineOla, "Pixel calibration update", "l");
-
-    TLine *lineOla3 = new TLine();
-    lineOla3->SetLineColor(kYellow + 1);
-    lineOla3->SetLineStyle(1);
-    legend->AddEntry(lineOla3, "Base Run for pixel template", "l");
-
-    TLine *lineOla4 = new TLine();
-    lineOla4->SetLineColor(kRed + 1);
-    lineOla4->SetLineStyle(1);
-    legend->AddEntry(lineOla4, "Problematic base runs", "l");
+    //
+    //TLine *lineOla3 = new TLine();
+    //lineOla3->SetLineColor(kYellow + 1);
+    //lineOla3->SetLineStyle(1);
+    //legend->AddEntry(lineOla3, "Base Run for pixel template", "l");
+    //
+    //TLine *lineOla4 = new TLine();
+    //lineOla4->SetLineColor(kRed + 1);
+    //lineOla4->SetLineStyle(1);
+    //legend->AddEntry(lineOla4, "Problematic base runs", "l");
 
     legend->Draw();
 
@@ -724,16 +739,18 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
     TopRightCorner->SetTextSize(0.04);
     TopRightCorner->SetFillColor(10);
     TopRightCorner->Draw();
-    TPaveText *structlabel = new TPaveText(0.85 * (mg->GetXaxis()->GetXmax()),
-                                           mg->GetYaxis()->GetXmin() + range * 0.02,
-                                           0.85 * (mg->GetXaxis()->GetXmax()),
-                                           mg->GetYaxis()->GetXmin() + range * 0.12,
-                                           "nb");
-    //structlabel->AddText(structtitle.Data());
-    structlabel->SetTextAlign(32);
-    structlabel->SetTextSize(0.04);
-    structlabel->SetFillColor(10);
-    structlabel->Draw();
+    if (PlotType_ == "DMR") {
+      TPaveText *structlabel = new TPaveText(0.85 * (mg->GetXaxis()->GetXmax()),
+					     mg->GetYaxis()->GetXmin() + range * 0.02,
+					     0.85 * (mg->GetXaxis()->GetXmax()),
+					     mg->GetYaxis()->GetXmin() + range * 0.12,
+					     "nb");
+      structlabel->AddText(structtitle.Data());
+      structlabel->SetTextAlign(32);
+      structlabel->SetTextSize(0.04);
+      structlabel->SetFillColor(10);
+      structlabel->Draw();
+    }
 
     legend->Draw();
     mh->Draw("nostack same");
@@ -742,12 +759,12 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
     TString printfile = outputdir;
     if (!(outputdir.EndsWith("/")))
       outputdir += "/";
-    //for (const auto &label : labels) {
-    //  if(label != 0) {
-    //	printfile += label;
-    //	printfile += "_";
-    //  }
-    //}
+    for (const auto &label : labels) {
+      if(label != "") {
+	printfile += label;
+	printfile += "_";
+      }
+    }
     printfile += Variable;
     printfile += "_";
     printfile += variable + structandlayer;
@@ -760,302 +777,3 @@ void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
   
   in->Close();
 }
-
-//void PlotTrends::PlotDMRTrends(vector<int> IOVlist,
-//                   TString Variable,
-//                   vector<string> labels,
-//                   TString Year,
-//                   string myValidation,
-//                   vector<string> geometries,
-//                   vector<Color_t> colours,
-//                   TString outputdir,
-//                   bool pixelupdate,
-//                   vector<int> pixelupdateruns,
-//                   bool showlumi,
-//                   TString lumifile,
-//                   vector<pair<int, double>> lumiIOVpairs,
-//		   TString structure,
-//		   int layer) {
-//  gErrorIgnoreLevel = kWarning;
-//  checkrunlist(pixelupdateruns, {});
-//  //vector<TString> structures = trendVariables->getStructure();
-//  //TString structure = "";
-//  
-//  //const map<TString, int> nlayers = numberOfLayers(Year);
-//  
-//  TString filename = myValidation + "PVtrends";
-//  //for (const auto &label : labels) {
-//  //  filename += "_";
-//  //  filename += label;
-//  //}
-//  
-//  std::cout<<"line 1057"<<std::endl;
-//  filename += ".root";
-//  cout << filename << endl;
-//  TFile *in = new TFile(filename);
-//  //for (TString &structure : structures) {
-//  //  TString structname = structure;
-//  //structname.ReplaceAll("_y", "");
-//  //int layersnumber = nlayers.at(structname);
-//  //for (int layer = 0; layer <= layersnumber; layer++) {
-//  //vector<TString> variables = trendVariables->getVariables();
-//  //vector<string> YaxisNames = trendVariables->getYaxisNames()
-//  vector<TString> variables{"dxy_phi_vs_lumi"};
-//  vector<string> YaxisNames{"dxy_phi_vs_lumi"};
-//  //For debugging purposes we still might want to have a look at plots for a variable without errors, once ready for the PR those variables will be removed and the iterator will start from 0
-//  for (size_t i = 0; i < variables.size(); i++) {
-//    TString variable = variables.at(i);
-//    std::cout<<"variable = "<< variable << std::endl;
-//    //if (variable.Contains("plus") || variable.Contains("minus") || variable.Contains("delta")) {
-//    //  if (structname == "TEC" || structname == "TID")
-//    //	continue;  //Lorentz drift cannot appear in TEC and TID. These structures are skipped when looking at outward and inward pointing modules.
-//    //}
-//    TCanvas *c = new TCanvas("dummy", "", 2000, 800);
-//  
-//    std::cout<<"line 1077"<<std::endl;
-//  
-//    vector<Color_t>::iterator colour = colours.begin();
-//  
-//    TMultiGraph *mg = new TMultiGraph(structure, structure);
-//    THStack *mh = new THStack(structure, structure);
-//    size_t igeom = 0;
-//    for (const string &geometry : geometries) {
-//      TString name = getName(structure, 0, geometry);
-//      std::cout<<"name_variables.at(i) = " << name + variables.at(i)<<std::endl;
-//      std::cout<<"name = " << name <<std::endl;
-//      std::cout<<"variables.at(i) = " << variables.at(i) <<std::endl;
-//      TGraphErrors *g = dynamic_cast<TGraphErrors *>(in->Get(name + "_" + variables.at(i)));
-//      g->SetName(name + "_" + variables.at(i));
-//      if (i >= 8) {
-//  	g->SetLineWidth(1);
-//  	g->SetLineColor(*colour);
-//  	g->SetFillColorAlpha(*colour, 0.2);
-//      }
-//      vector<vector<double>> vectors;
-//      //if(showlumi&&i<8)scalebylumi(dynamic_cast<TGraph*>(g));
-//      if (showlumi)
-//  	scalebylumi(g, lumiIOVpairs);
-//      g->SetLineColor(*colour);
-//      g->SetMarkerColor(*colour);
-//      TH1F *h = ConvertToHist(g);
-//      h->SetLineColor(*colour);
-//      h->SetMarkerColor(*colour);
-//      h->SetMarkerSize(0);
-//      h->SetLineWidth(1);
-//  
-//      std::cout<<"line 1105"<<std::endl;
-//      
-//      if (i < 8) {
-//  	mg->Add(g, "PL");
-//  	mh->Add(h, "E");
-//      } else {
-//  	mg->Add(g, "2");
-//  	mh->Add(h, "E");
-//      }
-//      ++colour;
-//      ++igeom;
-//    }
-//  
-//  
-//    std::cout<<"line 1119"<<std::endl;
-//    
-//    gStyle->SetOptTitle(0);
-//    gStyle->SetPadLeftMargin(0.08);
-//    gStyle->SetPadRightMargin(0.05);
-//    gPad->SetTickx();
-//    gPad->SetTicky();
-//    gStyle->SetLegendTextSize(0.025);
-//  
-//    double max = 6;
-//    double min = -4;
-//    if (Variable == "DrmsNR") {
-//      if (variable.Contains("delta")) {
-//  	max = 0.15;
-//  	min = -0.1;
-//      } else {
-//  	max = 1.2;
-//  	min = 0.6;
-//      }
-//    }
-//    double range = max - min;
-//  
-//    std::cout<<"line 1141"<<std::endl;
-//  
-//    if (((variable == "sigma" || variable == "sigmaplus" || variable == "sigmaminus" ||
-//    	  variable == "sigmadeltamu") &&
-//    	 range >= 2)) {
-//      mg->SetMaximum(4);
-//      mg->SetMinimum(-2);
-//    } else {
-//      mg->SetMaximum(max + range * 0.1);
-//      mg->SetMinimum(min - range * 0.3);
-//    }
-//  
-//    if (i < 8) {
-//      mg->Draw("a");
-//    } else {
-//      mg->Draw("a2");
-//    }
-//  
-//    std::cout<<"line 1159"<<std::endl;
-//  
-//    char *Ytitle = (char *)YaxisNames.at(i).c_str();
-//    mg->GetYaxis()->SetTitle(Ytitle);
-//    mg->GetXaxis()->SetTitle(showlumi ? "Integrated lumi [1/fb]" : "IOV number");
-//    mg->GetXaxis()->CenterTitle(true);
-//    mg->GetYaxis()->CenterTitle(true);
-//    mg->GetYaxis()->SetTitleOffset(.5);
-//    mg->GetYaxis()->SetTitleSize(.05);
-//    mg->GetXaxis()->SetTitleSize(.04);
-//    if (showlumi)
-//      mg->GetXaxis()->SetLimits(0., mg->GetXaxis()->GetXmax());
-//    
-//    c->Update();
-//  
-//    std::cout<<"line 1174"<<std::endl;
-//  
-//    TLegend *legend = c->BuildLegend(0.08, 0.1, 0.25, 0.3);
-//    // TLegend *legend = c->BuildLegend(0.15,0.18,0.15,0.18);
-//    int Ngeom = geometries.size();
-//    if (Ngeom >= 6)
-//      legend->SetNColumns(2);
-//        else if (Ngeom >= 9)
-//          legend->SetNColumns(3);
-//        else
-//          legend->SetNColumns(1);
-//    //TString structtitle = "#bf{";
-//    //if (structure.Contains("PIX") && !(structure.Contains("_y")))
-//    //  structtitle += structure + " (x)";
-//    //else if (structure.Contains("_y")) {
-//    //  TString substring(structure(0, 4));
-//    //  structtitle += substring + " (y)";
-//    //} else
-//    //  structtitle += structure;
-//    //if (layer != 0) {
-//    //  if (structure == "TID" || structure == "TEC" || structure == "FPIX" || structure == "FPIX_y")
-//    //	structtitle += "  disc ";
-//    //  else
-//    //	structtitle += "  layer ";
-//    //  structtitle += layer;
-//    //}
-//    //structtitle += "}";
-//    PixelUpdateLines(c, lumifile, showlumi, pixelupdateruns);
-//  
-//    std::cout<<"line 1203"<<std::endl;
-//    
-//    TLine *lineOla2 = new TLine();
-//    lineOla2->SetLineColor(kBlack);
-//    lineOla2->SetLineStyle(1);
-//    lineOla2->SetLineWidth(4);
-//    legend->AddEntry(lineOla2, "First run of the year", "l");
-//  
-//    std::cout<<"line 1211"<<std::endl;
-//    
-//    TLine *lineOla = new TLine();
-//    lineOla->SetLineColor(kBlack);
-//    lineOla->SetLineStyle(3);
-//    legend->AddEntry(lineOla, "Pixel calibration update", "l");
-//    
-//    TLine *lineOla3 = new TLine();
-//    lineOla3->SetLineColor(kYellow + 1);
-//    lineOla3->SetLineStyle(1);
-//    legend->AddEntry(lineOla3, "Base Run for pixel template", "l");
-//  
-//    TLine *lineOla4 = new TLine();
-//    lineOla4->SetLineColor(kRed + 1);
-//    lineOla4->SetLineStyle(1);
-//    legend->AddEntry(lineOla4, "Problematic base runs", "l");
-//  
-//    std::cout<<"line 1228"<<std::endl;
-//  
-//    legend->Draw();
-//  	
-//    double LumiTot = getintegratedlumiuptorun(-1, lumifile);
-//    LumiTot = LumiTot / lumiFactor;
-//    if (variable == "sigma" || variable == "sigmaplus" || variable == "sigmaminus" || variable == "sigmadeltamu" ||
-//  	variable == "deltamu" || variable == "deltamusigmadeltamu") {
-//      TLine *line = new TLine(0., 0., LumiTot, 0.);
-//      line->SetLineColor(kMagenta);
-//      line->Draw();
-//    }
-//  
-//    std::cout<<"line 1241"<<std::endl;
-//  
-//    if (Variable == "median") {
-//      if (variable == "musigma" || variable == "muminus" || variable == "mu" || variable == "muminussigmaminus" ||
-//  	  variable == "muplus" || variable == "muplussigmaplus") {
-//  	TLine *line = new TLine(0., 0., LumiTot, 0.);
-//  	line->SetLineColor(kMagenta);
-//  	line->Draw();
-//      }
-//    }
-//  
-//    std::cout<<"line 1252"<<std::endl;
-//  
-//    if (Variable == "DrmsNR") {
-//      if (variable == "musigma" || variable == "muminus" || variable == "mu" || variable == "muminussigmaminus" ||
-//  	  variable == "muplus" || variable == "muplussigmaplus") {
-//  	TLine *line = new TLine(0., 1., LumiTot, 1.);
-//  	line->SetLineColor(kMagenta);
-//  	line->Draw();
-//      }
-//    }
-//  
-//    std::cout<<"line 1263"<<std::endl;
-//  
-//    TPaveText *CMSworkInProgress = new TPaveText(
-//  						 0, mg->GetYaxis()->GetXmax() + range * 0.02, 2.5, mg->GetYaxis()->GetXmax() + range * 0.12, "nb");
-//    
-//    CMSworkInProgress->AddText("#scale[1.1]{CMS} #it{Preliminary}");  //ola changed it for public plots
-//    CMSworkInProgress->SetTextAlign(12);
-//    CMSworkInProgress->SetTextSize(0.04);
-//    CMSworkInProgress->SetFillColor(10);
-//    //CMSworkInProgress->Draw();
-//    TPaveText *TopRightCorner = new TPaveText(0.85 * (mg->GetXaxis()->GetXmax()),
-//  					      mg->GetYaxis()->GetXmax() + range * 0.08,
-//  					      0.95 * (mg->GetXaxis()->GetXmax()),
-//  					      mg->GetYaxis()->GetXmax() + range * 0.18,
-//  					      "nb");
-//    if (Year == "Run2")
-//      TopRightCorner->AddText("#bf{CMS} #it{Work in progress} (2016+2017+2018 pp collisions)");
-//    else
-//      TopRightCorner->AddText("#bf{CMS} #it{Work in progress} (" + Year + " pp collisions)");
-//    TopRightCorner->SetTextAlign(32);
-//    TopRightCorner->SetTextSize(0.04);
-//    TopRightCorner->SetFillColor(10);
-//    TopRightCorner->Draw();
-//    TPaveText *structlabel = new TPaveText(0.85 * (mg->GetXaxis()->GetXmax()),
-//  					   mg->GetYaxis()->GetXmin() + range * 0.02,
-//  					   0.85 * (mg->GetXaxis()->GetXmax()),
-//  					   mg->GetYaxis()->GetXmin() + range * 0.12,
-//  					   "nb");
-//    //structlabel->AddText(structtitle.Data());
-//    structlabel->SetTextAlign(32);
-//    structlabel->SetTextSize(0.04);
-//    structlabel->SetFillColor(10);
-//    structlabel->Draw();
-//  
-//    std::cout<<"line 1297"<<std::endl;
-//  
-//    legend->Draw();
-//    mh->Draw("nostack same");
-//    c->Update();
-//    TString structandlayer = getName(structure, 0, "");
-//    TString printfile = outputdir;
-//    if (!(outputdir.EndsWith("/")))
-//      outputdir += "/";
-//    //for (const auto &label : labels) {
-//    //  printfile += label;
-//    //  printfile += "_";
-//    //}
-//    printfile += Variable;
-//    printfile += "_";
-//    printfile += variable + structandlayer;
-//    std::cout<<"printfile = "<< printfile <<std::endl;
-//    c->SaveAs(printfile + ".pdf");
-//    c->SaveAs(printfile + ".eps");
-//    c->SaveAs(printfile + ".png");
-//    c->Destructor();
-//  }
-//  in->Close();
-//}

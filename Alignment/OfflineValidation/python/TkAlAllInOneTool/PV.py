@@ -128,8 +128,11 @@ def PV(config, validationDir):
                 ##Deep copy necessary things from global config
                 local.setdefault("alignments", {})
                 local["alignments"][alignment] = copy.deepcopy(config["alignments"][alignment])
-                local["alignments"][alignment]["files"] = []
                 local["validation"] = copy.deepcopy(config["validations"]["PV"][pvType][trendName])
+                local["validation"]["Variable"] = copy.deepcopy(config["validations"]["PV"][pvType][trendName]["Variable"])
+                local["validation"]["IOV"] = IOVs
+                if "label" in config["validations"]["PV"][pvType][trendName]:
+                    local["validation"]["label"] = copy.deepcopy(config["validations"]["PV"][pvType][trendName]["label"])
                 local["output"] = "{}/{}/{}/{}/".format(config["LFS"], config["name"], pvType, trendName)
 
             #Loop over all single jobs
@@ -137,10 +140,9 @@ def PV(config, validationDir):
                 #Get single job info and append to job if requirements fullfilled
                 alignment, datasetName, singleIOV = singleJob["name"].split("_")[2:]    
                 
-            if int(singleIOV) == IOV and datasetName in config["validations"]["PV"][pvType][trendName]["singles"]:
-                local["alignments"][alignment]["files"].append(singleJob["config"]["output"] + "/PVValidation_{}_{}.root".format(alignment, IOV))
-                job["dependencies"].append(singleJob["name"])
-            
+                if datasetName in config["validations"]["PV"][pvType][trendName]["singles"]:
+                    job["dependencies"].append(singleJob["name"])
+
             trendJobs.append(job)
 
         jobs.extend(trendJobs)

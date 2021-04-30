@@ -61,8 +61,9 @@ class PlotTrends {
  private:
   std::vector<TString> variables_;
   std::vector<std::string> YaxisNames_;
+  TString PlotType_;
  public:
-  PlotTrends(vector<TString> variables, std::vector<std::string> YaxisNames);
+  PlotTrends(vector<TString> variables, std::vector<std::string> YaxisNames, TString PlotType);
   void setVariables(vector<TString> variables, std::vector<std::string> YaxisNames);
   TString getName(TString structure, int layer, TString geometry);
   TH1F *ConvertToHist(TGraphErrors *g);

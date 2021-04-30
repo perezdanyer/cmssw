@@ -1,55 +1,65 @@
 #include "Alignment/OfflineValidation/interface/PreparePVTrends.h"
 
+PreparePVTrends::PreparePVTrends(TString outputdir, std::vector<std::string> inputdirs, std::vector<std::string> labels)
+{
 
-void PreparePVTrends::MultiRunPVValidation(
-    TString namesandlabels, bool useRMS, TString lumiInputFile) {
+  outputdir_ = outputdir;
+  setDirsAndLabels(inputdirs, labels);
+}
+
+void PreparePVTrends::setDirsAndLabels(std::vector<std::string> inputdirs, std::vector<std::string> labels)
+{
+
+  if (inputdirs.size() != labels.size()) {
+    logInfo << "ERROR: inputdirs and labels need to correspond and have the same length" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  DirList.clear();
+  LabelList.clear();
+  for (size_t i = 0; i < inputdirs.size(); i++) {
+    DirList.push_back(inputdirs[i]);
+    LabelList.push_back(labels[i]);
+  }
+}
+
+void PreparePVTrends::setIncludedRuns(std::vector<int> included_runs)
+{
+  included_runs_.clear();
+  for (size_t i = 0; i < included_runs.size(); i++)
+    included_runs_.push_back(included_runs[i]);
+}
+
+std::vector<int> PreparePVTrends::getIncludedRuns()
+{
+  return included_runs_;
+}
+
+void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
   TStopwatch timer;
   timer.Start();
 
   using namespace std::placeholders;  // for _1, _2, _3...
   gROOT->ProcessLine("gErrorIgnoreLevel = kError;");
 
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
-
   ROOT::EnableThreadSafety();
   TH1::AddDirectory(kFALSE);
 
   std::ofstream outfile("log.txt");
 
-  TList *DirList = new TList();
-  TList *LabelList = new TList();
-
-  TObjArray *nameandlabelpairs = namesandlabels.Tokenize(",");
-  for (Int_t i = 0; i < nameandlabelpairs->GetEntries(); ++i) {
-    TObjArray *aFileLegPair = TString(nameandlabelpairs->At(i)->GetName()).Tokenize("=");
-
-    if (aFileLegPair->GetEntries() == 2) {
-      DirList->Add(aFileLegPair->At(0));
-      LabelList->Add(aFileLegPair->At(1));
-    } else {
-      logError << "Please give file name and legend entry in the following form:\n"
-               << " filename1=legendentry1,filename2=legendentry2\n";
-    }
-  }
-
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
-
-  const Int_t nDirs_ = DirList->GetSize();
+  const Int_t nDirs_ = DirList.size();
   TString LegLabels[10];
   const char *dirs[10];
 
   std::vector<int> intersection;
+  std::vector<int> included_runs;
   std::vector<double> runs;
   std::vector<double> x_ticks;
   std::vector<double> ex_ticks = {0.};
 
   for (Int_t j = 0; j < nDirs_; j++) {
     // Retrieve labels
-    TObjString *legend = (TObjString *)LabelList->At(j);
-    TObjString *dir = (TObjString *)DirList->At(j);
-    LegLabels[j] = legend->String();
-    dirs[j] = (dir->String()).Data();
-    logInfo << "MultiRunPVValidation(): label[" << j << "]" << LegLabels[j] << std::endl;
+    LegLabels[j] = LabelList[j];
+    dirs[j] = DirList[j].data();
 
     std::vector<int> currentList = list_files(dirs[j]);
     std::vector<int> tempSwap;
@@ -70,7 +80,6 @@ void PreparePVTrends::MultiRunPVValidation(
     tempSwap.clear();
   }
 
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
   std::ifstream lumifile(lumiInputFile.Data());
 
   std::string line;
@@ -88,11 +97,6 @@ void PreparePVTrends::MultiRunPVValidation(
     }
   }
 
-  // debug only
-  for (UInt_t index = 0; index < intersection.size(); index++) {
-    logInfo << index << " " << intersection[index] << std::endl;
-  }
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
   // book the vectors of values
   alignmentTrend dxyPhiMeans_;
   alignmentTrend dxyPhiChi2_;
@@ -126,20 +130,14 @@ void PreparePVTrends::MultiRunPVValidation(
   alignmentTrend dzEtaHi_;
   alignmentTrend dzEtaLo_;
 
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
-
-  // loop over the runs in the intersection
-  //unsigned int last = (DEBUG==true) ? 50 : intersection.size();
-
   logInfo << " pre do-stuff: " << runs.size() << std::endl;
 
   //we should use std::bind to create a functor and then pass it to the procPool
-  auto f_processData = std::bind(processData, 1, intersection, nDirs_, dirs, LegLabels, useRMS);
+  auto f_processData = std::bind(processData, _1, intersection, nDirs_, dirs, LegLabels, useRMS, included_runs);
 
   //f_processData(0);
   //logInfo<<" post do-stuff: " <<  runs.size() << std::endl;
 
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
   TProcPool procPool(std::min(nWorkers, intersection.size())); 
   std::vector<size_t> range(std::min(nWorkers, intersection.size()));
   std::iota(range.begin(), range.end(), 0);
@@ -150,8 +148,6 @@ void PreparePVTrends::MultiRunPVValidation(
   std::sort(extracts.begin(), extracts.end(), [](const outTrends &a, const outTrends &b) -> bool {
     return a.m_index < b.m_index;
   });
-
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
 
   // re-assemble everything together
   for (auto extractedTrend : extracts) {
@@ -232,7 +228,6 @@ void PreparePVTrends::MultiRunPVValidation(
                              std::end(extractedTrend.m_dzEtaLo[label]));
     }
   }
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
   // extra vectors for low and high boundaries
 
   for (const auto &label : LegLabels) {
@@ -253,7 +248,6 @@ void PreparePVTrends::MultiRunPVValidation(
       dzEtaLoErr_[label].push_back(std::abs(dzEtaLo_[label][it] - dzEtaMeans_[label][it]));
     }
   }
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
   // bias on the mean
 
   TGraphErrors *g_dxy_phi_vs_run[nDirs_];
@@ -288,21 +282,25 @@ void PreparePVTrends::MultiRunPVValidation(
   TGraphErrors *g_dz_eta_hi_vs_run[nDirs_];
   TGraphErrors *g_dz_eta_lo_vs_run[nDirs_];
 
+  // resolutions
+
+  TGraphErrors *g_RMS_dxy_phi_vs_run[nDirs_];
+  TGraphErrors *g_RMS_dxy_eta_vs_run[nDirs_];
+  TGraphErrors *g_RMS_dz_phi_vs_run[nDirs_];
+  TGraphErrors *g_RMS_dz_eta_vs_run[nDirs_];
+
   // decide the type
   TString theType = "run number";
   TString theTypeLabel = "run number";
   x_ticks = runs;
-   
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
+
   pv::bundle theBundle =
       pv::bundle(nDirs_, theType, theTypeLabel, useRMS);
   theBundle.printAll();
 
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
   TString outname = "PVtrends.root";
-  TFile *fout = TFile::Open(outname, "RECREATE");
+  TFile *fout = TFile::Open(outputdir_+outname, "RECREATE");
 
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
   for (Int_t j = 0; j < nDirs_; j++) {
     // check on the sanity
     logInfo << "x_ticks.size()= " << x_ticks.size() << " dxyPhiMeans_[LegLabels[" << j
@@ -327,6 +325,7 @@ void PreparePVTrends::MultiRunPVValidation(
                  g_dxy_phi_lo_vs_run[j],
                  g_dxy_phi_hi_vs_run[j],
                  gerr_dxy_phi_vs_run[j],
+		 g_RMS_dxy_phi_vs_run[j],
                  theBundle,
                  pv::dxyphi,
                  LegLabels[j]);
@@ -347,6 +346,7 @@ void PreparePVTrends::MultiRunPVValidation(
                  g_dxy_eta_lo_vs_run[j],
                  g_dxy_eta_hi_vs_run[j],
                  gerr_dxy_eta_vs_run[j],
+                 g_RMS_dxy_eta_vs_run[j],
                  theBundle,
                  pv::dxyeta,
                  LegLabels[j]);
@@ -367,6 +367,7 @@ void PreparePVTrends::MultiRunPVValidation(
                  g_dz_phi_lo_vs_run[j],
                  g_dz_phi_hi_vs_run[j],
                  gerr_dz_phi_vs_run[j],
+                 g_RMS_dz_phi_vs_run[j],
                  theBundle,
                  pv::dzphi,
                  LegLabels[j]);
@@ -387,6 +388,7 @@ void PreparePVTrends::MultiRunPVValidation(
                  g_dz_eta_lo_vs_run[j],
                  g_dz_eta_hi_vs_run[j],
                  gerr_dz_eta_vs_run[j],
+                 g_RMS_dz_eta_vs_run[j],
                  theBundle,
                  pv::dzeta,
                  LegLabels[j]);
@@ -416,8 +418,12 @@ void PreparePVTrends::MultiRunPVValidation(
     g_dz_eta_hi_vs_run[j]->Write("hi_"+modified_label+"_dz_eta_hi_vs_run");
     g_dz_eta_lo_vs_run[j]->Write("lo_"+modified_label+"_dz_eta_lo_vs_run");
 
+    g_RMS_dxy_phi_vs_run[j]->Write("RMS_"+modified_label+"_dxy_phi_vs_run");
+    g_RMS_dxy_eta_vs_run[j]->Write("RMS_"+modified_label+"_dxy_eta_vs_run");
+    g_RMS_dz_phi_vs_run[j]->Write("RMS_"+modified_label+"_dz_phi_vs_run");
+    g_RMS_dz_eta_vs_run[j]->Write("RMS_"+modified_label+"_dz_eta_vs_run");
+
   }
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
   // do all the deletes
 
   for (int iDir = 0; iDir < nDirs_; iDir++) {
@@ -444,8 +450,19 @@ void PreparePVTrends::MultiRunPVValidation(
     delete g_KS_dz_eta_vs_run[iDir];
     delete g_dz_eta_hi_vs_run[iDir];
     delete g_dz_eta_lo_vs_run[iDir];
+
+    delete g_RMS_dxy_phi_vs_run[iDir];
+    delete g_RMS_dxy_eta_vs_run[iDir];
+    delete g_RMS_dz_phi_vs_run[iDir];
+    delete g_RMS_dz_eta_vs_run[iDir];
   }
-  logInfo << "PreparePVTrends line " << __LINE__ << std::endl;
+
+  for(const auto &run : runs) {
+    logInfo << "final included run" << run << std::endl;
+    if(std::find(included_runs.begin(), included_runs.end(), int(run)) == included_runs.end())
+      included_runs.push_back(int(run));
+  }
+  setIncludedRuns(included_runs);
   fout->Close();
 
   timer.Stop();
@@ -466,17 +483,21 @@ void PreparePVTrends::outputGraphs(const pv::wrappedTrends &allInputs,
                   TGraphErrors *&g_low,
                   TGraphErrors *&g_high,
                   TGraphAsymmErrors *&g_asym,
+		  TGraphErrors *&g_RMS,
                   const pv::bundle &mybundle,
                   const pv::view &theView,
                   const TString &label)
 /*--------------------------------------------------------------------*/
 {
 
-  g_mean = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getMean()[label])[0]));
-  g_chi2 = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getChi2()[label])[0]));
-  g_KS = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getKS()[label])[0]));
-  g_high = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getHigh()[label])[0]));
-  g_low = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getLow()[label])[0]));
+  std::vector<double> emptyvec;
+  for (size_t i = 0; i < ticks.size(); i++)
+    emptyvec.push_back(0.);
+  g_mean = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getMean()[label])[0]), &(emptyvec[0]), &(emptyvec[0]));
+  g_chi2 = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getChi2()[label])[0]), &(emptyvec[0]), &(emptyvec[0]));
+  g_KS = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getKS()[label])[0]), &(emptyvec[0]), &(emptyvec[0]));
+  g_high = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getHigh()[label])[0]), &(emptyvec[0]), &(emptyvec[0]));
+  g_low = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getLow()[label])[0]), &(emptyvec[0]), &(emptyvec[0]));
 
   g_asym = new TGraphAsymmErrors(ticks.size(),
                                  &(ticks[0]),
@@ -486,34 +507,21 @@ void PreparePVTrends::outputGraphs(const pv::wrappedTrends &allInputs,
                                  &((allInputs.getLowErr()[label])[0]),
                                  &((allInputs.getHighErr()[label])[0]));
 
-  const char *coord;
-  const char *kin;
-  
-  switch (theView) {
-    case pv::dxyphi:
-      coord = "xy";
-      kin = "phi";
-      break;
-    case pv::dzphi:
-      coord = "z";
-      kin = "phi";
-      break;
-    case pv::dxyeta:
-      coord = "xy";
-      kin = "eta";
-      break;
-    case pv::dzeta:
-      coord = "z";
-      kin = "eta";
-      break;
-    default:
-      coord = "unknown";
-      kin = "unknown";
-      break;
-  }
+  g_mean->SetTitle(label);
+  g_asym->SetTitle(label);
 
-  g_mean->SetTitle(Form("Bias of d_{%s}(#%s) vs %s", coord, kin, mybundle.getDataType()));
-  g_asym->SetTitle(Form("Bias of d_{%s}(#%s) vs %s", coord, kin, mybundle.getDataType()));
+  std::vector<double> RMSvec;
+  std::vector<double> RMSvecErr;
+  int bincounter = 0;
+  for (const auto &tick : ticks) {
+    bincounter++;
+    RMSvec.push_back(std::abs(allInputs.getHigh()[label][bincounter - 1] - allInputs.getLow()[label][bincounter - 1]));
+    RMSvecErr.push_back(0.01);
+  }
+  g_RMS = new TGraphErrors(ticks.size(), &(ticks[0]), &(RMSvec[0]), &(RMSvecErr[0]), &(RMSvecErr[0]));
+  g_RMS->SetTitle(label);
+  RMSvec.clear();
+  RMSvecErr.clear();
 }
 
 /*! \fn list_files
@@ -651,7 +659,8 @@ outTrends PreparePVTrends::processData(size_t iter,
                       const Int_t nDirs_,
                       const char *dirs[10],
                       TString LegLabels[10],
-                      bool useRMS)
+		      bool useRMS,
+		      std::vector<int>& included_runs)
 /*--------------------------------------------------------------------*/
 {
   outTrends ret;
@@ -718,7 +727,6 @@ outTrends PreparePVTrends::processData(size_t iter,
     // loop over the objects
     for (Int_t j = 0; j < nDirs_; j++) {
       //fins[j] = TFile::Open(Form("%s/PVValidation_%s_%i.root",dirs[j],dirs[j],intersection[n]));
-
       size_t position = std::string(dirs[j]).find("/");
       std::string stem = std::string(dirs[j]).substr(position + 1);  // get from position to the end
 
@@ -746,6 +754,8 @@ outTrends PreparePVTrends::processData(size_t iter,
         lastOpen = j;
         break;
       }
+
+      included_runs.push_back(intersection[n]);
 
       dxyPhiMeanTrend[j] = (TH1F *)fins[j]->Get("PVValidation/MeanTrends/means_dxy_phi");
       dxyPhiWidthTrend[j] = (TH1F *)fins[j]->Get("PVValidation/WidthTrends/widths_dxy_phi");

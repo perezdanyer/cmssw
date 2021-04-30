@@ -38,6 +38,8 @@
 #include <sstream>
 #include <vector>
 
+#include "Alignment/OfflineValidation/interface/outTrends.h"
+
 /*!
  * \def some convenient I/O
  */
@@ -50,10 +52,6 @@
  */
 #define VERBOSE false
 
-/*!
- * \def basically the y-values of a TGraph
- */
-typedef std::map<TString, std::vector<double> > alignmentTrend;
 
 /*!
  * \def number of workers
@@ -256,98 +254,15 @@ namespace pv {
 }  // namespace pv
 
 
-struct outTrends {
-
-  /*! \struct outTrends
-  *  \brief Structure outTrends
-  *         Contains the ensemble of all the alignmentTrends built by the functor
-  *
-  * @param m_index                     int, to keep track of which chunk of data has been processed
-  * @param m_runs                      std::vector, list of the run processed in this section
-  * @param m_dxyPhiMeans               alignmentTrend of the mean values of the profile dxy vs phi
-  * @param m_dxyPhiChi2                alignmentTrend of chi2 of the linear fit per profile dxy vs phi
-  * @param m_dxyPhiKS                  alignmentTrend of Kolmogorow-Smirnov score of comparison of dxy vs phi profile with flat line
-  * @param m_dxyPhiHi                  alignmentTrend of the highest value of the profile dxy vs phi
-  * @param m_dxyPhiLo                  alignmentTrend of the lowest value of the profile dxy vs phi
-  * @param m_dxyEtaMeans               alignmentTrend of the mean values of the profile dxy vs eta
-  * @param m_dxyEtaChi2                alignmentTrend of chi2 of the linear fit per profile dxy vs eta
-  * @param m_dxyEtaKS                  alignmentTrend of Kolmogorow-Smirnov score of comparison of dxy vs eta profile with flat line
-  * @param m_dxyEtaHi                  alignmentTrend of the highest value of the profile dxy vs eta
-  * @param m_dxyEtaLo                  alignmentTrend of the lowest value of the profile dxy vs eta
-  * @param m_dzPhiMeans                alignmentTrend of the mean values of the profile dz vs phi
-  * @param m_dzPhiChi2                 alignmentTrend of chi2 of the linear fit per profile dz vs phi
-  * @param m_dzPhiKS                   alignmentTrend of Kolmogorow-Smirnov score of comparison of dz vs phi profile with flat line
-  * @param m_dzPhiHi                   alignmentTrend of the highest value of the profile dz vs phi
-  * @param m_dzPhiLo                   alignmentTrend of the lowest value of the profile dz vs phi
-  * @param m_dzEtaMeans                alignmentTrend of the mean values of the profile dz vs eta
-  * @param m_dzEtaChi2                 alignmentTrend of chi2 of the linear fit per profile dz vs eta
-  * @param m_dzEtaKS                   alignmentTrend of Kolmogorow-Smirnov score of comparison of dz vs eta profile with flat line
-  * @param m_dzEtaHi                   alignmentTrend of the highest value of the profile dz vs eta
-  * @param m_dzEtaLo                   alignmentTrend of the lowest value of the profile dz vs eta
-  */
-  // empty constructor
-
-  outTrends() { init(); }
-
-  int m_index;
-  std::vector<double> m_runs;
-  alignmentTrend m_dxyPhiMeans;
-  alignmentTrend m_dxyPhiChi2;
-  alignmentTrend m_dxyPhiKS;
-  alignmentTrend m_dxyPhiHi;
-  alignmentTrend m_dxyPhiLo;
-  alignmentTrend m_dxyEtaMeans;
-  alignmentTrend m_dxyEtaChi2;
-  alignmentTrend m_dxyEtaKS;
-  alignmentTrend m_dxyEtaHi;
-  alignmentTrend m_dxyEtaLo;
-  alignmentTrend m_dzPhiMeans;
-  alignmentTrend m_dzPhiChi2;
-  alignmentTrend m_dzPhiKS;
-  alignmentTrend m_dzPhiHi;
-  alignmentTrend m_dzPhiLo;
-  alignmentTrend m_dzEtaMeans;
-  alignmentTrend m_dzEtaChi2;
-  alignmentTrend m_dzEtaKS;
-  alignmentTrend m_dzEtaHi;
-  alignmentTrend m_dzEtaLo;
-  
-  void init() {
-    m_index = -1;
-    m_runs.clear();
-    
-    m_dxyPhiMeans.clear();
-    m_dxyPhiChi2.clear();
-    m_dxyPhiKS.clear();
-    m_dxyPhiHi.clear();
-    m_dxyPhiLo.clear();
-    
-    m_dxyEtaMeans.clear();
-    m_dxyEtaChi2.clear();
-    m_dxyEtaKS.clear();
-    m_dxyEtaHi.clear();
-    m_dxyEtaLo.clear();
-    
-    m_dzPhiMeans.clear();
-    m_dzPhiChi2.clear();
-    m_dzPhiKS.clear();
-    m_dzPhiHi.clear();
-    m_dzPhiLo.clear();
-    
-    m_dzEtaMeans.clear();
-    m_dzEtaChi2.clear();
-    m_dzEtaKS.clear();
-    m_dzEtaHi.clear();
-    m_dzEtaLo.clear();
-   }
-};
-
-
 class PreparePVTrends {
  public:
 
-  void MultiRunPVValidation(TString namesandlabels = "",
-                          bool useRMS = true,
+  PreparePVTrends(TString outputdir, std::vector<std::string> inputdirs, std::vector<std::string> labels);
+  void setDirsAndLabels(std::vector<std::string> inputdirs, std::vector<std::string> labels);
+  void setIncludedRuns(std::vector<int> included_runs);
+  std::vector<int> getIncludedRuns();
+
+  void MultiRunPVValidation(bool useRMS = true,
                           TString lumiInputFile = "");
 
   static pv::biases getBiases(TH1F *hist);
@@ -357,7 +272,8 @@ class PreparePVTrends {
 				   const Int_t nDirs_,
 				   const char *dirs[10],
 				   TString LegLabels[10],
-				   bool useRMS);
+			           bool useRMS,
+			           std::vector<int>& included_runs);
   std::vector<int> list_files(const char *dirname = ".", const char *ext = ".root");
   void outputGraphs(const pv::wrappedTrends &allInputs,
                   const std::vector<double> &ticks,
@@ -368,9 +284,16 @@ class PreparePVTrends {
                   TGraphErrors *&g_low,
                   TGraphErrors *&g_high,
                   TGraphAsymmErrors *&g_asym,
+		  TGraphErrors *&g_RMS,
                   const pv::bundle &mybundle,
                   const pv::view &theView,
                   const TString &label);
+
+ private:
+  TString outputdir_;
+  std::vector<std::string> DirList;
+  std::vector<std::string> LabelList;
+  std::vector<int> included_runs_;
   
 };
 

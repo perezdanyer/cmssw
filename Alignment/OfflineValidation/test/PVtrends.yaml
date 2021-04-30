@@ -1,0 +1,49 @@
+LFS: /eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/CMSSW_test_units
+name: test_PVtrends_20
+alignments:
+    PromptReco:
+        color: 1
+        globaltag: auto:phase1_2017_realistic
+        style: 2101
+        title: Alignment during data-taking
+    ReReco:
+        color: 1
+        globaltag: auto:phase1_2017_realistic
+        style: 2101
+        title: End-of-year re-reconstruction
+    Run2:
+        color: 1
+        globaltag: auto:phase1_2017_realistic
+        style: 2101
+        title: Legacy reprocessing
+
+validations:
+    PV:
+        trends:
+            testUnits:
+                singles:
+                - testUnits
+                doLumiAxisFormat: true
+                Variable:
+                - median
+                - RMS
+        merge:
+            testUnits:
+                singles:
+                - testUnits
+                doMaps: true
+                stdResiduals: true
+                autoLimits: false
+        single:
+            testUnits:
+                IOV:
+                - 1 
+                alignments:
+                - PromptReco
+                - ReReco
+                - Run2
+                trackcollection: generalTracks
+                vertexcollection: offlinePrimaryVertices
+                maxevents: 10
+                isda: true
+                ismc: true
