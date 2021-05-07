@@ -150,8 +150,7 @@ JetHTAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   const auto& vertices = iEvent.get(pvsToken_);
   const reco::VertexCollection pvtx  = vertices;    
 
-  edm::Handle<reco::TrackCollection> tracks; 
-  iEvent.getByToken(tracksToken_, tracks);
+  edm::Handle<reco::TrackCollection> tracks = iEvent.getHandle(tracksToken_);
  
   // Find the IOV of the current event so that we can tag a histogram with the IOV
   const int runNumber = iEvent.id().run();
