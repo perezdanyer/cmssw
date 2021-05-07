@@ -11,6 +11,9 @@
 #include <TLegend.h>
 #include <TLine.h>
 
+// AllInOneTool includes
+#include "Options.h"
+
 // Include a drawing helper class
 #include "JetHtPlotConfiguration.h"
 #include "JDrawer.h"
@@ -854,21 +857,11 @@ void jetHtPlotter(std::string configurationFileName){
  */
 int main(int argc, char **argv){
   
-  //==== Read arguments =====
-  if ( argc<1 ) {
-    cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<endl;
-    cout<<"+ Usage of the macro: " << endl;
-    cout<<"+  "<<argv[0]<<" <configurationFile>"<<endl;
-    cout<<"+  configurationFile: Optional. JSON file from which the configuration is read. Default = jetHtPlotConfiguration.json" <<endl;
-    cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<endl;
-    cout << endl << endl;
-    exit(1);
-  }
-  
-  // If there is more than one argument given, use the first one as the configuration file
-  std::string configurationFile = "jetHtPlotConfiguration.json";
-  if(argc >= 2) configurationFile = argv[1];
-  
+  //==== Read command line arguments =====
+  AllInOneConfig::Options options;
+  options.helper(argc, argv);
+  options.parser(argc, argv);
+
   // Run the program
-  jetHtPlotter(configurationFile);
+  jetHtPlotter(options.config);
 }
