@@ -110,15 +110,7 @@ class JetHTAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 };
 
 //
-// constants, enums and typedefs
-//
-
-//
-// static data member definitions
-//
-
-//
-// constructors and destructor
+// Constructor
 //
 JetHTAnalyzer::JetHTAnalyzer(const edm::ParameterSet& iConfig) :
   pvsTag_           (iConfig.getParameter<edm::InputTag>("vtxCollection")), 
@@ -133,18 +125,15 @@ JetHTAnalyzer::JetHTAnalyzer(const edm::ParameterSet& iConfig) :
   profilePtBorders_ (iConfig.getUntrackedParameter<std::vector<double>>("profilePtBorders")),
   iovList_ (iConfig.getUntrackedParameter<std::vector<int>>("iovList"))
 {
-   //now do what ever initialization is needed
-}
-
-
-JetHTAnalyzer::~JetHTAnalyzer()
-{
-
-   // do anything here that needs to be done at desctruction time
-   // (e.g. close files, deallocate resources etc.)
+   // Specify that TFileService is used by the class
+  usesResource(TFileService::kSharedResource);
 
 }
 
+//
+// Default destructor
+//
+JetHTAnalyzer::~JetHTAnalyzer() = default;
 
 //
 // member functions
@@ -158,14 +147,8 @@ JetHTAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   const double cmToum = 10000;
 
-  edm::ESHandle<TransientTrackBuilder>            theB                ;
-  edm::ESHandle<GlobalTrackingGeometry>           theTrackingGeometry ;
-  iSetup.get<GlobalTrackingGeometryRecord>().get(theTrackingGeometry) ;
-  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theB);
-
-  edm::Handle<reco::VertexCollection> vertices; 
-  iEvent.getByToken(pvsToken_, vertices);
-  const reco::VertexCollection pvtx  = *(vertices.product())  ;    
+  const auto& vertices = iEvent.get(pvsToken_);
+  const reco::VertexCollection pvtx  = vertices;    
 
   edm::Handle<reco::TrackCollection> tracks; 
   iEvent.getByToken(tracksToken_, tracks);
@@ -186,13 +169,12 @@ JetHTAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   // Print the triggers to console
   if(printTriggerTable_){
-    edm::Handle<edm::TriggerResults> triggerResults;
-    iEvent.getByToken(triggerToken_, triggerResults);
+    const auto& triggerResults = iEvent.get(triggerToken_);
 
-    const edm::TriggerNames triggerNames = iEvent.triggerNames(*triggerResults);
+    const edm::TriggerNames triggerNames = iEvent.triggerNames(triggerResults);
     for (unsigned i=0; i<triggerNames.size(); i++) {
       std::string hltName = triggerNames.triggerName(i);
-      bool decision = triggerResults->accept(triggerNames.triggerIndex(hltName));
+      bool decision = triggerResults.accept(triggerNames.triggerIndex(hltName));
       std::cout << hltName << " " << decision << std::endl;
     }
   }

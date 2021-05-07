@@ -19,6 +19,9 @@
 
 #include <ext/hash_map>
 
+//namespace std{
+//  template<> struct hash< TString >{ size_t operator()( const TString& x ) const{ return hash< const char* >()( x.Data() );  }  };
+//}
 namespace __gnu_cxx{
   template<> struct hash< TString >{ size_t operator()( const TString& x ) const{ return hash< const char* >()( x.Data() );  }  };
 }
@@ -30,6 +33,7 @@ public:
   SmartSelectionMonitor(){}
   ~SmartSelectionMonitor() { }
 
+  //typedef std::unordered_map<TString, std::map<TString, TH1*>* > Monitor_t;
   typedef __gnu_cxx::hash_map<TString, std::map<TString, TH1*>* > Monitor_t;
 
   //short getters

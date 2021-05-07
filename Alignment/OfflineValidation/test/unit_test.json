@@ -121,12 +121,14 @@
             "single": {
                 "testJob": {
                     "alignments": ["unitTestJetHT"],
-                    "trackCollection": "ALCARECOTkAlMinBias"
+                    "trackCollection": "ALCARECOTkAlMinBias",
+                    "maxevents": "10"
                 },
                 "testMC": {
                     "alignments": ["unitTest"],
                     "trackCollection": "ALCARECOTkAlMinBias",
-                    "mc": "True"
+                    "mc": "True",
+                    "maxevents": "10"
                 }
             },
             "merge": {
