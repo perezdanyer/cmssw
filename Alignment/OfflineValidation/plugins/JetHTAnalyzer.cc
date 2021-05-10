@@ -155,15 +155,13 @@ JetHTAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
  
   // Find the IOV of the current event so that we can tag a histogram with the IOV
   const int runNumber = iEvent.id().run();
-  TString iovStringBuilder = "iovNotFound";
   std::string iovString = "iovNotFound";
 
   // Find the current IOV from the IOV list
   if(runNumber >= iovList_.at(0)){ // If run number is smaller than the first item in the list, it is not in any IOV
     for(std::vector<int>::size_type i = 1; i < iovList_.size(); i++){
       if(iovList_.at(i) > runNumber){
-        iovStringBuilder = Form("iov%d-%d",iovList_.at(i-1),iovList_.at(i)-1);
-        iovString = iovStringBuilder.Data();
+        iovString = Form("iov%d-%d",iovList_.at(i-1),iovList_.at(i)-1);
         break;
       }
     }
