@@ -1,5 +1,5 @@
-#ifndef TKALTOOLS_JETHTANALYZER_SMARTSELECTIONMONITOR_H
-#define TKALTOOLS_JETHTANALYZER_SMARTSELECTIONMONITOR_H
+#ifndef JETHTANALYZER_SMARTSELECTIONMONITOR_H
+#define JETHTANALYZER_SMARTSELECTIONMONITOR_H
 
 // system include files
 #include <iostream>
@@ -17,15 +17,6 @@
 #include "TString.h"
 #include "TROOT.h"
 
-#include <ext/hash_map>
-
-//namespace std{
-//  template<> struct hash< TString >{ size_t operator()( const TString& x ) const{ return hash< const char* >()( x.Data() );  }  };
-//}
-namespace __gnu_cxx{
-  template<> struct hash< TString >{ size_t operator()( const TString& x ) const{ return hash< const char* >()( x.Data() );  }  };
-}
-
 class SmartSelectionMonitor {
   
 public:
@@ -33,20 +24,19 @@ public:
   SmartSelectionMonitor(){}
   ~SmartSelectionMonitor() { }
 
-  //typedef std::unordered_map<TString, std::map<TString, TH1*>* > Monitor_t;
-  typedef __gnu_cxx::hash_map<TString, std::map<TString, TH1*>* > Monitor_t;
+  typedef std::unordered_map<std::string, std::map<std::string, TH1*>* > Monitor_t;
 
   //short getters
   inline Monitor_t &getAllMonitors() { return allMonitors_; }
 
   //checks if base Histo Exist
-  inline bool hasBaseHisto(TString histo){
+  inline bool hasBaseHisto(std::string histo){
     if(allMonitors_.find(histo) == allMonitors_.end())return false;
     return true;
   }
 
   //checks if tag Exist for a given histo
-  inline bool hasTag(std::map<TString, TH1*>* map, TString tag){
+  inline bool hasTag(std::map<std::string, TH1*>* map, std::string tag){
     if( map->find(tag) != map->end() )return true;
     if( map->find("all") == map->end() )return false;
   
@@ -59,21 +49,21 @@ public:
     h->Reset("ICE");
     h->SetDirectory(gROOT);
     (*map)[tag] = h; 
-    //    printf("new histo created with name = %30s and tag = %15s: Name=%s\n",allName.Data(), tag.Data(), h->GetName());
+    //    printf("new histo created with name = %30s and tag = %15s: Name=%s\n",allName.c_str(), tag.c_str(), h->GetName());
     return true;
   }
   
   //checks if tag Exist for a given histo
-  inline bool hasTag(TString histo, TString tag){
+  inline bool hasTag(std::string histo, std::string tag){
     if(!hasBaseHisto(histo))return false;
-    std::map<TString, TH1*>* map = allMonitors_[histo];
+    std::map<std::string, TH1*>* map = allMonitors_[histo];
     return hasTag(map, tag);
   }
 
   //get histo
-  inline TH1 *getHisto(TString histo,TString tag="all"){
+  inline TH1 *getHisto(std::string histo,std::string tag="all"){
     if( !hasBaseHisto(histo) )return NULL;
-    std::map<TString, TH1*>* map = allMonitors_[histo];
+    std::map<std::string, TH1*>* map = allMonitors_[histo];
     if( !hasTag(map, tag) )return NULL;
     return (*map)[tag];
   }
@@ -81,27 +71,27 @@ public:
   //write all histo
   inline void Write(){
     for(Monitor_t::iterator it =allMonitors_.begin(); it!= allMonitors_.end(); it++){
-      std::map<TString, TH1*>* map = it->second;
+      std::map<std::string, TH1*>* map = it->second;
       bool neverFilled = true;
       
-      for(std::map<TString, TH1*>::iterator h =map->begin(); h!= map->end(); h++){
-	if(!(h->second)){printf("histo = %30s %15s IS NULL",it->first.Data(), h->first.Data());continue;}
+      for(std::map<std::string, TH1*>::iterator h =map->begin(); h!= map->end(); h++){
+	if(!(h->second)){printf("histo = %30s %15s IS NULL",it->first.c_str(), h->first.c_str());continue;}
 	if(h->second->GetEntries()>0)neverFilled = false;
 	
-	if(h->first=="all"){h->second->SetName(h->first+"_"+h->second->GetName());}
-	//printf("histo = %30s tag = %15s Name = %s\n",it->first.Data(), h->first.Data(),  h->second->GetName());
+	if(h->first=="all"){h->second->SetName(Form("%s_%s",h->first.c_str(),h->second->GetName()));}
+	//printf("histo = %30s tag = %15s Name = %s\n",it->first.c_str(), h->first.c_str(),  h->second->GetName());
 	h->second->Write();
       }
       
-      if(neverFilled){printf("SmartSelectionMonitor: histo = '%s' is empty for all categories, you may want to cleanup your project to remove this histogram\n",it->first.Data());}
+      if(neverFilled){printf("SmartSelectionMonitor: histo = '%s' is empty for all categories, you may want to cleanup your project to remove this histogram\n",it->first.c_str());}
     } 
   }
 
   //scale all histo by w
   inline void Scale(double w){
     for(Monitor_t::iterator it =allMonitors_.begin(); it!= allMonitors_.end(); it++){
-      std::map<TString, TH1*>* map = it->second;
-      for(std::map<TString, TH1*>::iterator h =map->begin(); h!= map->end(); h++){
+      std::map<std::string, TH1*>* map = it->second;
+      for(std::map<std::string, TH1*>::iterator h =map->begin(); h!= map->end(); h++){
 	if(!(h->second)){continue;}
 	h->second->Scale(w);
       }
@@ -109,23 +99,23 @@ public:
   }
   
   //takes care of filling an histogram
-  bool fillHisto  (TString name, TString tag, double valx, double weight, bool useBinWidth=false);
-  bool fillHisto  (TString name, TString tag, double valx, double valy, double weight,  bool useBinWidth=false);
-  bool fillProfile(TString name, TString tag, double valx, double valy, double weight);
+  bool fillHisto  (std::string name, std::string tag, double valx, double weight, bool useBinWidth=false);
+  bool fillHisto  (std::string name, std::string tag, double valx, double valy, double weight,  bool useBinWidth=false);
+  bool fillProfile(std::string name, std::string tag, double valx, double valy, double weight);
 
-  bool fillHisto(TString name, std::vector<TString> tags, double valx, double weight,  bool useBinWidth=false);
-  bool fillHisto(TString name, std::vector<TString> tags, double valx, double valy, double weight,  bool useBinWidth=false);
-  bool fillProfile(TString name, std::vector<TString> tags, double valx, double valy, double weight);
+  bool fillHisto(std::string name, std::vector<std::string> tags, double valx, double weight,  bool useBinWidth=false);
+  bool fillHisto(std::string name, std::vector<std::string> tags, double valx, double valy, double weight,  bool useBinWidth=false);
+  bool fillProfile(std::string name, std::vector<std::string> tags, double valx, double valy, double weight);
 
-  bool fillHisto(TString name, std::vector<TString> tags, double valx, std::vector<double> weights,  bool useBinWidth=false);
-  bool fillHisto(TString name, std::vector<TString> tags, double valx, double valy, std::vector<double> weights,  bool useBinWidth=false);
-  bool fillProfile(TString name, std::vector<TString> tags, double valx, double valy, std::vector<double> weights);
+  bool fillHisto(std::string name, std::vector<std::string> tags, double valx, std::vector<double> weights,  bool useBinWidth=false);
+  bool fillHisto(std::string name, std::vector<std::string> tags, double valx, double valy, std::vector<double> weights,  bool useBinWidth=false);
+  bool fillProfile(std::string name, std::vector<std::string> tags, double valx, double valy, std::vector<double> weights);
 
   //short inits the monitor plots for a new step
-  void initMonitorForStep(TString tag);
+  void initMonitorForStep(std::string tag);
   
   //short add new histogram
-  TH1 * addHistogram(TH1 *h, TString tag);
+  TH1 * addHistogram(TH1 *h, std::string tag);
   TH1 * addHistogram(TH1 *h);
   
 private:
