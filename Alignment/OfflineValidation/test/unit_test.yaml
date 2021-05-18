@@ -118,6 +118,7 @@ validations:
                 - unitTestJetHT
                 trackCollection: ALCARECOTkAlMinBias
                 maxevents: 10
+                iovListFile: CMSSW_BASE/src/Alignment/OfflineValidation/data/lumiPerRun_Run2.txt
 
             testMC:
                 alignments:

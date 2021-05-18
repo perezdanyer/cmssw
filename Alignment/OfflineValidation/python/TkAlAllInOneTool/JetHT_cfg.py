@@ -34,6 +34,7 @@ else:
 useMC = configuration["validation"].get("mc", False)
 printTriggers = configuration["validation"].get("printTriggers", False)
 triggerFilter = str(configuration["validation"].get("triggerFilter", "nothing"))
+iovListFile = str(configuration["validation"].get("iovListFile", "nothing"))
 iovListList = configuration["validation"].get("iovList", [0,500000])
 ptBorders = configuration["validation"].get("profilePtBorders", [3,5,10,20,50,100])
 trackCollection = str(configuration["validation"].get("trackCollection", "ALCARECOTkAlMinBias"))
@@ -45,6 +46,25 @@ globalTag = str(configuration["alignment"].get("globaltag", "auto:run2_data"))
 # Alignment conditions can be also loaded from a configuration file instead of database
 alignmentFile = str(configuration["validation"].get("TrackerAlignmentRcdFile", "nothing"))
 alignmentErrorFile = str(configuration["validation"].get("TrackerAlignmentErrorFile", "nothing"))
+
+
+# If IOV list file is given, read the IOV:s from the file
+if not (iovListFile == "nothing" or iovListFile == ""):
+
+    # Expand CMSSW_BASE
+    iovListFile = iovListFile.replace("CMSSW_BASE", os.environ["CMSSW_BASE"])
+
+    # Read the file
+    iovListList = []
+    iovReader = open(iovListFile,"r")
+    iovContents = iovReader.readlines()
+
+    for line in iovContents:
+        lineContents = line.split()
+        iovListList.append(int(lineContents[0]))
+
+    # Add a dummy run to the end of the list to make the last number its own IOV
+    iovListList.append(iovListList[-1]+100)
 
 
 ###################################################################
