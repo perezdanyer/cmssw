@@ -60,6 +60,8 @@ public:
   const char* GetLumiPerIovFile() const;
   bool GetDrawYearLines() const;
   std::vector<int> GetRunsForLines() const;
+
+  std::vector<double> GetWidePtBinBorders() const;
   
   bool GetDrawPlotsForEachIOV() const;
   int GetNIovInOnePlot() const;
@@ -101,6 +103,7 @@ private:
   std::string fJsonLumiPerIovFile = "lumiPerIovFile";
   std::string fJsonDrawYearLines = "drawYearLines";
   std::string fJsonRunsForLines = "runsForLines";
+  std::string fJsonWidePtBinBorders = "widePtBinBorders";
   std::string fJsonMakeIovListForSlides = "makeIovlistForSlides";
   std::string fJsonIovListForSlides = "iovListForSlides";
   
@@ -130,6 +133,7 @@ private:
   std::string fLumiPerIovFile;
   bool fDrawYearLines;
   std::vector<int> fRunsForLines;
+  std::vector<double> fWidePtBinBorders;
   
   bool fMakeIovListForSlides;
   std::string fIovListForSlides;

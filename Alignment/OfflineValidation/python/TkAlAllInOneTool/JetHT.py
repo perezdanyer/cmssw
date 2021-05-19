@@ -112,6 +112,10 @@ def JetHT(config, validationDir):
                 local["jethtplot"] = copy.deepcopy(config["validations"]["JetHT"][runType][datasetName]["jethtplot"])
             local["output"] = outputDirectory
 
+            # If pT binning changed for validation job, need to change it for plotting also
+            if "profilePtBorders" in config["validations"]["JetHT"]["single"][datasetName]:
+                local["jethtplot"]["widePtBinBorders"] = config["validations"]["JetHT"]["single"][datasetName]["profilePtBorders"]
+
             local["jethtplot"]["alignments"] = {}
 
             # Draw all the alignments for each dataset to same plot

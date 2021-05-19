@@ -138,7 +138,7 @@ iovListList     | [0,500000] | If iovListFile is not defined, the IOV run bounda
 triggerFilter    | "nothing" | HLT trigger filter used to filter the events selected for the analysis.
 printTriggers    | false | Print all available triggers to console. Set true only for local tests.
 mc | false | Flag for Monte Carlo. Use true for MC and false for data.
-profilePtBorders | [3,5,10,20,50,100] | List for pT borders used in wide pT bin profiles. Also the trend plots are calculated using these pT borders.
+profilePtBorders | [3,5,10,20,50,100] | List for pT borders used in wide pT bin profiles. Also the trend plots are calculated using these pT borders. If changed from default, the variable widePtBinBorders for the jetHtPlotter needs to be changed accordingly to get legends for trend plots correctly and avoid segmentation violations. This is done automatically by the all-in-one configuration.
 TrackerAlignmentRcdFile | "nothing" | Local database file from which the TrackerAlignmentRcd is read. Notice that usual method to set this is reading from the database for each alignment.
 TrackerAlignmentErrorFile | "nothing" | Local database file from which the TrackerAlignmentExtendedErrorRcd is read. Notice that usual method to set this is reading from the database for each alignment.
 
@@ -334,6 +334,7 @@ drawPlotsForEachIOV    | false | true: For profile plots, draw the profiles sepa
 nIovInOnePlot          | 1 | Number of successive IOV:s drawn in a single plot is profile plots are drawn for each IOV.
 useLuminosityForTrends | true | true: For trend plots, make the width of the x-axis bin for each IOV proportional to the integrated luminosity within that IOV. false: Each IOV has the same bin width in x-axis.
 skipRunsWithNoData     | false | true: If an IOV defined in lumiPerIovFile does not have any data, do not draw empty space to the x-axis for this IOV. false: Draw empty space for IOV:s with no data.
+widePtBinBorders       | [3,5,10,20,50,100] | List for pT borders used in wide pT bin profiles. Also the trend plots are calculated using these pT borders. This needs to be set to same value as the profilePtBorders variable used in the corresponding validation analysis. The all-in-one config does this automatically for you.
 normalizeQAplots       | true | true: For track QA plots, normalize each distribution with its integral. false: No normalization for QA plots, show directly the counts.
 makeIovlistForSlides   | false | true: Create a text file to be used as input for prepareSlides.sh script for making latex presentation template with profile plots from each IOV. false: Do not do this.
 iovListForSlides       | "iovListForSlides.txt" | Name given to the above list.

@@ -353,8 +353,8 @@ void jetHtPlotter(std::string configurationFileName){
     trendZoomHigh[iTrend] = configurationGiver->GetTrendZoomHigh(iTrend);
   }
   
-  const int nWidePtBins = 6;
-  int widePtBinBorders[nWidePtBins] = {3,5,10,20,50,100};
+  const std::vector<double> widePtBinBorders = configurationGiver->GetWidePtBinBorders();
+  const int nWidePtBins = widePtBinBorders.size();
   
   bool normalizeQAplots = configurationGiver->GetNormalizeQAplots();  // Divide in QA plot yield by its integral
   bool saveFigures = true;
@@ -811,7 +811,7 @@ void jetHtPlotter(std::string configurationFileName){
       trendLegend = new TLegend(0.65,0.6,0.9,0.9);
       trendLegend->SetFillStyle(0); trendLegend->SetBorderSize(0);
       trendLegend->SetTextSize(0.05); trendLegend->SetTextFont(62);
-      trendLegend->SetHeader(Form("%s error trend for p_{T} > %d GeV", profileYaxis[iTrend+6].Data(), widePtBinBorders[iWidePt]));
+      trendLegend->SetHeader(Form("%s error trend for p_{T} > %.0f GeV", profileYaxis[iTrend+6].Data(), widePtBinBorders.at(iWidePt)));
       
       for(int iFile = 0; iFile < compareFiles; iFile++){
         gBigTrend[iFile][iTrend][iWidePt]->SetMarkerColor(fileColor[iFile]);
@@ -844,7 +844,7 @@ void jetHtPlotter(std::string configurationFileName){
       
       // Save the figures
       if(saveFigures){
-        gPad->GetCanvas()->SaveAs(Form("output/%sTrendPtOver%d%s.pdf", trendName[iTrend].Data(), widePtBinBorders[iWidePt], saveComment));
+        gPad->GetCanvas()->SaveAs(Form("output/%sTrendPtOver%.0f%s.pdf", trendName[iTrend].Data(), widePtBinBorders.at(iWidePt), saveComment));
       }
       
     } // Wide pT loop

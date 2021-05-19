@@ -19,6 +19,7 @@ JetHtPlotConfiguration::JetHtPlotConfiguration() :
   fLumiPerIovFile("lumiPerRun_Run2.txt"),
   fDrawYearLines(false),
   fRunsForLines(0),
+  fWidePtBinBorders(0),
   fMakeIovListForSlides(false),
   fIovListForSlides("iovListForSlides.txt")
 {
@@ -65,6 +66,7 @@ JetHtPlotConfiguration::JetHtPlotConfiguration(const JetHtPlotConfiguration& in)
   fLumiPerIovFile(in.fLumiPerIovFile),
   fDrawYearLines(in.fDrawYearLines),
   fRunsForLines(in.fRunsForLines),
+  fWidePtBinBorders(in.fWidePtBinBorders),
   fMakeIovListForSlides(in.fMakeIovListForSlides),
   fIovListForSlides(in.fIovListForSlides)
 {
@@ -106,6 +108,7 @@ JetHtPlotConfiguration& JetHtPlotConfiguration::operator=(const JetHtPlotConfigu
   fLumiPerIovFile = in.fLumiPerIovFile;
   fDrawYearLines = in.fDrawYearLines;
   fRunsForLines = in.fRunsForLines;
+  fWidePtBinBorders = in.fWidePtBinBorders;
   fMakeIovListForSlides = in.fMakeIovListForSlides;
   fIovListForSlides = in.fIovListForSlides;
 
@@ -370,6 +373,23 @@ void JetHtPlotConfiguration::ReadJsonFile(const std::string fileName){
     fRunsForLines.push_back(314881);
   }
   
+  // Read the bin borders for the wide pT bims.
+  try{
+    for (auto& item : configuration.get_child(Form("jethtplot.%s",fJsonWidePtBinBorders.c_str()))){
+      fWidePtBinBorders.push_back(item.second.get_value<double>());
+    }
+  } catch(const std::exception& e){
+    if(fDebugLevel > 0){
+      std::cout << "No value " << Form("jethtplot.%s", fJsonWidePtBinBorders.c_str()) << " in configuration. Using default values 3, 5, 10, 20, 50 and 100." << std::endl;
+    }
+    fWidePtBinBorders.push_back(3.0);
+    fWidePtBinBorders.push_back(5.0);
+    fWidePtBinBorders.push_back(10.0);
+    fWidePtBinBorders.push_back(20.0);
+    fWidePtBinBorders.push_back(50.0);
+    fWidePtBinBorders.push_back(100.0);
+  }
+
   // Read the flag for creating an IOV list for the slides
   try{
     fMakeIovListForSlides = configuration.get_child(Form("jethtplot.%s", fJsonMakeIovListForSlides.c_str())).get_value<bool>();
@@ -458,9 +478,16 @@ void JetHtPlotConfiguration::PrintConfiguration() const{
   std::cout << fJsonDrawYearLines << " : " << fDrawYearLines << std::endl;
   std::cout << "Runs for vertical lines: " << std::endl;
   for(int myRun : fRunsForLines){
-    std::cout << myRun << std::endl;
+    std::cout << myRun << " ";
   }
+  std::cout << std::endl;
   
+  std::cout << "Wide pT bin borders: " << std::endl;
+  for(double myPt : fWidePtBinBorders){
+    std::cout << myPt << " ";
+  }
+  std::cout << std::endl;
+
   std::cout << fJsonDrawPlotsForEachIOV << " : " << fDrawPlotsForEachIOV << std::endl;
   std::cout << fJsonNIovInOnePlot << " : " << fNIovInOnePlot << std::endl;
   std::cout << fJsonUseLuminosityForTrends << " : " << fUseLuminosityForTrends << std::endl;
@@ -568,6 +595,11 @@ bool JetHtPlotConfiguration::GetDrawYearLines() const{
 // Getter for the run positions to where vertical lines are drawn
 std::vector<int> JetHtPlotConfiguration::GetRunsForLines() const{
   return fRunsForLines;
+}
+
+// Getter for bin borders used in the wide pT binned histogram
+std::vector<double> JetHtPlotConfiguration::GetWidePtBinBorders() const{
+  return fWidePtBinBorders;
 }
 
 // Getter for drawing plots for each IOV
