@@ -1,9 +1,14 @@
 #include <cstdlib>
 #include <string>
+#include <tuple>
 #include <iostream>
 #include <numeric>
 #include <functional>
 #include <unistd.h>
+
+#include <TFile.h>
+#include <TGraph.h>
+#include <TH1.h>
 
 #include "exceptions.h"
 #include "toolbox.h"
@@ -17,14 +22,13 @@
 #include "TString.h"
 #include "TColor.h"
 
-#include "Alignment/OfflineValidation/interface/CompareAlignments.h"
-#include "Alignment/OfflineValidation/interface/TkAlStyle.h"
-#include "Alignment/OfflineValidation/interface/PlotTrends.h"
 #include "Alignment/OfflineValidation/interface/PreparePVTrends.h"
+#include "Alignment/OfflineValidation/interface/Trend.h"
 
 using namespace std;
 using namespace AllInOneConfig;
-namespace fs = experimental::filesystem;
+
+static const char * bold = "\e[1m", * normal = "\e[0m";
 
 namespace pt = boost::property_tree;
 
@@ -42,50 +46,12 @@ int trends(int argc, char* argv[]) {
   
   pt::ptree alignments = main_tree.get_child("alignments");
   pt::ptree validation = main_tree.get_child("validation");
+  pt::ptree lines = main_tree.get_child("lines");
   
   //Read all configure variables and set default for missing keys
-  string myValidation = main_tree.get<std::string>("output");
-  TString outputdir = main_tree.get<std::string>("output");
+  string outputdir = main_tree.get<string>("output");
   bool doRMS = validation.get_child_optional("doRMS") ? validation.get<bool>("doRMS") : true;
-  bool pixelupdate = validation.get_child_optional("pixelupdate") ? validation.get<bool>("pixelupdate") : true;
-  bool showlumi = validation.get_child_optional("showlumi") ? validation.get<bool>("showlumi") : true;
-  TString Year = validation.get_child_optional("Year") ? validation.get<string>("Year") : "Run2";
   TString lumiInputFile = validation.get_child_optional("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
-  
-  //vector<int> IOVlist;
-  //if (validation.get_child_optional("IOV")) {
-  //  for (const pair<string, pt::ptree>& childTree : validation.get_child("IOV")) {
-  //    IOVlist.push_back(childTree.second.get_value<int>());
-  //    cout << childTree.second.get_value<int>() << flush;
-  //  }
-  //}
-  
-  vector<string> labels{""};
-  if (validation.get_child_optional("label")) {
-    labels.clear();
-    for (const pair<string, pt::ptree>& childTree : validation.get_child("label")) {
-      labels.push_back(childTree.second.get_value<string>());
-    }
-  }
-  
-  vector<TString> Variables;
-  if (validation.get_child_optional("Variable")) {
-    for (const pair<string, pt::ptree>& childTree : validation.get_child("Variable")) {
-      Variables.push_back(childTree.second.get_value<string>());
-    }
-  }
-  
-  vector<int> pixelupdateruns{271866, 272008, 276315, 278271, 280928, 290543, 294927, 297281, 298653, 299443, 300389, 301046, 302131, 303790, 303998, 304911, 313041, 314881, 315257, 316758, 317475, 317485, 317527, 317661, 317664, 318227, 320377, 321831, 322510, 322603, 323232, 324245};
-
-  vector<string> names_of_alignments;
-  vector<string> geometries;
-  vector<Color_t> colors{kBlue, kRed, kGreen};
-  for (const pair<string, pt::ptree>& childTree : alignments) {
-    //cout << childTree.second.get<string>("title") << flush;
-    //cout << childTree.second.get<int>("color") << flush;
-    names_of_alignments.push_back(childTree.first.c_str());
-    geometries.push_back(childTree.second.get<string>("title"));
-  }
 
   TString LumiFile = getenv("CMSSW_BASE");
   if (lumiInputFile.BeginsWith("/"))
@@ -95,45 +61,101 @@ int trends(int argc, char* argv[]) {
     LumiFile += lumiInputFile;
   }
   fs::path pathToLumiFile = LumiFile.Data();
-  if (!(fs::exists(pathToLumiFile))) {
+  if (!fs::exists(pathToLumiFile)) {
     cout << "ERROR: lumi-per-run file (" << LumiFile.Data() << ") not found!" << endl << "Please check!" << endl;
     exit(EXIT_FAILURE);
   }
-  if (!LumiFile.Contains(Year)) {
-    cout << "WARNING: lumi-per-run file and year do not match, luminosity on the x-axis and labels might not match!"
-         << endl;
+
+  vector<string> alignment_dirs;
+  vector<string> alignment_titles;
+  vector<string> alignment_files;
+  for (const pair<string, pt::ptree>& childTree : alignments) {
+    fs::path alignment_dir = childTree.first.c_str();
+    fs::create_directory(alignment_dir);
+    alignment_dirs.push_back(childTree.first.c_str());
+    alignment_titles.push_back(childTree.second.get<string>("title"));
+    alignment_files.push_back(childTree.second.get<string>("file"));
   }
 
-  vector<TString> variables{"dxy_phi_vs_run",
+  for(size_t i=0; i<alignment_dirs.size(); i++) {
+    for (const pair<string, pt::ptree>& childTree : validation.get_child("IOV")) {
+      int iov = childTree.second.get_value<int>();
+      TString file = alignment_files[i];
+      fs::path target_dir = Form("%s/PVValidation_%s_%d.root", file.ReplaceAll("{}", to_string(iov)).Data(), alignment_dirs[i].data(), iov);
+      fs::path output_dir = Form("./%s/PVValidation_%s_%d.root",alignment_dirs[i].data(), alignment_dirs[i].data(), iov);
+      if(!fs::exists(output_dir))
+	fs::create_symlink(target_dir, output_dir);
+    }
+  }
+
+  PreparePVTrends prepareTrends(outputdir, alignment_dirs, alignment_titles);
+  prepareTrends.MultiRunPVValidation(doRMS, LumiFile);
+
+  int firstRun = validation.get_child_optional("firstRun") ? validation.get<int>("firstRun") : 272930;
+  int lastRun = validation.get_child_optional("lastRun") ? validation.get<int>("lastRun") : 325175;
+  
+  const Run2Lumi GetLumi(LumiFile.Data(), firstRun, lastRun);
+  
+  fs::path pname = Form("%s/PVtrends.root", outputdir.data());
+  assert(fs::exists(pname));
+  
+  vector<string> variables{"dxy_phi_vs_run",
                             "dxy_eta_vs_run",
                             "dz_phi_vs_run",
                             "dz_eta_vs_run"};
-  vector<string> YaxisNames{"of d_{xy}(#phi) [#mum]",
-                            "of d_{xy}(#eta) [#mum]",
-                            "of d_{z}(#phi) [#mum]",
-                            "of d_{z}(#eta) [#mum]"};
-
-  PreparePVTrends prepareTrends(outputdir, names_of_alignments, geometries);
-  prepareTrends.MultiRunPVValidation(doRMS, LumiFile);
-  vector<int> new_iov_list = prepareTrends.getIncludedRuns();
-
- //for(const auto &iov: IOVlist) {
- //  if(std::find(new_iov_list.begin(), new_iov_list.end(), iov) == new_iov_list.end())
- //    cout << iov << " not included in trend plot" << std::endl;
- //}
-
-  PlotTrends plotter(variables, YaxisNames, "PV");
-
-  vector<pair<int, double>> lumiIOVpairs = plotter.lumiperIOV(new_iov_list, LumiFile);
-  sort(new_iov_list.begin(), new_iov_list.end());
-  new_iov_list.erase(unique(new_iov_list.begin(), new_iov_list.end()), new_iov_list.end());
-
-  for (const auto &Variable : Variables) {
-    //plotter.PlotDMRTrends(new_iov_list, Variable, labels, Year, myValidation, {"Alignment during data-taking", "End-of-year re-reconstruction", "Legacy reprocessing"}, colors, outputdir, pixelupdate, pixelupdateruns, showlumi, LumiFile, lumiIOVpairs, "", 0);
-    plotter.PlotDMRTrends(new_iov_list, Variable, labels, Year, myValidation, geometries, colors, outputdir, pixelupdate, pixelupdateruns, showlumi, LumiFile, lumiIOVpairs, "", 0);
+  
+  
+  vector<string> titles{"of impact parameter in transverse plane as a function of azimuth angle",
+  		       "of impact parameter in transverse plane as a function of pseudorapidity",
+                       "of impact parameter along z-axis as a function of azimuth angle",
+                       "of impact parameter along z-axis as a function of pseudorapidity"};
+  
+  vector<string> ytitles{"of d_{xy}(#phi)   [#mum]",
+                        "of d_{xy}(#eta)   [#mum]",
+                        "of d_{z}(#phi)   [#mum]",
+                        "of d_{z}(#eta)   [#mum]"};
+  
+  auto f = TFile::Open(pname.c_str());
+  for(size_t i=0; i<variables.size(); i++) {
+  
+    Trend mean(Form("mean_%s", variables[i].data()), outputdir.data(), Form("mean %s", titles[i].data()),
+  	       Form("mean %s", ytitles[i].data()), -7., 10., lines, GetLumi), 
+          RMS (Form("RMS_%s", variables[i].data()), outputdir.data(), Form("RMS %s", titles[i].data()), 
+  	       Form("RMS %s", ytitles[i].data()), 0., 35., lines, GetLumi);
+    mean.lgd.SetHeader("p_{T} (track) > 3 GeV");
+    RMS .lgd.SetHeader("p_{T} (track) > 3 GeV");
+  
+    for (const pair<string, pt::ptree>& childTree : alignments) {
+      TString gname = childTree.second.get<string>("title");
+      gname.ReplaceAll(" ", "_");
+    
+      auto gMean = Get<TGraph>("mean_%s_%s", gname.Data(), variables[i].data());
+      auto hRMS  = Get<TH1   >( "RMS_%s_%s", gname.Data(), variables[i].data());
+      assert(gMean != nullptr);
+      assert(hRMS  != nullptr);
+      
+      TString gtitle = childTree.second.get<string>("title");
+      gMean->SetTitle(gtitle); // for the legend
+      gMean->SetMarkerSize(0.7);
+      int color = childTree.second.get<int>("color");
+      int style = childTree.second.get<int>("style");
+      gMean->SetMarkerColor(color);
+      gMean->SetMarkerStyle(style);
+  
+      hRMS ->SetTitle(gtitle); // for the legend
+      hRMS ->SetMarkerSize(0.7);
+      hRMS ->SetMarkerColor(color);
+      hRMS ->SetMarkerStyle(style);
+    
+      bool fullRange = gname.Contains("data-taking") || gname.Contains("Legacy");
+      mean(gMean, "PZ", "p", fullRange);
+      RMS (hRMS , ""  , "p", fullRange);
+    }
   }
-
-
+  
+  f->Close();
+  cout << bold << "Done" << normal << endl;
+  
   return EXIT_SUCCESS;
 }
 

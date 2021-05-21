@@ -128,12 +128,16 @@ def PV(config, validationDir):
                 ##Deep copy necessary things from global config
                 local.setdefault("alignments", {})
                 local["alignments"][alignment] = copy.deepcopy(config["alignments"][alignment])
-                local["validation"] = copy.deepcopy(config["validations"]["PV"][pvType][trendName])
-                local["validation"]["Variable"] = copy.deepcopy(config["validations"]["PV"][pvType][trendName]["Variable"])
-                local["validation"]["IOV"] = IOVs
-                if "label" in config["validations"]["PV"][pvType][trendName]:
-                    local["validation"]["label"] = copy.deepcopy(config["validations"]["PV"][pvType][trendName]["label"])
-                local["output"] = "{}/{}/{}/{}/".format(config["LFS"], config["name"], pvType, trendName)
+                local["alignments"][alignment]["file"] = "{}/{}/PV/{}/{}/{}/{}".format(config["LFS"], config["name"], "single", alignment, trendName, "{}")
+            local["validation"] = copy.deepcopy(config["validations"]["PV"][pvType][trendName])
+            local["validation"]["IOV"] = IOVs
+            if "label" in config["validations"]["PV"][pvType][trendName]:
+                local["validation"]["label"] = copy.deepcopy(config["validations"]["PV"][pvType][trendName]["label"])
+            local["output"] = "{}/{}/{}/{}/".format(config["LFS"], config["name"], pvType, trendName)
+            if config["lines"]:
+                local["lines"] = copy.deepcopy(config["lines"])
+            else:
+                raise Exception("You want to create 'trends' jobs, but there are no 'lines' section in the config for pixel updates!")
 
             #Loop over all single jobs
             for singleJob in singleJobs:

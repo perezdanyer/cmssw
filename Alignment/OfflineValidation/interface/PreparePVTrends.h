@@ -259,8 +259,6 @@ class PreparePVTrends {
 
   PreparePVTrends(TString outputdir, std::vector<std::string> inputdirs, std::vector<std::string> labels);
   void setDirsAndLabels(std::vector<std::string> inputdirs, std::vector<std::string> labels);
-  void setIncludedRuns(std::vector<int> included_runs);
-  std::vector<int> getIncludedRuns();
 
   void MultiRunPVValidation(bool useRMS = true,
                           TString lumiInputFile = "");
@@ -272,28 +270,27 @@ class PreparePVTrends {
 				   const Int_t nDirs_,
 				   const char *dirs[10],
 				   TString LegLabels[10],
-			           bool useRMS,
-			           std::vector<int>& included_runs);
+			           bool useRMS);
   std::vector<int> list_files(const char *dirname = ".", const char *ext = ".root");
   void outputGraphs(const pv::wrappedTrends &allInputs,
                   const std::vector<double> &ticks,
                   const std::vector<double> &ex_ticks,
-                  TGraphErrors *&g_mean,
-                  TGraphErrors *&g_chi2,
-                  TGraphErrors *&g_KS,
-                  TGraphErrors *&g_low,
-                  TGraphErrors *&g_high,
+                  TGraph *&g_mean,
+                  TGraph *&g_chi2,
+                  TGraph *&g_KS,
+                  TGraph *&g_low,
+                  TGraph *&g_high,
                   TGraphAsymmErrors *&g_asym,
-		  TGraphErrors *&g_RMS,
+		  TH1F *h_RMS[],
                   const pv::bundle &mybundle,
                   const pv::view &theView,
+		  const int index,
                   const TString &label);
 
  private:
   TString outputdir_;
   std::vector<std::string> DirList;
   std::vector<std::string> LabelList;
-  std::vector<int> included_runs_;
   
 };
 

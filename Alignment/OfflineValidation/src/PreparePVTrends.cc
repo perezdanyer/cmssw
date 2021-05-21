@@ -22,18 +22,6 @@ void PreparePVTrends::setDirsAndLabels(std::vector<std::string> inputdirs, std::
   }
 }
 
-void PreparePVTrends::setIncludedRuns(std::vector<int> included_runs)
-{
-  included_runs_.clear();
-  for (size_t i = 0; i < included_runs.size(); i++)
-    included_runs_.push_back(included_runs[i]);
-}
-
-std::vector<int> PreparePVTrends::getIncludedRuns()
-{
-  return included_runs_;
-}
-
 void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
   TStopwatch timer;
   timer.Start();
@@ -51,7 +39,6 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
   const char *dirs[10];
 
   std::vector<int> intersection;
-  std::vector<int> included_runs;
   std::vector<double> runs;
   std::vector<double> x_ticks;
   std::vector<double> ex_ticks = {0.};
@@ -133,7 +120,7 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
   logInfo << " pre do-stuff: " << runs.size() << std::endl;
 
   //we should use std::bind to create a functor and then pass it to the procPool
-  auto f_processData = std::bind(processData, _1, intersection, nDirs_, dirs, LegLabels, useRMS, included_runs);
+  auto f_processData = std::bind(processData, _1, intersection, nDirs_, dirs, LegLabels, useRMS);
 
   //f_processData(0);
   //logInfo<<" post do-stuff: " <<  runs.size() << std::endl;
@@ -250,44 +237,44 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
   }
   // bias on the mean
 
-  TGraphErrors *g_dxy_phi_vs_run[nDirs_];
+  TGraph *g_dxy_phi_vs_run[nDirs_];
   TGraphAsymmErrors *gerr_dxy_phi_vs_run[nDirs_];
-  TGraphErrors *g_chi2_dxy_phi_vs_run[nDirs_];
-  TGraphErrors *g_KS_dxy_phi_vs_run[nDirs_];
-  //TGraphErrors *gprime_dxy_phi_vs_run[nDirs_];
-  TGraphErrors *g_dxy_phi_hi_vs_run[nDirs_];
-  TGraphErrors *g_dxy_phi_lo_vs_run[nDirs_];
+  TGraph *g_chi2_dxy_phi_vs_run[nDirs_];
+  TGraph *g_KS_dxy_phi_vs_run[nDirs_];
+  //TGraph *gprime_dxy_phi_vs_run[nDirs_];
+  TGraph *g_dxy_phi_hi_vs_run[nDirs_];
+  TGraph *g_dxy_phi_lo_vs_run[nDirs_];
 
-  TGraphErrors *g_dxy_eta_vs_run[nDirs_];
+  TGraph *g_dxy_eta_vs_run[nDirs_];
   TGraphAsymmErrors *gerr_dxy_eta_vs_run[nDirs_];
-  TGraphErrors *g_chi2_dxy_eta_vs_run[nDirs_];
-  TGraphErrors *g_KS_dxy_eta_vs_run[nDirs_];
-  //TGraphErrors *gprime_dxy_eta_vs_run[nDirs_];
-  TGraphErrors *g_dxy_eta_hi_vs_run[nDirs_];
-  TGraphErrors *g_dxy_eta_lo_vs_run[nDirs_];
+  TGraph *g_chi2_dxy_eta_vs_run[nDirs_];
+  TGraph *g_KS_dxy_eta_vs_run[nDirs_];
+  //TGraph *gprime_dxy_eta_vs_run[nDirs_];
+  TGraph *g_dxy_eta_hi_vs_run[nDirs_];
+  TGraph *g_dxy_eta_lo_vs_run[nDirs_];
 
-  TGraphErrors *g_dz_phi_vs_run[nDirs_];
+  TGraph *g_dz_phi_vs_run[nDirs_];
   TGraphAsymmErrors *gerr_dz_phi_vs_run[nDirs_];
-  TGraphErrors *g_chi2_dz_phi_vs_run[nDirs_];
-  TGraphErrors *g_KS_dz_phi_vs_run[nDirs_];
-  //TGraphErrors *gprime_dz_phi_vs_run[nDirs_];
-  TGraphErrors *g_dz_phi_hi_vs_run[nDirs_];
-  TGraphErrors *g_dz_phi_lo_vs_run[nDirs_];
+  TGraph *g_chi2_dz_phi_vs_run[nDirs_];
+  TGraph *g_KS_dz_phi_vs_run[nDirs_];
+  //TGraph *gprime_dz_phi_vs_run[nDirs_];
+  TGraph *g_dz_phi_hi_vs_run[nDirs_];
+  TGraph *g_dz_phi_lo_vs_run[nDirs_];
 
-  TGraphErrors *g_dz_eta_vs_run[nDirs_];
+  TGraph *g_dz_eta_vs_run[nDirs_];
   TGraphAsymmErrors *gerr_dz_eta_vs_run[nDirs_];
-  TGraphErrors *g_chi2_dz_eta_vs_run[nDirs_];
-  TGraphErrors *g_KS_dz_eta_vs_run[nDirs_];
-  //TGraphErrors *gprime_dz_eta_vs_run[nDirs_];
-  TGraphErrors *g_dz_eta_hi_vs_run[nDirs_];
-  TGraphErrors *g_dz_eta_lo_vs_run[nDirs_];
+  TGraph *g_chi2_dz_eta_vs_run[nDirs_];
+  TGraph *g_KS_dz_eta_vs_run[nDirs_];
+  //TGraph *gprime_dz_eta_vs_run[nDirs_];
+  TGraph *g_dz_eta_hi_vs_run[nDirs_];
+  TGraph *g_dz_eta_lo_vs_run[nDirs_];
 
   // resolutions
 
-  TGraphErrors *g_RMS_dxy_phi_vs_run[nDirs_];
-  TGraphErrors *g_RMS_dxy_eta_vs_run[nDirs_];
-  TGraphErrors *g_RMS_dz_phi_vs_run[nDirs_];
-  TGraphErrors *g_RMS_dz_eta_vs_run[nDirs_];
+  TH1F *h_RMS_dxy_phi_vs_run[nDirs_];
+  TH1F *h_RMS_dxy_eta_vs_run[nDirs_];
+  TH1F *h_RMS_dz_phi_vs_run[nDirs_];
+  TH1F *h_RMS_dz_eta_vs_run[nDirs_];
 
   // decide the type
   TString theType = "run number";
@@ -325,9 +312,10 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
                  g_dxy_phi_lo_vs_run[j],
                  g_dxy_phi_hi_vs_run[j],
                  gerr_dxy_phi_vs_run[j],
-		 g_RMS_dxy_phi_vs_run[j],
+		 h_RMS_dxy_phi_vs_run,
                  theBundle,
                  pv::dxyphi,
+		 j,
                  LegLabels[j]);
 
     // *************************************
@@ -346,9 +334,10 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
                  g_dxy_eta_lo_vs_run[j],
                  g_dxy_eta_hi_vs_run[j],
                  gerr_dxy_eta_vs_run[j],
-                 g_RMS_dxy_eta_vs_run[j],
+                 h_RMS_dxy_eta_vs_run,
                  theBundle,
                  pv::dxyeta,
+		 j,
                  LegLabels[j]);
 
     // *************************************
@@ -367,9 +356,10 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
                  g_dz_phi_lo_vs_run[j],
                  g_dz_phi_hi_vs_run[j],
                  gerr_dz_phi_vs_run[j],
-                 g_RMS_dz_phi_vs_run[j],
+                 h_RMS_dz_phi_vs_run,
                  theBundle,
                  pv::dzphi,
+		 j,
                  LegLabels[j]);
 
     // *************************************
@@ -388,9 +378,10 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
                  g_dz_eta_lo_vs_run[j],
                  g_dz_eta_hi_vs_run[j],
                  gerr_dz_eta_vs_run[j],
-                 g_RMS_dz_eta_vs_run[j],
+                 h_RMS_dz_eta_vs_run,
                  theBundle,
                  pv::dzeta,
+		 j,
                  LegLabels[j]);
 
     TString modified_label = (LegLabels[j].ReplaceAll(" ", "_"));
@@ -418,10 +409,10 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
     g_dz_eta_hi_vs_run[j]->Write("hi_"+modified_label+"_dz_eta_hi_vs_run");
     g_dz_eta_lo_vs_run[j]->Write("lo_"+modified_label+"_dz_eta_lo_vs_run");
 
-    g_RMS_dxy_phi_vs_run[j]->Write("RMS_"+modified_label+"_dxy_phi_vs_run");
-    g_RMS_dxy_eta_vs_run[j]->Write("RMS_"+modified_label+"_dxy_eta_vs_run");
-    g_RMS_dz_phi_vs_run[j]->Write("RMS_"+modified_label+"_dz_phi_vs_run");
-    g_RMS_dz_eta_vs_run[j]->Write("RMS_"+modified_label+"_dz_eta_vs_run");
+    h_RMS_dxy_phi_vs_run[j]->Write("RMS_"+modified_label+"_dxy_phi_vs_run");
+    h_RMS_dxy_eta_vs_run[j]->Write("RMS_"+modified_label+"_dxy_eta_vs_run");
+    h_RMS_dz_phi_vs_run[j]->Write("RMS_"+modified_label+"_dz_phi_vs_run");
+    h_RMS_dz_eta_vs_run[j]->Write("RMS_"+modified_label+"_dz_eta_vs_run");
 
   }
   // do all the deletes
@@ -451,18 +442,12 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
     delete g_dz_eta_hi_vs_run[iDir];
     delete g_dz_eta_lo_vs_run[iDir];
 
-    delete g_RMS_dxy_phi_vs_run[iDir];
-    delete g_RMS_dxy_eta_vs_run[iDir];
-    delete g_RMS_dz_phi_vs_run[iDir];
-    delete g_RMS_dz_eta_vs_run[iDir];
+    delete h_RMS_dxy_phi_vs_run[iDir];
+    delete h_RMS_dxy_eta_vs_run[iDir];
+    delete h_RMS_dz_phi_vs_run[iDir];
+    delete h_RMS_dz_eta_vs_run[iDir];
   }
 
-  for(const auto &run : runs) {
-    logInfo << "final included run" << run << std::endl;
-    if(std::find(included_runs.begin(), included_runs.end(), int(run)) == included_runs.end())
-      included_runs.push_back(int(run));
-  }
-  setIncludedRuns(included_runs);
   fout->Close();
 
   timer.Stop();
@@ -477,27 +462,25 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
 void PreparePVTrends::outputGraphs(const pv::wrappedTrends &allInputs,
                   const std::vector<double> &ticks,
                   const std::vector<double> &ex_ticks,
-                  TGraphErrors *&g_mean,
-                  TGraphErrors *&g_chi2,
-                  TGraphErrors *&g_KS,
-                  TGraphErrors *&g_low,
-                  TGraphErrors *&g_high,
+                  TGraph *&g_mean,
+                  TGraph *&g_chi2,
+                  TGraph *&g_KS,
+                  TGraph *&g_low,
+                  TGraph *&g_high,
                   TGraphAsymmErrors *&g_asym,
-		  TGraphErrors *&g_RMS,
+		  TH1F *h_RMS[],
                   const pv::bundle &mybundle,
                   const pv::view &theView,
+		  const int index,
                   const TString &label)
 /*--------------------------------------------------------------------*/
 {
 
-  std::vector<double> emptyvec;
-  for (size_t i = 0; i < ticks.size(); i++)
-    emptyvec.push_back(0.);
-  g_mean = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getMean()[label])[0]), &(emptyvec[0]), &(emptyvec[0]));
-  g_chi2 = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getChi2()[label])[0]), &(emptyvec[0]), &(emptyvec[0]));
-  g_KS = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getKS()[label])[0]), &(emptyvec[0]), &(emptyvec[0]));
-  g_high = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getHigh()[label])[0]), &(emptyvec[0]), &(emptyvec[0]));
-  g_low = new TGraphErrors(ticks.size(), &(ticks[0]), &((allInputs.getLow()[label])[0]), &(emptyvec[0]), &(emptyvec[0]));
+  g_mean = new TGraph(ticks.size(), &(ticks[0]), &((allInputs.getMean()[label])[0]));
+  g_chi2 = new TGraph(ticks.size(), &(ticks[0]), &((allInputs.getChi2()[label])[0]));
+  g_KS = new TGraph(ticks.size(), &(ticks[0]), &((allInputs.getKS()[label])[0]));
+  g_high = new TGraph(ticks.size(), &(ticks[0]), &((allInputs.getHigh()[label])[0]));
+  g_low = new TGraph(ticks.size(), &(ticks[0]), &((allInputs.getLow()[label])[0]));
 
   g_asym = new TGraphAsymmErrors(ticks.size(),
                                  &(ticks[0]),
@@ -510,18 +493,21 @@ void PreparePVTrends::outputGraphs(const pv::wrappedTrends &allInputs,
   g_mean->SetTitle(label);
   g_asym->SetTitle(label);
 
-  std::vector<double> RMSvec;
-  std::vector<double> RMSvecErr;
+  // scatter or RMS TH1
+  h_RMS[index] = new TH1F(Form("h_RMS_dz_eta_%s", label.Data()),
+			  label,
+                          ticks.size() - 1,
+                          &(ticks[0]));
+  h_RMS[index]->SetStats(kFALSE);
+
   int bincounter = 0;
   for (const auto &tick : ticks) {
     bincounter++;
-    RMSvec.push_back(std::abs(allInputs.getHigh()[label][bincounter - 1] - allInputs.getLow()[label][bincounter - 1]));
-    RMSvecErr.push_back(0.01);
+    h_RMS[index]->SetBinContent(
+        bincounter, std::abs(allInputs.getHigh()[label][bincounter - 1] - allInputs.getLow()[label][bincounter - 1]));
+    h_RMS[index]->SetBinError(bincounter, 0.01);
   }
-  g_RMS = new TGraphErrors(ticks.size(), &(ticks[0]), &(RMSvec[0]), &(RMSvecErr[0]), &(RMSvecErr[0]));
-  g_RMS->SetTitle(label);
-  RMSvec.clear();
-  RMSvecErr.clear();
+
 }
 
 /*! \fn list_files
@@ -659,8 +645,7 @@ outTrends PreparePVTrends::processData(size_t iter,
                       const Int_t nDirs_,
                       const char *dirs[10],
                       TString LegLabels[10],
-		      bool useRMS,
-		      std::vector<int>& included_runs)
+		      bool useRMS)
 /*--------------------------------------------------------------------*/
 {
   outTrends ret;
@@ -754,8 +739,6 @@ outTrends PreparePVTrends::processData(size_t iter,
         lastOpen = j;
         break;
       }
-
-      included_runs.push_back(intersection[n]);
 
       dxyPhiMeanTrend[j] = (TH1F *)fins[j]->Get("PVValidation/MeanTrends/means_dxy_phi");
       dxyPhiWidthTrend[j] = (TH1F *)fins[j]->Get("PVValidation/WidthTrends/widths_dxy_phi");
