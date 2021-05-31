@@ -8,10 +8,6 @@
 //#include <TH1.h> // TODO
 #include <TGraph.h>
 
-using namespace std;
-namespace fs = boost::filesystem;
-namespace pt = boost::property_tree;
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Functor to obtain delivered luminosity corresponding to a given range.
 ///
@@ -27,7 +23,7 @@ struct Run2Lumi {
               lastRun;  //!< last run (excluded!), starting at the max lumi on the x-axis of the trend
 
 private:
-    map<int, float> runs; //!< couples of run and corresponding luminosity
+    std::map<int, float> runs; //!< couples of run and corresponding luminosity
 
 public:
 
@@ -39,7 +35,7 @@ public:
     /// but the choice here is to have one standard lumi file, leaving as only freedom
     /// to the user the possibility to change the global range depending on the analysis.)
     Run2Lumi
-        (fs::path file, //!< path to a 2-column file with 6-digit run number and lumi in /pb
+         (boost::filesystem::path file, //!< path to a 2-column file with 6-digit run number and lumi in /pb
          int first, //!< 6-digit run number (included)
          int last //!< 6-digit run number (excluded)
          );
@@ -89,7 +85,7 @@ struct Trend {
     const char * outputDir; //directory for plots
     TLegend lgd;
 
-    const pt::ptree JSON; //!< contains coordinate for vertical lines
+    const boost::property_tree::ptree JSON; //!< contains coordinate for vertical lines
     const Run2Lumi& GetLumi; //!< functor to get luminosity for given subrange
 
     Trend //!< constructor, prepares canvas and frame
@@ -99,7 +95,7 @@ struct Trend {
          const char * ytitle, //!< y-axis title
          float ymin, //!< y-axis minimum
          float ymax, //!< y-axis maximum
-         pt::ptree& json, //!< vertical lines from JSON
+         boost::property_tree::ptree& json, //!< vertical lines from JSON
          const Run2Lumi& GetLumiFunctor //!< functor
          );
 

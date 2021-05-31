@@ -60,7 +60,7 @@ template<typename T> void CopyStyle (T * objIn, T * objOut)
 {
     objOut->SetLineColor(objIn->GetLineColor());
     objOut->SetMarkerColor(objIn->GetMarkerColor());
-    objOut->SetFillColor(objIn->GetFillColor());
+    objOut->SetFillColorAlpha(objIn->GetFillColor(), 0.2); // TODO??
 
     objOut->SetLineStyle(objIn->GetLineStyle());
     objOut->SetMarkerStyle(objIn->GetMarkerStyle());
@@ -137,16 +137,16 @@ Trend::Trend (const char * name, const char * dir,
         pt::ptree& json, const Run2Lumi& GetLumiFunctor) :
     c(name, title, 2000, 800),
     outputDir(Form("%s", dir)),
-    lgd(0.7, 0.62, 0.97, 0.86, "", "NDC"),
+    lgd(0.7, 0.65, 0.97, 0.89, "", "NDC"),
     JSON(json), GetLumi(GetLumiFunctor)
 {
     cout << __func__ << endl;
 
     assert(ymin < ymax);
     float xmax = GetLumi(GetLumi.firstRun, GetLumi.lastRun);
-    const char * axistitles = Form(";Delivered luminosity [fb^{-1}];%s", ytitle);
+    const char * axistitles = Form(";Delivered luminosity  [fb^{-1} ];%s", ytitle);
     auto frame = c.DrawFrame(0., ymin, xmax, ymax, axistitles);
-    frame->GetYaxis()->SetTitleOffset(0.6);
+    frame->GetYaxis()->SetTitleOffset(0.8);
     frame->GetYaxis()->SetTickLength(0.01);
     frame->GetXaxis()->SetLabelSize(fontsize);
     frame->GetXaxis()->SetTitleSize(fontsize);
@@ -166,7 +166,8 @@ Trend::Trend (const char * name, const char * dir,
 
     c.SetTicks(1,1);
     c.SetRightMargin(0.015);
-    c.SetLeftMargin(0.05);
+    c.SetLeftMargin(0.07);
+    c.SetTopMargin(0.07);
 
     // plot vertical lines (typically pixel template transitions)
     for (auto& type: JSON) {
@@ -235,6 +236,9 @@ void Trend::operator() (TObject * obj,
     TString name = c.GetName();
     name.ReplaceAll("vs_run", "vs_lumi");
     c.SetName(name);
+
+    TString title = obj->GetTitle();
+    if (title == "") return;
     lgd.AddEntry(obj, "", lgdOpt);
 }
 
@@ -264,7 +268,7 @@ Trend::~Trend ()
     latex.SetTextAlign(13);
     auto totLumi = GetLumi();
     assert(totLumi > 0);
-    auto posY = 0.85;
+    auto posY = 0.88;
     for (auto& type: JSON) {
 
         auto labels = type.second.get_child_optional("labels");
