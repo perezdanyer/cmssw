@@ -44,6 +44,48 @@
  */
 typedef std::map<TString, std::vector<double> > alignmentTrend;
 
+// auxilliary struct to store
+// histogram features
+struct unrolledHisto {
+  double m_y_min;
+  double m_y_max;
+  unsigned int m_n_bins;
+  std::vector<double> m_bincontents;
+
+  unrolledHisto() {
+    m_y_min = 0.;
+    m_y_max = 0.;
+    m_n_bins = 0;
+    m_bincontents.clear();
+  }  // first constructor empty
+
+  unrolledHisto(const double &y_min,
+                const double &y_max,
+                const unsigned int &n_bins,
+                const std::vector<double> &bincontents) {
+    m_y_min = y_min;
+    m_y_max = y_max;
+    m_n_bins = n_bins;
+    m_bincontents = bincontents;
+  }  //look, a constructor
+
+  double get_y_min() { return m_y_min; }
+
+  double get_y_max() { return m_y_max; }
+
+  unsigned int get_n_bins() { return m_n_bins; }
+
+  std::vector<double> get_bin_contents() { return m_bincontents; }
+
+  double get_integral() {
+    double ret(0.);
+    for (const auto &binc : m_bincontents) {
+      ret += binc;
+    }
+    return ret;
+  }
+};
+
 
 struct outTrends {
 
@@ -73,9 +115,11 @@ struct outTrends {
   * @param m_dzEtaKS                   alignmentTrend of Kolmogorow-Smirnov score of comparison of dz vs eta profile with flat line
   * @param m_dzEtaHi                   alignmentTrend of the highest value of the profile dz vs eta
   * @param m_dzEtaLo                   alignmentTrend of the lowest value of the profile dz vs eta
+  * @param m_dxyVect                   map of the unrolled histograms for dxy residuals
+  * @param m_dzVect                    map of the unrolled histograms for dz residulas
   */
-  // empty constructor
 
+  // empty constructor
   outTrends() { init(); }
 
   int m_index;
@@ -100,6 +144,8 @@ struct outTrends {
   alignmentTrend m_dzEtaKS;
   alignmentTrend m_dzEtaHi;
   alignmentTrend m_dzEtaLo;
+  std::map<TString, std::vector<unrolledHisto> > m_dxyVect;
+  std::map<TString, std::vector<unrolledHisto> > m_dzVect;
   
   void init() {
     m_index = -1;
@@ -128,12 +174,17 @@ struct outTrends {
     m_dzEtaKS.clear();
     m_dzEtaHi.clear();
     m_dzEtaLo.clear();
+
+    m_dxyVect.clear();
+    m_dzVect.clear();
    }
 };
 
 #if defined(__ROOTCLING__)
 #pragma link C++ class std::map<TString, std::vector<double> > +;
+#pragma link C++ class std::map<TString, std::vector<unrolledHisto> > +;
 #pragma link C++ class outTrends +;
+#pragma link C++ class unrolledHisto +;
 
 #endif
 

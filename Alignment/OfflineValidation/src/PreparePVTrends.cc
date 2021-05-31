@@ -1,32 +1,30 @@
 #include "Alignment/OfflineValidation/interface/PreparePVTrends.h"
 
-PreparePVTrends::PreparePVTrends(TString outputdir, std::vector<std::string> inputdirs, std::vector<std::string> labels)
+namespace ph = std::placeholders;  // for _1, _2, _3...
+namespace pt = boost::property_tree;
+
+PreparePVTrends::PreparePVTrends(TString outputdir, pt::ptree& json)
 {
 
   outputdir_ = outputdir;
-  setDirsAndLabels(inputdirs, labels);
+  setDirsAndLabels(json);
 }
 
-void PreparePVTrends::setDirsAndLabels(std::vector<std::string> inputdirs, std::vector<std::string> labels)
+void PreparePVTrends::setDirsAndLabels(pt::ptree& json)
 {
 
-  if (inputdirs.size() != labels.size()) {
-    logInfo << "ERROR: inputdirs and labels need to correspond and have the same length" << std::endl;
-    exit(EXIT_FAILURE);
-  }
   DirList.clear();
   LabelList.clear();
-  for (size_t i = 0; i < inputdirs.size(); i++) {
-    DirList.push_back(inputdirs[i]);
-    LabelList.push_back(labels[i]);
+  for (const std::pair<std::string, pt::ptree>& childTree : json) {
+    DirList.push_back(childTree.first.c_str());
+    LabelList.push_back(childTree.second.get<std::string>("title"));
   }
 }
 
-void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
+void PreparePVTrends::MultiRunPVValidation(std::vector<std::string> file_labels_to_add, bool useRMS, TString lumiInputFile, bool doUnitTest) {
   TStopwatch timer;
   timer.Start();
 
-  using namespace std::placeholders;  // for _1, _2, _3...
   gROOT->ProcessLine("gErrorIgnoreLevel = kError;");
 
   ROOT::EnableThreadSafety();
@@ -117,10 +115,15 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
   alignmentTrend dzEtaHi_;
   alignmentTrend dzEtaLo_;
 
+  // unrolled histos
+
+  std::map<TString, std::vector<unrolledHisto> > dxyVect;
+  std::map<TString, std::vector<unrolledHisto> > dzVect;
+
   logInfo << " pre do-stuff: " << runs.size() << std::endl;
 
   //we should use std::bind to create a functor and then pass it to the procPool
-  auto f_processData = std::bind(processData, _1, intersection, nDirs_, dirs, LegLabels, useRMS);
+  auto f_processData = std::bind(processData, ph::_1, intersection, nDirs_, dirs, LegLabels, useRMS, doUnitTest);
 
   //f_processData(0);
   //logInfo<<" post do-stuff: " <<  runs.size() << std::endl;
@@ -213,6 +216,14 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
       dzEtaLo_[label].insert(std::end(dzEtaLo_[label]),
                              std::begin(extractedTrend.m_dzEtaLo[label]),
                              std::end(extractedTrend.m_dzEtaLo[label]));
+
+      //******************************//
+      dxyVect[label].insert(std::end(dxyVect[label]),
+                            std::begin(extractedTrend.m_dxyVect[label]),
+                            std::end(extractedTrend.m_dxyVect[label]));
+      dzVect[label].insert(std::end(dzVect[label]),
+                           std::begin(extractedTrend.m_dzVect[label]),
+                           std::end(extractedTrend.m_dzVect[label]));
     }
   }
   // extra vectors for low and high boundaries
@@ -276,6 +287,11 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
   TH1F *h_RMS_dz_phi_vs_run[nDirs_];
   TH1F *h_RMS_dz_eta_vs_run[nDirs_];
 
+  // scatters of integrated bias
+
+  TH2F *h2_scatter_dxy_vs_run[nDirs_];
+  TH2F *h2_scatter_dz_vs_run[nDirs_];
+
   // decide the type
   TString theType = "run number";
   TString theTypeLabel = "run number";
@@ -285,8 +301,16 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
       pv::bundle(nDirs_, theType, theTypeLabel, useRMS);
   theBundle.printAll();
 
-  TString outname = "PVtrends.root";
-  TFile *fout = TFile::Open(outputdir_+outname, "RECREATE");
+  TString outname = outputdir_ + "PVtrends";
+  if (file_labels_to_add.size() != 0 ) {
+    for (const auto &label : file_labels_to_add) {
+      outname += "_";
+      outname += label;
+    }
+  }
+  outname += ".root";
+  logInfo << outname << std::endl;
+  TFile *fout = TFile::Open(outname, "RECREATE");
 
   for (Int_t j = 0; j < nDirs_; j++) {
     // check on the sanity
@@ -384,6 +408,54 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
 		 j,
                  LegLabels[j]);
 
+    // *************************************
+    // Integrated bias dxy scatter plots
+    // *************************************
+
+    h2_scatter_dxy_vs_run[j] =
+        new TH2F(Form("h2_scatter_dxy_%s", LegLabels[j].Data()),
+                 Form("scatter of d_{xy} vs %s;%s;d_{xy} [cm]", theType.Data(), theTypeLabel.Data()),
+                 x_ticks.size() - 1,
+                 &(x_ticks[0]),
+                 dxyVect[LegLabels[j]][0].get_n_bins(),
+                 dxyVect[LegLabels[j]][0].get_y_min(),
+                 dxyVect[LegLabels[j]][0].get_y_max());
+    h2_scatter_dxy_vs_run[j]->SetStats(kFALSE);
+    h2_scatter_dxy_vs_run[j]->SetTitle(LegLabels[j]);
+
+    for (unsigned int runindex = 0; runindex < x_ticks.size(); runindex++) {
+      for (unsigned int binindex = 0; binindex < dxyVect[LegLabels[j]][runindex].get_n_bins(); binindex++) {
+        h2_scatter_dxy_vs_run[j]->SetBinContent(runindex + 1,
+                                                binindex + 1,
+                                                dxyVect[LegLabels[j]][runindex].get_bin_contents().at(binindex) /
+                                                    dxyVect[LegLabels[j]][runindex].get_integral());
+      }
+    }
+
+    // *************************************
+    // Integrated bias dz scatter plots
+    // *************************************
+
+    h2_scatter_dz_vs_run[j] =
+        new TH2F(Form("h2_scatter_dz_%s", LegLabels[j].Data()),
+                 Form("scatter of d_{z} vs %s;%s;d_{z} [cm]", theType.Data(), theTypeLabel.Data()),
+                 x_ticks.size() - 1,
+                 &(x_ticks[0]),
+                 dzVect[LegLabels[j]][0].get_n_bins(),
+                 dzVect[LegLabels[j]][0].get_y_min(),
+                 dzVect[LegLabels[j]][0].get_y_max());
+    h2_scatter_dz_vs_run[j]->SetStats(kFALSE);
+    h2_scatter_dz_vs_run[j]->SetTitle(LegLabels[j]);
+
+    for (unsigned int runindex = 0; runindex < x_ticks.size(); runindex++) {
+      for (unsigned int binindex = 0; binindex < dzVect[LegLabels[j]][runindex].get_n_bins(); binindex++) {
+        h2_scatter_dz_vs_run[j]->SetBinContent(runindex + 1,
+                                               binindex + 1,
+                                               dzVect[LegLabels[j]][runindex].get_bin_contents().at(binindex) /
+                                                   dzVect[LegLabels[j]][runindex].get_integral());
+      }
+    }
+
     TString modified_label = (LegLabels[j].ReplaceAll(" ", "_"));
     g_dxy_phi_vs_run[j]->Write("mean_"+modified_label+"_dxy_phi_vs_run");
     g_chi2_dxy_phi_vs_run[j]->Write("chi2_"+modified_label+"_dxy_phi_vs_run");
@@ -413,6 +485,12 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
     h_RMS_dxy_eta_vs_run[j]->Write("RMS_"+modified_label+"_dxy_eta_vs_run");
     h_RMS_dz_phi_vs_run[j]->Write("RMS_"+modified_label+"_dz_phi_vs_run");
     h_RMS_dz_eta_vs_run[j]->Write("RMS_"+modified_label+"_dz_eta_vs_run");
+
+    // scatter
+
+    h2_scatter_dxy_vs_run[j]->Write("Scatter_" + modified_label + "_dxy_vs_run");
+    h2_scatter_dz_vs_run[j]->Write("Scatter_" + modified_label + "_dz_vs_run");
+
 
   }
   // do all the deletes
@@ -446,6 +524,9 @@ void PreparePVTrends::MultiRunPVValidation(bool useRMS, TString lumiInputFile) {
     delete h_RMS_dxy_eta_vs_run[iDir];
     delete h_RMS_dz_phi_vs_run[iDir];
     delete h_RMS_dz_eta_vs_run[iDir];
+
+    delete h2_scatter_dxy_vs_run[iDir];
+    delete h2_scatter_dz_vs_run[iDir];
   }
 
   fout->Close();
@@ -500,9 +581,7 @@ void PreparePVTrends::outputGraphs(const pv::wrappedTrends &allInputs,
                           &(ticks[0]));
   h_RMS[index]->SetStats(kFALSE);
 
-  int bincounter = 0;
-  for (const auto &tick : ticks) {
-    bincounter++;
+  for (size_t bincounter=1; bincounter<ticks.size(); bincounter++) {
     h_RMS[index]->SetBinContent(
         bincounter, std::abs(allInputs.getHigh()[label][bincounter - 1] - allInputs.getLow()[label][bincounter - 1]));
     h_RMS[index]->SetBinError(bincounter, 0.01);
@@ -569,6 +648,32 @@ TH1F *PreparePVTrends::DrawConstantWithErr(TH1F *hist, Int_t iter, Double_t theC
   hzero->SetLineColor(kMagenta);
 
   return hzero;
+}
+
+/*! \fn getUnrolledHisto
+ *  \brief utility function to tranform a TH1 into a vector of floats
+ */
+
+/*--------------------------------------------------------------------*/
+unrolledHisto PreparePVTrends::getUnrolledHisto(TH1F *hist)
+/*--------------------------------------------------------------------*/
+{
+  /*
+    Double_t y_min = hist->GetBinLowEdge(1);
+    Double_t y_max = hist->GetBinLowEdge(hist->GetNbinsX()+1);
+  */
+
+  Double_t y_min = -0.1;
+  Double_t y_max = 0.1;
+
+  std::vector<Double_t> contents;
+  for (int j = 0; j < hist->GetNbinsX(); j++) {
+    if (std::abs(hist->GetXaxis()->GetBinCenter(j)) <= 0.1)
+      contents.push_back(hist->GetBinContent(j + 1));
+  }
+
+  auto ret = unrolledHisto(y_min, y_max, contents.size(), contents);
+  return ret;
 }
 
 
@@ -645,7 +750,8 @@ outTrends PreparePVTrends::processData(size_t iter,
                       const Int_t nDirs_,
                       const char *dirs[10],
                       TString LegLabels[10],
-		      bool useRMS)
+		      bool useRMS,
+		      bool doUnitTest)
 /*--------------------------------------------------------------------*/
 {
   outTrends ret;
@@ -703,8 +809,8 @@ outTrends PreparePVTrends::processData(size_t iter,
     TH1F *dxyPtWidthTrend[nDirs_];
     TH1F *dzPtWidthTrend[nDirs_];
 
-    //TH1F *dxyIntegralTrend[nDirs_];
-    //TH1F *dzIntegralTrend[nDirs_];
+    TH1F *dxyIntegralTrend[nDirs_];
+    TH1F *dzIntegralTrend[nDirs_];
 
     bool areAllFilesOK = true;
     Int_t lastOpen = 0;
@@ -733,11 +839,13 @@ outTrends PreparePVTrends::processData(size_t iter,
       TH1F *h_tracks = (TH1F *)fins[j]->Get("PVValidation/EventFeatures/h_nTracks");
       Double_t numEvents = h_tracks->GetEntries();
 
-      if (numEvents < 2500) {
-        logWarning << "excluding run " << intersection[n] << " because it has less than 2.5k events" << std::endl;
-        areAllFilesOK = false;
-        lastOpen = j;
-        break;
+      if(!doUnitTest) {
+	if (numEvents < 2500) {
+	  logWarning << "excluding run " << intersection[n] << " because it has less than 2.5k events" << std::endl;
+	  areAllFilesOK = false;
+	  lastOpen = j;
+	  break;
+	}
       }
 
       dxyPhiMeanTrend[j] = (TH1F *)fins[j]->Get("PVValidation/MeanTrends/means_dxy_phi");
@@ -770,8 +878,8 @@ outTrends PreparePVTrends::processData(size_t iter,
       dxyPtWidthTrend[j] = (TH1F *)fins[j]->Get("PVValidation/WidthTrends/widths_dxy_pTCentral");
       dzPtWidthTrend[j] = (TH1F *)fins[j]->Get("PVValidation/WidthTrends/widths_dz_pTCentral");
 
-      //dxyIntegralTrend[j] = (TH1F *)fins[j]->Get("PVValidation/ProbeTrackFeatures/h_probedxyRefitV");
-      //dzIntegralTrend[j] = (TH1F *)fins[j]->Get("PVValidation/ProbeTrackFeatures/h_probedzRefitV");
+      dxyIntegralTrend[j] = (TH1F *)fins[j]->Get("PVValidation/ProbeTrackFeatures/h_probedxyRefitV");
+      dzIntegralTrend[j] = (TH1F *)fins[j]->Get("PVValidation/ProbeTrackFeatures/h_probedzRefitV");
 
       // fill the vectors of biases
 
@@ -823,6 +931,10 @@ outTrends PreparePVTrends::processData(size_t iter,
              : ret.m_dzEtaLo[LegLabels[j]].push_back(dzEtaBiases.getMin());
       useRMS ? ret.m_dzEtaHi[LegLabels[j]].push_back(dzEtaBiases.getWeightedMean() + 2 * dzEtaBiases.getWeightedRMS())
              : ret.m_dzEtaHi[LegLabels[j]].push_back(dzEtaBiases.getMax());
+
+      // unrolled histograms
+      ret.m_dxyVect[LegLabels[j]].push_back(getUnrolledHisto(dxyIntegralTrend[j]));
+      ret.m_dzVect[LegLabels[j]].push_back(getUnrolledHisto(dzIntegralTrend[j]));
     }
 
     if (!areAllFilesOK) {

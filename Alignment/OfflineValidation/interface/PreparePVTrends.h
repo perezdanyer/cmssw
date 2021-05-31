@@ -37,6 +37,8 @@
 #include <map>
 #include <sstream>
 #include <vector>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include "Alignment/OfflineValidation/interface/outTrends.h"
 
@@ -257,20 +259,24 @@ namespace pv {
 class PreparePVTrends {
  public:
 
-  PreparePVTrends(TString outputdir, std::vector<std::string> inputdirs, std::vector<std::string> labels);
-  void setDirsAndLabels(std::vector<std::string> inputdirs, std::vector<std::string> labels);
+  PreparePVTrends(TString outputdir, boost::property_tree::ptree& json);
+  void setDirsAndLabels(boost::property_tree::ptree& json);
 
-  void MultiRunPVValidation(bool useRMS = true,
-                          TString lumiInputFile = "");
+  void MultiRunPVValidation(std::vector<std::string> file_labels_to_add,
+			    bool useRMS = true,
+			    TString lumiInputFile = "",
+                            bool doUnitTest = false);
 
   static pv::biases getBiases(TH1F *hist);
+  static unrolledHisto getUnrolledHisto(TH1F *hist);
   static TH1F *DrawConstantWithErr(TH1F *hist, Int_t iter, Double_t theConst);
   static outTrends processData(size_t iter,
 				   std::vector<int> intersection,
 				   const Int_t nDirs_,
 				   const char *dirs[10],
 				   TString LegLabels[10],
-			           bool useRMS);
+			           bool useRMS,
+                                   bool doUnitTest);
   std::vector<int> list_files(const char *dirname = ".", const char *ext = ".root");
   void outputGraphs(const pv::wrappedTrends &allInputs,
                   const std::vector<double> &ticks,
