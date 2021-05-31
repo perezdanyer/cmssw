@@ -27,6 +27,7 @@
 
 using namespace std;
 using namespace AllInOneConfig;
+namespace fs = boost::filesystem;
 
 static const char * bold = "\e[1m", * normal = "\e[0m";
 
@@ -51,7 +52,17 @@ int trends(int argc, char* argv[]) {
   //Read all configure variables and set default for missing keys
   string outputdir = main_tree.get<string>("output");
   bool doRMS = validation.get_child_optional("doRMS") ? validation.get<bool>("doRMS") : true;
+  bool fullRange = validation.get_child_optional("fullRange") ? validation.get<bool>("fullRange") : false;
+  bool doUnitTest = validation.get_child_optional("doUnitTest") ? validation.get<bool>("doUnitTest") : false;
   TString lumiInputFile = validation.get_child_optional("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
+
+  vector<string> labels{};
+  if (validation.get_child_optional("labels")) {
+    labels.clear();
+    for (const pair<string, pt::ptree>& childTree : validation.get_child("labels")) {
+      labels.push_back(childTree.second.get_value<string>());
+    }
+  }
 
   TString LumiFile = getenv("CMSSW_BASE");
   if (lumiInputFile.BeginsWith("/"))
@@ -66,39 +77,38 @@ int trends(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  vector<string> alignment_dirs;
-  vector<string> alignment_titles;
-  vector<string> alignment_files;
-  for (const pair<string, pt::ptree>& childTree : alignments) {
-    fs::path alignment_dir = childTree.first.c_str();
-    fs::create_directory(alignment_dir);
-    alignment_dirs.push_back(childTree.first.c_str());
-    alignment_titles.push_back(childTree.second.get<string>("title"));
-    alignment_files.push_back(childTree.second.get<string>("file"));
-  }
-
-  for(size_t i=0; i<alignment_dirs.size(); i++) {
-    for (const pair<string, pt::ptree>& childTree : validation.get_child("IOV")) {
-      int iov = childTree.second.get_value<int>();
-      TString file = alignment_files[i];
-      fs::path target_dir = Form("%s/PVValidation_%s_%d.root", file.ReplaceAll("{}", to_string(iov)).Data(), alignment_dirs[i].data(), iov);
-      fs::path output_dir = Form("./%s/PVValidation_%s_%d.root",alignment_dirs[i].data(), alignment_dirs[i].data(), iov);
-      if(!fs::exists(output_dir))
-	fs::create_symlink(target_dir, output_dir);
+  for (const pair<string, pt::ptree>& childTreeAlignments : alignments) {
+    fs::create_directory(childTreeAlignments.first.c_str());
+    for (const pair<string, pt::ptree>& childTreeIOV : validation.get_child("IOV")) {
+      int iov = childTreeIOV.second.get_value<int>();
+      TString file = childTreeAlignments.second.get<string>("file");
+      fs::path input_dir = Form("%s/PVValidation_%s_%d.root", file.ReplaceAll("{}", to_string(iov)).Data(), childTreeAlignments.first.c_str(), iov);
+      fs::path link_dir = Form("./%s/PVValidation_%s_%d.root", childTreeAlignments.first.c_str(), childTreeAlignments.first.c_str(), iov);
+      if(!fs::exists(link_dir) && fs::exists(input_dir))
+	fs::create_symlink(input_dir, link_dir);
     }
   }
 
-  PreparePVTrends prepareTrends(outputdir, alignment_dirs, alignment_titles);
-  prepareTrends.MultiRunPVValidation(doRMS, LumiFile);
+  PreparePVTrends prepareTrends(outputdir, alignments);
+  prepareTrends.MultiRunPVValidation(labels, doRMS, LumiFile, doUnitTest);
+
+  Trend::CMS = "#scale[1.1]{#bf{CMS}}";
 
   int firstRun = validation.get_child_optional("firstRun") ? validation.get<int>("firstRun") : 272930;
   int lastRun = validation.get_child_optional("lastRun") ? validation.get<int>("lastRun") : 325175;
   
   const Run2Lumi GetLumi(LumiFile.Data(), firstRun, lastRun);
-  
-  fs::path pname = Form("%s/PVtrends.root", outputdir.data());
+
+  string labels_to_add = "";
+  if (labels.size() != 0 ) {
+    for (const auto &label : labels) {
+      labels_to_add += "_";
+      labels_to_add += label;
+    }
+  }
+  fs::path pname = Form("%s/PVtrends%s.root", outputdir.data(), labels_to_add.data());
   assert(fs::exists(pname));
-  
+
   vector<string> variables{"dxy_phi_vs_run",
                             "dxy_eta_vs_run",
                             "dz_phi_vs_run",
@@ -123,7 +133,7 @@ int trends(int argc, char* argv[]) {
           RMS (Form("RMS_%s", variables[i].data()), outputdir.data(), Form("RMS %s", titles[i].data()), 
   	       Form("RMS %s", ytitles[i].data()), 0., 35., lines, GetLumi);
     mean.lgd.SetHeader("p_{T} (track) > 3 GeV");
-    RMS .lgd.SetHeader("p_{T} (track) > 3 GeV");
+    RMS.lgd.SetHeader("p_{T} (track) > 3 GeV");
   
     for (const pair<string, pt::ptree>& childTree : alignments) {
       TString gname = childTree.second.get<string>("title");
@@ -135,21 +145,31 @@ int trends(int argc, char* argv[]) {
       assert(hRMS  != nullptr);
       
       TString gtitle = childTree.second.get<string>("title");
-      gMean->SetTitle(gtitle); // for the legend
-      gMean->SetMarkerSize(0.7);
+      //gMean->SetTitle(gtitle); // for the legend
+      gMean->SetTitle(""); // for the legend
+      gMean->SetMarkerSize(0.6);
       int color = childTree.second.get<int>("color");
       int style = childTree.second.get<int>("style");
       gMean->SetMarkerColor(color);
       gMean->SetMarkerStyle(style);
   
-      hRMS ->SetTitle(gtitle); // for the legend
-      hRMS ->SetMarkerSize(0.7);
+      //hRMS ->SetTitle(gtitle); // for the legend
+      hRMS ->SetTitle(""); // for the legend
+      hRMS ->SetMarkerSize(0.6);
       hRMS ->SetMarkerColor(color);
       hRMS ->SetMarkerStyle(style);
     
-      bool fullRange = gname.Contains("data-taking") || gname.Contains("Legacy");
       mean(gMean, "PZ", "p", fullRange);
       RMS (hRMS , ""  , "p", fullRange);
+
+      // dirty trick to get larger marker in the legend TODO??
+      double x[] = {-99};
+      auto g2 = new TGraph(1,x,x);
+      g2->SetTitle(gtitle); // for the legend
+      g2->SetMarkerColor(color);
+      g2->SetMarkerStyle(style);
+      mean(g2, "PZ", "p", false);
+      RMS (g2, "PZ", "p", false);
     }
   }
   
