@@ -42,7 +42,7 @@ public:
   
     TH1* base = (*map)["all"];
     TString allName = base->GetName();
-    TString name = tag + "_" + allName;
+    TString name = tag + "_" + allName.Data();
     TH1* h = (TH1*) base->Clone(name);
     h->SetName(name);
     h->SetTitle(name);
