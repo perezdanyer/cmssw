@@ -51,13 +51,13 @@ int trends(int argc, char* argv[]) {
   
   //Read all configure variables and set default for missing keys
   string outputdir = main_tree.get<string>("output");
-  bool fullRange = validation.get_child_optional("fullRange") ? validation.get<bool>("fullRange") : false;
-  bool FORCE = validation.get_child_optional("FORCE") ? validation.get<bool>("FORCE") : false;
-  string Year = validation.get_child_optional("Year") ? validation.get<string>("Year") : "Run2";
-  TString lumiInputFile = validation.get_child_optional("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
+  bool fullRange = validation.count("fullRange") ? validation.get<bool>("fullRange") : false;
+  bool FORCE = validation.count("FORCE") ? validation.get<bool>("FORCE") : false;
+  string Year = validation.count("Year") ? validation.get<string>("Year") : "Run2";
+  TString lumiInputFile = validation.count("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
 
   vector<string> labels{};
-  if (validation.get_child_optional("labels")) {
+  if (validation.count("labels")) {
     labels.clear();
     for (const pair<string, pt::ptree>& childTree : validation.get_child("labels")) {
       labels.push_back(childTree.second.get_value<string>());
@@ -65,7 +65,7 @@ int trends(int argc, char* argv[]) {
   }
   
   vector<string> Variables;
-  if (validation.get_child_optional("Variables")) {
+  if (validation.count("Variables")) {
     for (const pair<string, pt::ptree>& childTree : validation.get_child("Variables")) {
       Variables.push_back(childTree.second.get_value<string>());
     }
@@ -109,8 +109,8 @@ int trends(int argc, char* argv[]) {
   if (Year == "2016")
     nlayers = {{"BPIX", 3}, {"FPIX", 2}, {"TIB", 4}, {"TID", 3}, {"TOB", 6}, {"TEC", 9}};
   
-  int firstRun = validation.get_child_optional("firstRun") ? validation.get<int>("firstRun") : 272930;
-  int lastRun = validation.get_child_optional("lastRun") ? validation.get<int>("lastRun") : 325175;
+  int firstRun = validation.count("firstRun") ? validation.get<int>("firstRun") : 272930;
+  int lastRun = validation.count("lastRun") ? validation.get<int>("lastRun") : 325175;
   
   const Run2Lumi GetLumi(LumiFile.Data(), firstRun, lastRun);
 
