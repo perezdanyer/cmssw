@@ -59,7 +59,7 @@ int trends(int argc, char* argv[]) {
   vector<string> labels{};
   if (validation.count("labels")) {
     labels.clear();
-    for (const pair<string, pt::ptree>& childTree : validation.get_child("labels")) {
+    for (auto const &childTree : validation.get_child("labels")) {
       labels.push_back(childTree.second.get_value<string>());
     }
   }
@@ -77,9 +77,9 @@ int trends(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  for (const pair<string, pt::ptree>& childTreeAlignments : alignments) {
+  for (auto const &childTreeAlignments : alignments) {
     fs::create_directory(childTreeAlignments.first.c_str());
-    for (const pair<string, pt::ptree>& childTreeIOV : validation.get_child("IOV")) {
+    for (auto const &childTreeIOV : validation.get_child("IOV")) {
       int iov = childTreeIOV.second.get_value<int>();
       TString file = childTreeAlignments.second.get<string>("file");
       fs::path input_dir = Form("%s/PVValidation_%s_%d.root", file.ReplaceAll("{}", to_string(iov)).Data(), childTreeAlignments.first.c_str(), iov);
@@ -101,7 +101,7 @@ int trends(int argc, char* argv[]) {
 
   string labels_to_add = "";
   if (labels.size() != 0 ) {
-    for (const auto &label : labels) {
+    for (auto label : labels) {
       labels_to_add += "_";
       labels_to_add += label;
     }
@@ -135,7 +135,7 @@ int trends(int argc, char* argv[]) {
     mean.lgd.SetHeader("p_{T} (track) > 3 GeV");
     RMS.lgd.SetHeader("p_{T} (track) > 3 GeV");
   
-    for (const pair<string, pt::ptree>& childTree : alignments) {
+    for (auto const &childTree : alignments) {
       TString gname = childTree.second.get<string>("title");
       gname.ReplaceAll(" ", "_");
     

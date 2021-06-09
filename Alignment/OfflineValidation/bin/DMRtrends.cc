@@ -59,14 +59,14 @@ int trends(int argc, char* argv[]) {
   vector<string> labels{};
   if (validation.count("labels")) {
     labels.clear();
-    for (const pair<string, pt::ptree>& childTree : validation.get_child("labels")) {
+    for (auto const &childTree : validation.get_child("labels")) {
       labels.push_back(childTree.second.get_value<string>());
     }
   }
   
   vector<string> Variables;
   if (validation.count("Variables")) {
-    for (const pair<string, pt::ptree>& childTree : validation.get_child("Variables")) {
+    for (auto const &childTree : validation.get_child("Variables")) {
       Variables.push_back(childTree.second.get_value<string>());
     }
   }
@@ -88,7 +88,7 @@ int trends(int argc, char* argv[]) {
 
   vector<int> IOVlist;
   vector<string> inputFiles;
-  for (const pair<string, pt::ptree>& childTree : validation.get_child("IOV")) {
+  for (auto const &childTree : validation.get_child("IOV")) {
     int iov = childTree.second.get_value<int>();
     IOVlist.push_back(iov);
     TString mergeFile =  validation.get<string>("mergeFile");
@@ -97,7 +97,7 @@ int trends(int argc, char* argv[]) {
   }
 
   PrepareDMRTrends prepareTrends(outputdir, alignments);
-  for (const auto &Variable : Variables) {
+  for (auto Variable : Variables) {
     prepareTrends.compileDMRTrends(IOVlist, Variable, labels, Year, inputFiles, FORCE);
   }
 
@@ -116,7 +116,7 @@ int trends(int argc, char* argv[]) {
 
   string labels_to_add = "";
   if (labels.size() != 0 ) {
-    for (const auto &label : labels) {
+    for (auto label : labels) {
       labels_to_add += "_";
       labels_to_add += label;
     }
@@ -160,7 +160,7 @@ int trends(int argc, char* argv[]) {
       };
     }
 
-    for (TString &structure : structures) {
+    for (auto structure : structures) {
       TString structname = structure;
       structname.ReplaceAll("_y", "");
       size_t layersnumber = nlayers.at(structname);
@@ -191,7 +191,7 @@ int trends(int argc, char* argv[]) {
 	  structandlayer += layer;
 	}
 	
-        for (auto DMR: DMRs) {
+        for (auto& DMR: DMRs) {
 	  
           auto name  = get<0>(DMR),
             ytitle = get<1>(DMR);
@@ -207,7 +207,7 @@ int trends(int argc, char* argv[]) {
           Trend trend(Form("%s_%s_%s", Variable.data(), structandlayer.Data(), name.Data()), outputdir.data(), ytitle, ytitle, ymin, ymax, lines, GetLumi);
           trend.lgd.SetHeader(structtitle);
           
-          for (const pair<string, pt::ptree>& childTree : alignments) {
+          for (auto const &childTree : alignments) {
             TString alignment = childTree.second.get<string>("title");
             TString gname = Form("%s_%s_%s_%s", Variable.data(), alignment.Data(), structandlayer.Data(), name.Data());
             gname.ReplaceAll(" ", "_");
