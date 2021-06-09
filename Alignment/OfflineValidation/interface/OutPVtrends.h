@@ -1,5 +1,5 @@
-#ifndef OUTTRENDS_H_
-#define OUTTRENDS_H_
+#ifndef OUTPVTRENDS_H_
+#define OUTPVTRENDS_H_
 
 #include "TArrow.h"
 #include "TAxis.h"
@@ -87,10 +87,10 @@ struct unrolledHisto {
 };
 
 
-struct outTrends {
+struct outPVtrends {
 
-  /*! \struct outTrends
-  *  \brief Structure outTrends
+  /*! \struct outPVtrends
+  *  \brief Structure outPVtrends
   *         Contains the ensemble of all the alignmentTrends built by the functor
   *
   * @param m_index                     int, to keep track of which chunk of data has been processed
@@ -120,7 +120,7 @@ struct outTrends {
   */
 
   // empty constructor
-  outTrends() { init(); }
+  outPVtrends() { init(); }
 
   int m_index;
   std::vector<double> m_runs;
@@ -183,9 +183,9 @@ struct outTrends {
 #if defined(__ROOTCLING__)
 #pragma link C++ class std::map<TString, std::vector<double> > +;
 #pragma link C++ class std::map<TString, std::vector<unrolledHisto> > +;
-#pragma link C++ class outTrends +;
+#pragma link C++ class outPVtrends +;
 #pragma link C++ class unrolledHisto +;
 
 #endif
 
-#endif  // OUTTRENDS_H_
+#endif  // OUTPVTRENDS_H_

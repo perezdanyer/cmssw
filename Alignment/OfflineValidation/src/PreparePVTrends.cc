@@ -135,7 +135,7 @@ void PreparePVTrends::MultiRunPVValidation(std::vector<std::string> file_labels_
   auto extracts = procPool.Map(f_processData, range);
 
   // sort the extracts according to the global index
-  std::sort(extracts.begin(), extracts.end(), [](const outTrends &a, const outTrends &b) -> bool {
+  std::sort(extracts.begin(), extracts.end(), [](const outPVtrends &a, const outPVtrends &b) -> bool {
     return a.m_index < b.m_index;
   });
 
@@ -745,7 +745,7 @@ pv::biases PreparePVTrends::getBiases(TH1F *hist)
  */
 
 /*--------------------------------------------------------------------*/
-outTrends PreparePVTrends::processData(size_t iter,
+outPVtrends PreparePVTrends::processData(size_t iter,
                       std::vector<int> intersection,
                       const Int_t nDirs_,
                       const char *dirs[10],
@@ -754,7 +754,7 @@ outTrends PreparePVTrends::processData(size_t iter,
 		      bool doUnitTest)
 /*--------------------------------------------------------------------*/
 {
-  outTrends ret;
+  outPVtrends ret;
 
   unsigned int effSize = std::min(nWorkers, intersection.size());
 

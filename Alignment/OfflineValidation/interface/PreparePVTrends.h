@@ -40,7 +40,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
-#include "Alignment/OfflineValidation/interface/outTrends.h"
+#include "Alignment/OfflineValidation/interface/OutPVtrends.h"
 
 /*!
  * \def some convenient I/O
@@ -270,7 +270,7 @@ class PreparePVTrends {
   static pv::biases getBiases(TH1F *hist);
   static unrolledHisto getUnrolledHisto(TH1F *hist);
   static TH1F *DrawConstantWithErr(TH1F *hist, Int_t iter, Double_t theConst);
-  static outTrends processData(size_t iter,
+  static outPVtrends processData(size_t iter,
 				   std::vector<int> intersection,
 				   const Int_t nDirs_,
 				   const char *dirs[10],
