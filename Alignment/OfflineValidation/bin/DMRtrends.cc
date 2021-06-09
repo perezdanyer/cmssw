@@ -223,15 +223,6 @@ int trends(int argc, char* argv[]) {
             g->SetLineColor(kWhite);
             trend(g, "P2", "pf", fullRange);
             
-            // dirty trick to get bigger marker in the legend 
-            double x[] = {-99};
-            auto g2 = new TGraph(1,x,x);
-            g2->SetTitle(alignment);
-            g2->SetMarkerColor(color);
-            g2->SetFillColorAlpha(color, 0.2);
-            g2->SetLineColor(kWhite);
-            g2->SetMarkerStyle(style);
-            trend(g2, "P2", "pf", false);
           }
 	}
       }

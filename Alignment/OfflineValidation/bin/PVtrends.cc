@@ -161,15 +161,6 @@ int trends(int argc, char* argv[]) {
     
       mean(gMean, "PZ", "p", fullRange);
       RMS (hRMS , ""  , "p", fullRange);
-
-      // dirty trick to get larger marker in the legend TODO??
-      double x[] = {-99};
-      auto g2 = new TGraph(1,x,x);
-      g2->SetTitle(gtitle); // for the legend
-      g2->SetMarkerColor(color);
-      g2->SetMarkerStyle(style);
-      mean(g2, "PZ", "p", false);
-      RMS (g2, "PZ", "p", false);
     }
   }
   
