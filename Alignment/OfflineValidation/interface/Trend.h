@@ -1,3 +1,6 @@
+#ifndef ALIGNMENT_OFFLINEVALIDATION_TREND_H
+#define ALIGNMENT_OFFLINEVALIDATION_TREND_H
+
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -116,3 +119,6 @@ struct Trend {
 };
 
 template<typename T, typename ... Args> inline T * Get (Args ... args) { return dynamic_cast<T*>(gDirectory->Get(Form(args...))); } 
+
+
+#endif // ALIGNMENT_OFFLINEVALIDATION_TREND_H

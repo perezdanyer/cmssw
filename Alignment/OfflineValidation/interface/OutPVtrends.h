@@ -1,5 +1,5 @@
-#ifndef OUTPVTRENDS_H_
-#define OUTPVTRENDS_H_
+#ifndef ALIGNMENT_OFFLINEVALIDATION_OUTPVTRENDS_H_
+#define ALIGNMENT_OFFLINEVALIDATION_OUTPVTRENDS_H_
 
 #include "TArrow.h"
 #include "TAxis.h"
@@ -188,4 +188,4 @@ struct outPVtrends {
 
 #endif
 
-#endif  // OUTPVTRENDS_H_
+#endif  // ALIGNMENT_OFFLINEVALIDATION_OUTPVTRENDS_H_
