@@ -90,7 +90,7 @@ int trends(int argc, char* argv[]) {
   }
 
   PreparePVTrends prepareTrends(outputdir, alignments);
-  prepareTrends.MultiRunPVValidation(labels, doRMS, LumiFile, doUnitTest);
+  prepareTrends.multiRunPVValidation(labels, doRMS, LumiFile, doUnitTest);
 
   Trend::CMS = "#scale[1.1]{#bf{CMS}}";
 

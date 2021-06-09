@@ -262,14 +262,14 @@ class PreparePVTrends {
   PreparePVTrends(TString outputdir, boost::property_tree::ptree& json);
   void setDirsAndLabels(boost::property_tree::ptree& json);
 
-  void MultiRunPVValidation(std::vector<std::string> file_labels_to_add,
+  void multiRunPVValidation(std::vector<std::string> file_labels_to_add,
 			    bool useRMS = true,
 			    TString lumiInputFile = "",
                             bool doUnitTest = false);
 
   static pv::biases getBiases(TH1F *hist);
   static unrolledHisto getUnrolledHisto(TH1F *hist);
-  static TH1F *DrawConstantWithErr(TH1F *hist, Int_t iter, Double_t theConst);
+  static TH1F *drawConstantWithErr(TH1F *hist, Int_t iter, Double_t theConst);
   static outPVtrends processData(size_t iter,
 				   std::vector<int> intersection,
 				   const Int_t nDirs_,

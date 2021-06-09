@@ -21,7 +21,7 @@ void PreparePVTrends::setDirsAndLabels(pt::ptree& json)
   }
 }
 
-void PreparePVTrends::MultiRunPVValidation(std::vector<std::string> file_labels_to_add, bool useRMS, TString lumiInputFile, bool doUnitTest) {
+void PreparePVTrends::multiRunPVValidation(std::vector<std::string> file_labels_to_add, bool useRMS, TString lumiInputFile, bool doUnitTest) {
   TStopwatch timer;
   timer.Start();
 
@@ -627,7 +627,7 @@ std::vector<int> PreparePVTrends::list_files(const char *dirname, const char *ex
  */
 
 /*--------------------------------------------------------------------*/
-TH1F *PreparePVTrends::DrawConstantWithErr(TH1F *hist, Int_t iter, Double_t theConst)
+TH1F *PreparePVTrends::drawConstantWithErr(TH1F *hist, Int_t iter, Double_t theConst)
 /*--------------------------------------------------------------------*/
 {
   Int_t nbins = hist->GetNbinsX();
@@ -719,7 +719,7 @@ pv::biases PreparePVTrends::getBiases(TH1F *hist)
   Double_t chi2 = f->GetChisquare();
   Int_t ndf = f->GetNDF();
 
-  TH1F *theZero = DrawConstantWithErr(hist, 1, 1.);
+  TH1F *theZero = drawConstantWithErr(hist, 1, 1.);
   TH1F *displaced = (TH1F *)hist->Clone("displaced");
   displaced->Add(theZero);
   Double_t ksScore = std::max(-20., TMath::Log10(displaced->KolmogorovTest(theZero)));
