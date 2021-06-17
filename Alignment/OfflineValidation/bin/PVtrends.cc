@@ -54,6 +54,7 @@ int trends(int argc, char* argv[]) {
   bool doRMS = validation.count("doRMS") ? validation.get<bool>("doRMS") : true;
   bool fullRange = validation.count("fullRange") ? validation.get<bool>("fullRange") : false;
   bool doUnitTest = validation.count("doUnitTest") ? validation.get<bool>("doUnitTest") : false;
+  int nWorkers = validation.count("nWorkers") ? validation.get<int>("nWorkers") : 20;
   TString lumiInputFile = validation.count("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
 
   vector<string> labels{};
@@ -89,7 +90,7 @@ int trends(int argc, char* argv[]) {
     }
   }
 
-  PreparePVTrends prepareTrends(outputdir, alignments);
+  PreparePVTrends prepareTrends(outputdir, nWorkers, alignments);
   prepareTrends.multiRunPVValidation(labels, doRMS, LumiFile, doUnitTest);
 
   Trend::CMS = "#scale[1.1]{#bf{CMS}}";

@@ -3,9 +3,9 @@
 namespace ph = std::placeholders;  // for _1, _2, _3...
 namespace pt = boost::property_tree;
 
-PreparePVTrends::PreparePVTrends(TString outputdir, pt::ptree& json)
+PreparePVTrends::PreparePVTrends(TString outputdir, int nWorkers, pt::ptree& json) :
+nWorkers_(nWorkers)
 {
-
   outputdir_ = outputdir;
   setDirsAndLabels(json);
 }
@@ -123,13 +123,13 @@ void PreparePVTrends::multiRunPVValidation(std::vector<std::string> file_labels_
   logInfo << " pre do-stuff: " << runs.size() << std::endl;
 
   //we should use std::bind to create a functor and then pass it to the procPool
-  auto f_processData = std::bind(processData, ph::_1, intersection, nDirs_, dirs, LegLabels, useRMS, doUnitTest);
+  auto f_processData = std::bind(processData, ph::_1, intersection, nDirs_, dirs, LegLabels, useRMS, nWorkers_, doUnitTest);
 
   //f_processData(0);
   //logInfo<<" post do-stuff: " <<  runs.size() << std::endl;
 
-  TProcPool procPool(std::min(nWorkers, intersection.size())); 
-  std::vector<size_t> range(std::min(nWorkers, intersection.size()));
+  TProcPool procPool(std::min(nWorkers_, intersection.size()));
+  std::vector<size_t> range(std::min(nWorkers_, intersection.size()));
   std::iota(range.begin(), range.end(), 0);
   //procPool.Map([&f_processData](size_t a) { f_processData(a); },{1,2,3});
   auto extracts = procPool.Map(f_processData, range);
@@ -751,6 +751,7 @@ outPVtrends PreparePVTrends::processData(size_t iter,
                       const char *dirs[10],
                       TString LegLabels[10],
 		      bool useRMS,
+		      const size_t nWorkers,
 		      bool doUnitTest)
 /*--------------------------------------------------------------------*/
 {

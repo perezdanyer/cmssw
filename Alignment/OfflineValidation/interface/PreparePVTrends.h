@@ -54,12 +54,6 @@
  */
 #define VERBOSE false
 
-
-/*!
- * \def number of workers
- */
-const size_t nWorkers = 20;
-
 namespace pv {
   enum view { dxyphi, dzphi, dxyeta, dzeta, pT, generic };
 
@@ -259,7 +253,7 @@ namespace pv {
 class PreparePVTrends {
  public:
 
-  PreparePVTrends(TString outputdir, boost::property_tree::ptree& json);
+  PreparePVTrends(TString outputdir, int nWorkers, boost::property_tree::ptree& json);
   ~PreparePVTrends(){}
 
   void setDirsAndLabels(boost::property_tree::ptree& json);
@@ -278,6 +272,7 @@ class PreparePVTrends {
 				   const char *dirs[10],
 				   TString LegLabels[10],
 			           bool useRMS,
+				   const size_t nWorkers,
                                    bool doUnitTest);
   std::vector<int> list_files(const char *dirname = ".", const char *ext = ".root");
   void outputGraphs(const pv::wrappedTrends &allInputs,
@@ -297,6 +292,7 @@ class PreparePVTrends {
 
  private:
   TString outputdir_;
+  const size_t nWorkers_; //def number of workers
   std::vector<std::string> DirList;
   std::vector<std::string> LabelList;
   
