@@ -117,22 +117,22 @@ int trends(int argc, char* argv[]) {
   
   
   vector<string> titles{"of impact parameter in transverse plane as a function of azimuth angle",
-  		       "of impact parameter in transverse plane as a function of pseudorapidity",
-                       "of impact parameter along z-axis as a function of azimuth angle",
-                       "of impact parameter along z-axis as a function of pseudorapidity"};
+                        "of impact parameter in transverse plane as a function of pseudorapidity",
+                        "of impact parameter along z-axis as a function of azimuth angle",
+                        "of impact parameter along z-axis as a function of pseudorapidity"};
   
   vector<string> ytitles{"of d_{xy}(#phi)   [#mum]",
-                        "of d_{xy}(#eta)   [#mum]",
-                        "of d_{z}(#phi)   [#mum]",
-                        "of d_{z}(#eta)   [#mum]"};
+                         "of d_{xy}(#eta)   [#mum]",
+                         "of d_{z}(#phi)   [#mum]",
+                         "of d_{z}(#eta)   [#mum]"};
   
   auto f = TFile::Open(pname.c_str());
   for(size_t i=0; i<variables.size(); i++) {
   
     Trend mean(Form("mean_%s", variables[i].data()), outputdir.data(), Form("mean %s", titles[i].data()),
-  	       Form("mean %s", ytitles[i].data()), -7., 10., lines, GetLumi), 
-          RMS (Form("RMS_%s", variables[i].data()), outputdir.data(), Form("RMS %s", titles[i].data()), 
-  	       Form("RMS %s", ytitles[i].data()), 0., 35., lines, GetLumi);
+	       Form("mean %s", ytitles[i].data()), -7., 10., lines, GetLumi);
+    Trend RMS (Form("RMS_%s", variables[i].data()), outputdir.data(), Form("RMS %s", titles[i].data()),
+	       Form("RMS %s", ytitles[i].data()), 0., 35., lines, GetLumi);
     mean.lgd.SetHeader("p_{T} (track) > 3 GeV");
     RMS.lgd.SetHeader("p_{T} (track) > 3 GeV");
   
