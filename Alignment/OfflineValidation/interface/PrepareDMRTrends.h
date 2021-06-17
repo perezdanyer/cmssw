@@ -166,6 +166,7 @@ class PrepareDMRTrends {
  public:
 
   PrepareDMRTrends(TString outputdir, boost::property_tree::ptree& json);
+  ~PrepareDMRTrends(){}
 
   TString getName(TString structure, int layer, TString geometry);
   const std::map<TString, int> numberOfLayers(TString Year);

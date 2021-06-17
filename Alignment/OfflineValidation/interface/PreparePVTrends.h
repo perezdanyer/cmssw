@@ -260,6 +260,8 @@ class PreparePVTrends {
  public:
 
   PreparePVTrends(TString outputdir, boost::property_tree::ptree& json);
+  ~PreparePVTrends(){}
+
   void setDirsAndLabels(boost::property_tree::ptree& json);
 
   void multiRunPVValidation(std::vector<std::string> file_labels_to_add,
