@@ -79,7 +79,7 @@ public:
 /// The verticles lines (e.g. pixel templates) are given via a JSON file.
 struct Trend {
 
-    static TString CMS, //!< top loeft label
+    static TString CMS, //!< top left label
                    lumi; //!< top right label (not necessarily the lumi, just following the convention from `CMS_lumi.h`)
 
     static float fontsize;
