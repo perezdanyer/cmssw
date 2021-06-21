@@ -93,8 +93,6 @@ int trends(int argc, char* argv[]) {
   PreparePVTrends prepareTrends(outputdir, nWorkers, alignments);
   prepareTrends.multiRunPVValidation(labels, doRMS, LumiFile, doUnitTest);
 
-  Trend::CMS = "#scale[1.1]{#bf{CMS}}";
-
   int firstRun = validation.count("firstRun") ? validation.get<int>("firstRun") : 272930;
   int lastRun = validation.count("lastRun") ? validation.get<int>("lastRun") : 325175;
   

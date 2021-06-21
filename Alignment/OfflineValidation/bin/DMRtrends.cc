@@ -101,8 +101,6 @@ int trends(int argc, char* argv[]) {
     prepareTrends.compileDMRTrends(IOVlist, Variable, labels, Year, inputFiles, FORCE);
   }
 
-  Trend::CMS = "#scale[1.1]{#bf{CMS}}";
-
   vector<TString> structures{"BPIX", "BPIX_y", "FPIX", "FPIX_y", "TIB", "TID", "TOB", "TEC"};
 
   map<TString, int> nlayers{{"BPIX", 4}, {"FPIX", 3}, {"TIB", 4}, {"TID", 3}, {"TOB", 6}, {"TEC", 9}};

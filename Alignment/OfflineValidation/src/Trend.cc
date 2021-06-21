@@ -142,6 +142,9 @@ Trend::Trend (const char * name, const char * dir,
 {
     cout << __func__ << endl;
 
+    if (JSON.count("CMSlabel"))
+      CMS = Form("#scale[1.1]{#bf{CMS}} #it{%s}", JSON.get<string>("CMSlabel").data());
+
     assert(ymin < ymax);
     float xmax = GetLumi(GetLumi.firstRun, GetLumi.lastRun);
     const char * axistitles = Form(";Delivered luminosity  [fb^{-1} ];%s", ytitle);
@@ -298,9 +301,3 @@ Trend::~Trend ()
     c.SaveAs( Form("%s/%s.pdf"  ,outputDir, c.GetName ()) ,
             Form("Title:%s", c.GetTitle()) );
 }
-
-// these are the default values, they can be overwritten any macro
-TString Trend::CMS = "#scale[1.1]{#bf{CMS}} #it{Internal}", 
-        Trend::lumi = "#scale[0.8]{pp collisions (2016+2017+2018)}";
-float Trend::fontsize = 0.04;
-

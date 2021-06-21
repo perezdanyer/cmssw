@@ -79,10 +79,10 @@ public:
 /// The verticles lines (e.g. pixel templates) are given via a JSON file.
 struct Trend {
 
-    static TString CMS, //!< top left label
-                   lumi; //!< top right label (not necessarily the lumi, just following the convention from `CMS_lumi.h`)
+    TString CMS = "#scale[1.1]{#bf{CMS}} #it{Internal}"; //!< top left label
+    TString lumi = "#scale[0.8]{pp collisions (2016+2017+2018)}"; //!< top right label (not necessarily the lumi, just following the convention from `CMS_lumi.h`)
 
-    static float fontsize;
+    float fontsize = 0.04;
 
     TCanvas c;
     const char * outputDir; //directory for plots
