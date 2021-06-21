@@ -170,7 +170,8 @@ Trend::Trend (const char * name, const char * dir,
     c.SetTopMargin(0.07);
 
     // plot vertical lines (typically pixel template transitions)
-    for (auto& type: JSON) {
+    pt::ptree lines = JSON.get_child("trends.lines");
+    for (auto& type: lines) {
 
         auto line = type.second.get_child_optional("line");
         auto runs = type.second.get_child_optional("runs");
@@ -269,7 +270,8 @@ Trend::~Trend ()
     auto totLumi = GetLumi();
     assert(totLumi > 0);
     auto posY = 0.88;
-    for (auto& type: JSON) {
+    pt::ptree lines = JSON.get_child("trends.lines");
+    for (auto& type: lines) {
 
         auto labels = type.second.get_child_optional("labels");
         auto runs = type.second.get_child_optional("runs");

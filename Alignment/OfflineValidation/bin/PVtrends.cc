@@ -47,7 +47,7 @@ int trends(int argc, char* argv[]) {
   
   pt::ptree alignments = main_tree.get_child("alignments");
   pt::ptree validation = main_tree.get_child("validation");
-  pt::ptree lines = main_tree.get_child("lines");
+  pt::ptree style = main_tree.get_child("style");
   
   //Read all configure variables and set default for missing keys
   string outputdir = main_tree.get<string>("output");
@@ -130,9 +130,9 @@ int trends(int argc, char* argv[]) {
   for(size_t i=0; i<variables.size(); i++) {
   
     Trend mean(Form("mean_%s", variables[i].data()), outputdir.data(), Form("mean %s", titles[i].data()),
-	       Form("mean %s", ytitles[i].data()), -7., 10., lines, GetLumi);
+	       Form("mean %s", ytitles[i].data()), -7., 10., style, GetLumi);
     Trend RMS (Form("RMS_%s", variables[i].data()), outputdir.data(), Form("RMS %s", titles[i].data()),
-	       Form("RMS %s", ytitles[i].data()), 0., 35., lines, GetLumi);
+	       Form("RMS %s", ytitles[i].data()), 0., 35., style, GetLumi);
     mean.lgd.SetHeader("p_{T} (track) > 3 GeV");
     RMS.lgd.SetHeader("p_{T} (track) > 3 GeV");
   

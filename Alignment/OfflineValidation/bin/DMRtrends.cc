@@ -47,7 +47,7 @@ int trends(int argc, char* argv[]) {
   
   pt::ptree alignments = main_tree.get_child("alignments");
   pt::ptree validation = main_tree.get_child("validation");
-  pt::ptree lines = main_tree.get_child("lines");
+  pt::ptree style = main_tree.get_child("style");
   
   //Read all configure variables and set default for missing keys
   string outputdir = main_tree.get<string>("output");
@@ -204,7 +204,7 @@ int trends(int argc, char* argv[]) {
           cout << bold << name << normal << endl;
           
           float ymin = get<2>(DMR), ymax = get<3>(DMR);
-          Trend trend(Form("%s_%s_%s", Variable.data(), structandlayer.Data(), name.Data()), outputdir.data(), ytitle, ytitle, ymin, ymax, lines, GetLumi);
+          Trend trend(Form("%s_%s_%s", Variable.data(), structandlayer.Data(), name.Data()), outputdir.data(), ytitle, ytitle, ymin, ymax, style, GetLumi);
           trend.lgd.SetHeader(structtitle);
           
           for (auto const &childTree : alignments) {
