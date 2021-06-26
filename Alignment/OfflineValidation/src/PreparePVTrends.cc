@@ -3,10 +3,10 @@
 namespace ph = std::placeholders;  // for _1, _2, _3...
 namespace pt = boost::property_tree;
 
-PreparePVTrends::PreparePVTrends(TString outputdir, int nWorkers, pt::ptree& json) :
-nWorkers_(nWorkers)
+PreparePVTrends::PreparePVTrends(const char *outputFileName, int nWorkers, pt::ptree& json) :
+  outputFileName_(outputFileName),
+  nWorkers_(nWorkers)
 {
-  outputdir_ = outputdir;
   setDirsAndLabels(json);
 }
 
@@ -21,7 +21,7 @@ void PreparePVTrends::setDirsAndLabels(pt::ptree& json)
   }
 }
 
-void PreparePVTrends::multiRunPVValidation(std::vector<std::string> file_labels_to_add, bool useRMS, TString lumiInputFile, bool doUnitTest) {
+void PreparePVTrends::multiRunPVValidation(bool useRMS, TString lumiInputFile, bool doUnitTest) {
   TStopwatch timer;
   timer.Start();
 
@@ -301,16 +301,7 @@ void PreparePVTrends::multiRunPVValidation(std::vector<std::string> file_labels_
       pv::bundle(nDirs_, theType, theTypeLabel, useRMS);
   theBundle.printAll();
 
-  TString outname = outputdir_ + "PVtrends";
-  if (file_labels_to_add.size() != 0 ) {
-    for (const auto &label : file_labels_to_add) {
-      outname += "_";
-      outname += label;
-    }
-  }
-  outname += ".root";
-  logInfo << outname << std::endl;
-  TFile *fout = TFile::Open(outname, "RECREATE");
+  TFile *fout = TFile::Open(outputFileName_, "RECREATE");
 
   for (Int_t j = 0; j < nDirs_; j++) {
     // check on the sanity

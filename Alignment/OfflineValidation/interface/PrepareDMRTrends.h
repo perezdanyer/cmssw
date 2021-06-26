@@ -163,20 +163,19 @@ public:
 class PrepareDMRTrends {
  public:
 
-  PrepareDMRTrends(TString outputdir, boost::property_tree::ptree& json);
+  PrepareDMRTrends(const char *outputFileName, boost::property_tree::ptree& json);
   ~PrepareDMRTrends(){}
 
   TString getName(TString structure, int layer, TString geometry);
   const std::map<TString, int> numberOfLayers(TString Year);
   void compileDMRTrends(std::vector<int> IOVlist,
 			TString Variable,
-			std::vector<std::string> labels,
 			TString Year,
 			std::vector<std::string> inputFiles,
 			bool FORCE = false);
 
  private:
-  TString outputdir_;
+  const char *outputFileName_;
   std::vector<std::string> geometries;
 
 };

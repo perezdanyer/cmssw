@@ -253,14 +253,13 @@ namespace pv {
 class PreparePVTrends {
  public:
 
-  PreparePVTrends(TString outputdir, int nWorkers, boost::property_tree::ptree& json);
+  PreparePVTrends(const char *outputFileName, int nWorkers, boost::property_tree::ptree& json);
   ~PreparePVTrends(){}
 
   void setDirsAndLabels(boost::property_tree::ptree& json);
 
-  void multiRunPVValidation(std::vector<std::string> file_labels_to_add,
-			    bool useRMS = true,
-			    TString lumiInputFile = "",
+  void multiRunPVValidation(bool useRMS = true,
+                            TString lumiInputFile = "",
                             bool doUnitTest = false);
 
   static pv::biases getBiases(TH1F *hist);
@@ -291,7 +290,7 @@ class PreparePVTrends {
                   const TString &label);
 
  private:
-  TString outputdir_;
+  const char *outputFileName_;
   const size_t nWorkers_; //def number of workers
   std::vector<std::string> DirList;
   std::vector<std::string> LabelList;

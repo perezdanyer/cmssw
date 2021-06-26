@@ -4,9 +4,9 @@ using namespace std;
 namespace fs = std::experimental::filesystem;
 namespace pt = boost::property_tree;
 
-PrepareDMRTrends::PrepareDMRTrends(TString outputdir, pt::ptree& json)
+PrepareDMRTrends::PrepareDMRTrends(const char *outputFileName, pt::ptree& json) :
+  outputFileName_(outputFileName)
 {
-  outputdir_ = outputdir;
   geometries.clear();
   for (const std::pair<std::string, pt::ptree>& childTree : json) {
     geometries.push_back(childTree.second.get<std::string>("title"));
@@ -50,7 +50,6 @@ const map<TString, int> PrepareDMRTrends::numberOfLayers(TString Year) {
 
 void PrepareDMRTrends::compileDMRTrends(vector<int> IOVlist,
                       TString Variable,
-                      vector<string> labels,
                       TString Year,
 		      std::vector<std::string> inputFiles,
                       bool FORCE) {
@@ -119,16 +118,8 @@ void PrepareDMRTrends::compileDMRTrends(vector<int> IOVlist,
     }
     f->Close();
   }
-  TString outname = outputdir_ + "DMRtrends";
-  if (labels.size() != 0 ) {
-    for (const auto &label : labels) {
-      outname += "_";
-      outname += label;
-    }
-  }
-  outname += ".root";
-  cout << outname << endl;
-  TFile *fout = TFile::Open(outname, "RECREATE");
+
+  TFile *fout = TFile::Open(outputFileName_, "RECREATE");
   for (TString &structure : structures) {
     TString structname = structure;
     structname.ReplaceAll("_y", "");

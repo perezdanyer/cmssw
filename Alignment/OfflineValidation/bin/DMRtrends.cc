@@ -56,23 +56,6 @@ int trends(int argc, char* argv[]) {
   string Year = validation.count("Year") ? validation.get<string>("Year") : "Run2";
   TString lumiInputFile = validation.count("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
 
-  vector<string> labels{};
-  if (validation.count("labels")) {
-    labels.clear();
-    for (auto const &childTree : validation.get_child("labels")) {
-      labels.push_back(childTree.second.get_value<string>());
-    }
-  }
-  
-  vector<string> Variables;
-  if (validation.count("Variables")) {
-    for (auto const &childTree : validation.get_child("Variables")) {
-      Variables.push_back(childTree.second.get_value<string>());
-    }
-  }
-  else
-    Variables.push_back("median");
-
   TString LumiFile = getenv("CMSSW_BASE");
   if (lumiInputFile.BeginsWith("/"))
     LumiFile = lumiInputFile;
@@ -96,10 +79,32 @@ int trends(int argc, char* argv[]) {
     inputFiles.push_back(input);
   }
 
-  PrepareDMRTrends prepareTrends(outputdir, alignments);
-  for (auto Variable : Variables) {
-    prepareTrends.compileDMRTrends(IOVlist, Variable, labels, Year, inputFiles, FORCE);
+  string labels_to_add = "";
+  if (validation.count("labels")) {
+    for (auto const &label : validation.get_child("labels")) {
+      labels_to_add += "_";
+      labels_to_add += label.second.get_value<string>();
+    }
   }
+
+  fs::path pname = Form("%s/PVtrends%s.root", outputdir.data(), labels_to_add.data());
+
+  PrepareDMRTrends prepareTrends(pname.c_str(), alignments);
+
+  if (validation.count("Variables")) {
+    for (auto const &Variable : validation.get_child("Variables")) {
+      prepareTrends.compileDMRTrends(IOVlist, Variable.second.get_value<string>(), Year, inputFiles, FORCE);
+    }
+  }
+  else
+    prepareTrends.compileDMRTrends(IOVlist, "median", Year, inputFiles, FORCE);
+
+  assert(fs::exists(pname));
+
+  int firstRun = validation.count("firstRun") ? validation.get<int>("firstRun") : 272930;
+  int lastRun = validation.count("lastRun") ? validation.get<int>("lastRun") : 325175;
+  
+  const Run2Lumi GetLumi(LumiFile.Data(), firstRun, lastRun);
 
   vector<TString> structures{"BPIX", "BPIX_y", "FPIX", "FPIX_y", "TIB", "TID", "TOB", "TEC"};
 
@@ -107,24 +112,9 @@ int trends(int argc, char* argv[]) {
   if (Year == "2016")
     nlayers = {{"BPIX", 3}, {"FPIX", 2}, {"TIB", 4}, {"TID", 3}, {"TOB", 6}, {"TEC", 9}};
   
-  int firstRun = validation.count("firstRun") ? validation.get<int>("firstRun") : 272930;
-  int lastRun = validation.count("lastRun") ? validation.get<int>("lastRun") : 325175;
-  
-  const Run2Lumi GetLumi(LumiFile.Data(), firstRun, lastRun);
-
-  string labels_to_add = "";
-  if (labels.size() != 0 ) {
-    for (auto label : labels) {
-      labels_to_add += "_";
-      labels_to_add += label;
-    }
-  }
-  fs::path pname = Form("%s/DMRtrends%s.root", outputdir.data(), labels_to_add.data());
-  assert(fs::exists(pname));
-  
   auto f = TFile::Open(pname.c_str());
 
-  for (auto Variable : Variables) {
+  for (auto const &Variable : validation.get_child("Variables")) {
 
     vector<tuple<TString, TString, float, float>> DMRs {
       {"mu", "#mu [#mum]", -6, 6},
@@ -141,7 +131,7 @@ int trends(int argc, char* argv[]) {
       {"deltamusigmadeltamu", "#Delta#mu [#mum]", -15, 15}
     };
 
-    if (Variable == "DrmsNR") {
+    if (Variable.second.get_value<string>() == "DrmsNR") {
       DMRs = {
 	{"mu", "RMS(x'_{pred}-x'_{hit} /#sigma)", -1.2, 1.2},
 	{"sigma", "#sigma_{RMS(x'_{pred}-x'_{hit} /#sigma)}", -6, 6},
@@ -202,12 +192,12 @@ int trends(int argc, char* argv[]) {
           cout << bold << name << normal << endl;
           
           float ymin = get<2>(DMR), ymax = get<3>(DMR);
-          Trend trend(Form("%s_%s_%s", Variable.data(), structandlayer.Data(), name.Data()), outputdir.data(), ytitle, ytitle, ymin, ymax, style, GetLumi);
+          Trend trend(Form("%s_%s_%s", Variable.second.get_value<string>().data(), structandlayer.Data(), name.Data()), outputdir.data(), ytitle, ytitle, ymin, ymax, style, GetLumi);
           trend.lgd.SetHeader(structtitle);
           
           for (auto const &childTree : alignments) {
             TString alignment = childTree.second.get<string>("title");
-            TString gname = Form("%s_%s_%s_%s", Variable.data(), alignment.Data(), structandlayer.Data(), name.Data());
+            TString gname = Form("%s_%s_%s_%s", Variable.second.get_value<string>().data(), alignment.Data(), structandlayer.Data(), name.Data());
             gname.ReplaceAll(" ", "_");
             auto g = Get<TGraphErrors>(gname);
             assert(g != nullptr);

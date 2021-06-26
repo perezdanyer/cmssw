@@ -57,14 +57,6 @@ int trends(int argc, char* argv[]) {
   int nWorkers = validation.count("nWorkers") ? validation.get<int>("nWorkers") : 20;
   TString lumiInputFile = validation.count("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
 
-  vector<string> labels{};
-  if (validation.count("labels")) {
-    labels.clear();
-    for (auto const &childTree : validation.get_child("labels")) {
-      labels.push_back(childTree.second.get_value<string>());
-    }
-  }
-
   TString LumiFile = getenv("CMSSW_BASE");
   if (lumiInputFile.BeginsWith("/"))
     LumiFile = lumiInputFile;
@@ -90,23 +82,25 @@ int trends(int argc, char* argv[]) {
     }
   }
 
-  PreparePVTrends prepareTrends(outputdir, nWorkers, alignments);
-  prepareTrends.multiRunPVValidation(labels, doRMS, LumiFile, doUnitTest);
+  string labels_to_add = "";
+  if (validation.count("labels")) {
+    for (auto const &label : validation.get_child("labels")) {
+      labels_to_add += "_";
+      labels_to_add += label.second.get_value<string>();
+    }
+  }
+
+  fs::path pname = Form("%s/PVtrends%s.root", outputdir.data(), labels_to_add.data());
+
+  PreparePVTrends prepareTrends(pname.c_str(), nWorkers, alignments);
+  prepareTrends.multiRunPVValidation(doRMS, LumiFile, doUnitTest);
+
+  assert(fs::exists(pname));
 
   int firstRun = validation.count("firstRun") ? validation.get<int>("firstRun") : 272930;
   int lastRun = validation.count("lastRun") ? validation.get<int>("lastRun") : 325175;
-  
-  const Run2Lumi GetLumi(LumiFile.Data(), firstRun, lastRun);
 
-  string labels_to_add = "";
-  if (labels.size() != 0 ) {
-    for (auto label : labels) {
-      labels_to_add += "_";
-      labels_to_add += label;
-    }
-  }
-  fs::path pname = Form("%s/PVtrends%s.root", outputdir.data(), labels_to_add.data());
-  assert(fs::exists(pname));
+  const Run2Lumi GetLumi(LumiFile.Data(), firstRun, lastRun);
 
   vector<string> variables{"dxy_phi_vs_run",
                             "dxy_eta_vs_run",
