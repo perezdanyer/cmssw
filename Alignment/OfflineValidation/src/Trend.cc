@@ -134,11 +134,12 @@ TH1 * Run2Lumi::operator() (TH1 * hIn) const
 Trend::Trend (const char * name, const char * dir,
         const char * title, const char * ytitle,
         float ymin, float ymax,
-        pt::ptree& json, const Run2Lumi& GetLumiFunctor) :
+	pt::ptree& json, const Run2Lumi& GetLumiFunctor, const char * lumiAxisType) :
     c(name, title, 2000, 800),
     outputDir(Form("%s", dir)),
     lgd(0.7, 0.65, 0.97, 0.89, "", "NDC"),
-    JSON(json), GetLumi(GetLumiFunctor)
+    JSON(json), GetLumi(GetLumiFunctor),
+    lumiType(lumiAxisType)
 {
     cout << __func__ << endl;
 
@@ -147,7 +148,7 @@ Trend::Trend (const char * name, const char * dir,
 
     assert(ymin < ymax);
     float xmax = GetLumi(GetLumi.firstRun, GetLumi.lastRun);
-    const char * axistitles = Form(";Delivered luminosity  [fb^{-1} ];%s", ytitle);
+    const char * axistitles = Form(";%s luminosity  [fb^{-1} ];%s", lumiType, ytitle);
     auto frame = c.DrawFrame(0., ymin, xmax, ymax, axistitles);
     frame->GetYaxis()->SetTitleOffset(0.8);
     frame->GetYaxis()->SetTickLength(0.01);

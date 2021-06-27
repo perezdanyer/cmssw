@@ -54,7 +54,7 @@ int trends(int argc, char* argv[]) {
   bool doRMS = validation.count("doRMS") ? validation.get<bool>("doRMS") : true;
   bool doUnitTest = validation.count("doUnitTest") ? validation.get<bool>("doUnitTest") : false;
   int nWorkers = validation.count("nWorkers") ? validation.get<int>("nWorkers") : 20;
-  TString lumiInputFile = validation.count("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
+  TString lumiInputFile = style.count("lumiInputFile") ? style.get<string>("lumiInputFile") : "lumiPerRun_Run2.txt";
 
   TString LumiFile = getenv("CMSSW_BASE");
   if (lumiInputFile.BeginsWith("/"))
@@ -68,6 +68,12 @@ int trends(int argc, char* argv[]) {
     cout << "ERROR: lumi-per-run file (" << LumiFile.Data() << ") not found!" << endl << "Please check!" << endl;
     exit(EXIT_FAILURE);
   }
+
+  string lumiAxisType = "recorded";
+  if(lumiInputFile.Contains("delivered"))
+    lumiAxisType ="delivered";
+
+  std::cout << Form("NOTE: using %s luminosity!", lumiAxisType.data()) << std::endl;
 
   for (auto const &childTreeAlignments : alignments) {
     fs::create_directory(childTreeAlignments.first.c_str());
@@ -121,9 +127,9 @@ int trends(int argc, char* argv[]) {
   for(size_t i=0; i<variables.size(); i++) {
   
     Trend mean(Form("mean_%s", variables[i].data()), outputdir.data(), Form("mean %s", titles[i].data()),
-	       Form("mean %s", ytitles[i].data()), -7., 10., style, GetLumi);
+	       Form("mean %s", ytitles[i].data()), -7., 10., style, GetLumi, lumiAxisType.data());
     Trend RMS (Form("RMS_%s", variables[i].data()), outputdir.data(), Form("RMS %s", titles[i].data()),
-	       Form("RMS %s", ytitles[i].data()), 0., 35., style, GetLumi);
+	       Form("RMS %s", ytitles[i].data()), 0., 35., style, GetLumi, lumiAxisType.data());
     mean.lgd.SetHeader("p_{T} (track) > 3 GeV");
     RMS.lgd.SetHeader("p_{T} (track) > 3 GeV");
   

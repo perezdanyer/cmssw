@@ -53,7 +53,7 @@ int trends(int argc, char* argv[]) {
   string outputdir = main_tree.get<string>("output");
   bool FORCE = validation.count("FORCE") ? validation.get<bool>("FORCE") : false;
   string Year = validation.count("Year") ? validation.get<string>("Year") : "Run2";
-  TString lumiInputFile = validation.count("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
+  TString lumiInputFile = style.count("lumiInputFile") ? style.get<string>("lumiInputFile") : "lumiPerRun_Run2.txt";
 
   TString LumiFile = getenv("CMSSW_BASE");
   if (lumiInputFile.BeginsWith("/"))
@@ -67,6 +67,12 @@ int trends(int argc, char* argv[]) {
     cout << "ERROR: lumi-per-run file (" << LumiFile.Data() << ") not found!" << endl << "Please check!" << endl;
     exit(EXIT_FAILURE);
   }
+
+  string lumiAxisType = "recorded";
+  if(lumiInputFile.Contains("delivered"))
+    lumiAxisType ="delivered";
+
+  std::cout << Form("NOTE: using %s luminosity!", lumiAxisType.data()) << std::endl;
 
   vector<int> IOVlist;
   vector<string> inputFiles;
@@ -191,7 +197,7 @@ int trends(int argc, char* argv[]) {
           cout << bold << name << normal << endl;
           
           float ymin = get<2>(DMR), ymax = get<3>(DMR);
-          Trend trend(Form("%s_%s_%s", Variable.second.get_value<string>().data(), structandlayer.Data(), name.Data()), outputdir.data(), ytitle, ytitle, ymin, ymax, style, GetLumi);
+          Trend trend(Form("%s_%s_%s", Variable.second.get_value<string>().data(), structandlayer.Data(), name.Data()), outputdir.data(), ytitle, ytitle, ymin, ymax, style, GetLumi, lumiAxisType.data());
           trend.lgd.SetHeader(structtitle);
           
           for (auto const &alignment : alignments) {

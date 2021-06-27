@@ -90,6 +90,7 @@ struct Trend {
 
     const boost::property_tree::ptree JSON; //!< contains coordinate for vertical lines
     const Run2Lumi& GetLumi; //!< functor to get luminosity for given subrange
+    const char * lumiType; //specify whether luminosity is recorded or delivered
 
     Trend //!< constructor, prepares canvas and frame
         (const char * name, //!< TCanvas name, also used for output PDF
@@ -99,7 +100,8 @@ struct Trend {
          float ymin, //!< y-axis minimum
          float ymax, //!< y-axis maximum
          boost::property_tree::ptree& json, //!< vertical lines from JSON
-         const Run2Lumi& GetLumiFunctor //!< functor
+         const Run2Lumi& GetLumiFunctor, //!< functor
+         const char * lumiAxisType //specify whether luminosity is recorded or delivered
          );
 
     ////////////////////////////////////////////////////////////////////////////////
