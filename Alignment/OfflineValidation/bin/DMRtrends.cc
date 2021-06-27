@@ -51,7 +51,6 @@ int trends(int argc, char* argv[]) {
   
   //Read all configure variables and set default for missing keys
   string outputdir = main_tree.get<string>("output");
-  bool fullRange = validation.count("fullRange") ? validation.get<bool>("fullRange") : false;
   bool FORCE = validation.count("FORCE") ? validation.get<bool>("FORCE") : false;
   string Year = validation.count("Year") ? validation.get<string>("Year") : "Run2";
   TString lumiInputFile = validation.count("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
@@ -195,16 +194,25 @@ int trends(int argc, char* argv[]) {
           Trend trend(Form("%s_%s_%s", Variable.second.get_value<string>().data(), structandlayer.Data(), name.Data()), outputdir.data(), ytitle, ytitle, ymin, ymax, style, GetLumi);
           trend.lgd.SetHeader(structtitle);
           
-          for (auto const &childTree : alignments) {
-            TString alignment = childTree.second.get<string>("title");
-            TString gname = Form("%s_%s_%s_%s", Variable.second.get_value<string>().data(), alignment.Data(), structandlayer.Data(), name.Data());
+          for (auto const &alignment : alignments) {
+
+	    bool fullRange = true;
+	    if(style.get_child("trends").count("earlyStops")) {
+	      for(auto const &earlyStop : style.get_child("trends.earlyStops")) {
+		if (earlyStop.second.get_value<string>().c_str() == alignment.first)
+		  fullRange = false;
+	      }
+	    }
+
+            TString gtitle = alignment.second.get<string>("title");
+            TString gname = Form("%s_%s_%s_%s", Variable.second.get_value<string>().data(), gtitle.Data(), structandlayer.Data(), name.Data());
             gname.ReplaceAll(" ", "_");
             auto g = Get<TGraphErrors>(gname);
             assert(g != nullptr);
             g->SetTitle(""); // for the legend
             g->SetMarkerSize(0.6);
-            int color = childTree.second.get<int>("color");
-            int style = childTree.second.get<int>("style");
+            int color = alignment.second.get<int>("color");
+            int style = alignment.second.get<int>("style");
             g->SetFillColorAlpha(color, 0.2);
             g->SetMarkerColor(color);
             g->SetMarkerStyle(style);

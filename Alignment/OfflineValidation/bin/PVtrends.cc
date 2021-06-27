@@ -52,7 +52,6 @@ int trends(int argc, char* argv[]) {
   //Read all configure variables and set default for missing keys
   string outputdir = main_tree.get<string>("output");
   bool doRMS = validation.count("doRMS") ? validation.get<bool>("doRMS") : true;
-  bool fullRange = validation.count("fullRange") ? validation.get<bool>("fullRange") : false;
   bool doUnitTest = validation.count("doUnitTest") ? validation.get<bool>("doUnitTest") : false;
   int nWorkers = validation.count("nWorkers") ? validation.get<int>("nWorkers") : 20;
   TString lumiInputFile = validation.count("lumiInputFile") ? validation.get<string>("lumiInputFile") : "lumiperFullRun2_delivered.txt";
@@ -128,8 +127,17 @@ int trends(int argc, char* argv[]) {
     mean.lgd.SetHeader("p_{T} (track) > 3 GeV");
     RMS.lgd.SetHeader("p_{T} (track) > 3 GeV");
   
-    for (auto const &childTree : alignments) {
-      TString gname = childTree.second.get<string>("title");
+    for (auto const &alignment : alignments) {
+
+      bool fullRange = true;
+      if(style.get_child("trends").count("earlyStops")) {
+	for(auto const &earlyStop : style.get_child("trends.earlyStops")) {
+	  if (earlyStop.second.get_value<string>().c_str() == alignment.first)
+	    fullRange = false;
+	}
+      }
+
+      TString gname = alignment.second.get<string>("title");
       gname.ReplaceAll(" ", "_");
     
       auto gMean = Get<TGraph>("mean_%s_%s", gname.Data(), variables[i].data());
@@ -137,12 +145,12 @@ int trends(int argc, char* argv[]) {
       assert(gMean != nullptr);
       assert(hRMS  != nullptr);
       
-      TString gtitle = childTree.second.get<string>("title");
+      TString gtitle = alignment.second.get<string>("title");
       //gMean->SetTitle(gtitle); // for the legend
       gMean->SetTitle(""); // for the legend
       gMean->SetMarkerSize(0.6);
-      int color = childTree.second.get<int>("color");
-      int style = childTree.second.get<int>("style");
+      int color = alignment.second.get<int>("color");
+      int style = alignment.second.get<int>("style");
       gMean->SetMarkerColor(color);
       gMean->SetMarkerStyle(style);
   
