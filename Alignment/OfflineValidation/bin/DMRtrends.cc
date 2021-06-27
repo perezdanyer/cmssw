@@ -52,7 +52,7 @@ int trends(int argc, char* argv[]) {
   //Read all configure variables and set default for missing keys
   string outputdir = main_tree.get<string>("output");
   bool FORCE = validation.count("FORCE") ? validation.get<bool>("FORCE") : false;
-  string Year = validation.count("Year") ? validation.get<string>("Year") : "Run2";
+  string year = validation.count("year") ? validation.get<string>("year") : "Run2";
   TString lumiInputFile = style.count("lumiInputFile") ? style.get<string>("lumiInputFile") : "lumiPerRun_Run2.txt";
 
   TString LumiFile = getenv("CMSSW_BASE");
@@ -65,6 +65,11 @@ int trends(int argc, char* argv[]) {
   fs::path pathToLumiFile = LumiFile.Data();
   if (!fs::exists(pathToLumiFile)) {
     cout << "ERROR: lumi-per-run file (" << LumiFile.Data() << ") not found!" << endl << "Please check!" << endl;
+    exit(EXIT_FAILURE);
+  }
+
+  if(!LumiFile.Contains(year)){
+    cout << "ERROR: lumi-per-run file must contain (" << year.data() << ")!" << endl << "Please check!" << endl;
     exit(EXIT_FAILURE);
   }
 
@@ -94,15 +99,20 @@ int trends(int argc, char* argv[]) {
 
   fs::path pname = Form("%s/PVtrends%s.root", outputdir.data(), labels_to_add.data());
 
-  PrepareDMRTrends prepareTrends(pname.c_str(), alignments);
+  vector<TString> structures{"BPIX", "BPIX_y", "FPIX", "FPIX_y", "TIB", "TID", "TOB", "TEC"};
 
+  map<TString, int> nlayers{{"BPIX", 4}, {"FPIX", 3}, {"TIB", 4}, {"TID", 3}, {"TOB", 6}, {"TEC", 9}};
+  if (year == "2016")
+    nlayers = {{"BPIX", 3}, {"FPIX", 2}, {"TIB", 4}, {"TID", 3}, {"TOB", 6}, {"TEC", 9}};
+
+  PrepareDMRTrends prepareTrends(pname.c_str(), alignments);
   if (validation.count("Variables")) {
     for (auto const &Variable : validation.get_child("Variables")) {
-      prepareTrends.compileDMRTrends(IOVlist, Variable.second.get_value<string>(), Year, inputFiles, FORCE);
+      prepareTrends.compileDMRTrends(IOVlist, Variable.second.get_value<string>(), inputFiles, structures, nlayers, FORCE);
     }
   }
   else
-    prepareTrends.compileDMRTrends(IOVlist, "median", Year, inputFiles, FORCE);
+    prepareTrends.compileDMRTrends(IOVlist, "median", inputFiles, structures, nlayers, FORCE);
 
   assert(fs::exists(pname));
 
@@ -110,12 +120,6 @@ int trends(int argc, char* argv[]) {
   int lastRun = validation.count("lastRun") ? validation.get<int>("lastRun") : 325175;
   
   const Run2Lumi GetLumi(LumiFile.Data(), firstRun, lastRun);
-
-  vector<TString> structures{"BPIX", "BPIX_y", "FPIX", "FPIX_y", "TIB", "TID", "TOB", "TEC"};
-
-  map<TString, int> nlayers{{"BPIX", 4}, {"FPIX", 3}, {"TIB", 4}, {"TID", 3}, {"TOB", 6}, {"TEC", 9}};
-  if (Year == "2016")
-    nlayers = {{"BPIX", 3}, {"FPIX", 2}, {"TIB", 4}, {"TID", 3}, {"TOB", 6}, {"TEC", 9}};
   
   auto f = TFile::Open(pname.c_str());
 

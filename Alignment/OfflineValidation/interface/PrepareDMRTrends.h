@@ -167,11 +167,11 @@ class PrepareDMRTrends {
   ~PrepareDMRTrends(){}
 
   TString getName(TString structure, int layer, TString geometry);
-  const std::map<TString, int> numberOfLayers(TString Year);
   void compileDMRTrends(std::vector<int> IOVlist,
 			TString Variable,
-			TString Year,
 			std::vector<std::string> inputFiles,
+			std::vector<TString> structures,
+			const std::map<TString, int> nlayers,
 			bool FORCE = false);
 
  private:

@@ -32,32 +32,17 @@ TString PrepareDMRTrends::getName(TString structure, int layer, TString geometry
   return name;
 };
 
-/*! \fn numberOfLayers
- *  \brief Function used to retrieve a map containing the number of layers per subdetector
- */
-
-const map<TString, int> PrepareDMRTrends::numberOfLayers(TString Year) {
-  if (Year == "2016")
-    return {{"BPIX", 3}, {"FPIX", 2}, {"TIB", 4}, {"TID", 3}, {"TOB", 6}, {"TEC", 9}};
-  else
-    return {{"BPIX", 4}, {"FPIX", 3}, {"TIB", 4}, {"TID", 3}, {"TOB", 6}, {"TEC", 9}};
-}
-
-
 /*! \fn compileDMRTrends
  *  \brief  Create a file where the DMR trends are stored in the form of TGraph.
  */
 
 void PrepareDMRTrends::compileDMRTrends(vector<int> IOVlist,
                       TString Variable,
-                      TString Year,
 		      std::vector<std::string> inputFiles,
+		      vector<TString> structures,
+		      const map<TString, int> nlayers,
                       bool FORCE) {
   gROOT->SetBatch();
-
-  vector<TString> structures{"BPIX", "BPIX_y", "FPIX", "FPIX_y", "TIB", "TID", "TOB", "TEC"};
-
-  const map<TString, int> nlayers = numberOfLayers(Year);
 
   float ScaleFactor = DMRFactor;
   if (Variable == "DrmsNR")
