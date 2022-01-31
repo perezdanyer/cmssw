@@ -1,5 +1,5 @@
 LFS: /eos/cms/store/group/alca_trackeralign/AlignmentValidation/AlignmentValidation/NewTool
-name: alignments_multiple_merge_jobs
+name: example_multiple_merge_jobs
 alignments:
     2016postVFPMC:
         color: 632
@@ -38,8 +38,7 @@ validations:
                 m_dzEtaMax: 50
             1718MC:
                 singles:
-                - 2017MC
-                - 2018MC
+                - 2017And2018MC
                 doMaps: true
                 stdResiduals: true
                 autoLimits: false
@@ -54,42 +53,32 @@ validations:
                 - 316254
                 alignments:
                 - 2016postVFPMC
-                dataset: /afs/cern.ch/user/h/hpeterse/new_validation_tool/CMSSW_11_0_0/src/Alignment/OfflineValidation/test/Dataset_Validation_TkAlMinBias_highStatAtCern_2016_final.txt
+                dataset: EXAMPLE_PATH/EXAMPLE_NAME_1_{}.txt
                 maxevents: 50000
                 trackcollection: ALCARECOTkAlMinBias
                 vertexcollection: offlinePrimaryVertices
-                isda: true
+                isda: false
                 ismc: true
             2016preVFPMC:
                 IOV:
                 - 316254
                 alignments:
                 - 2016preVFPMC
-                dataset: /afs/cern.ch/user/h/hpeterse/new_validation_tool/CMSSW_11_0_0/src/Alignment/OfflineValidation/test/Dataset_Validation_TkAlMinBias_highStatAtCern_2016_final.txt
+                dataset: EXAMPLE_PATH/EXAMPLE_NAME_2_{}.txt
                 maxevents: 50000
                 trackcollection: ALCARECOTkAlMinBias
                 vertexcollection: offlinePrimaryVertices
-                isda: true
+                isda: false
                 ismc: true
-            2017MC:
+            2017And2018MC:
                 IOV:
                 - 316254
                 alignments:
                 - 2017MC
-                dataset: /afs/cern.ch/user/h/hpeterse/new_validation_tool/CMSSW_11_0_0/src/Alignment/OfflineValidation/test/Dataset_Validation_TkAlMinBias_highStatAtCernStore_2017_final.txt
-                maxevents: 50000
-                trackcollection: ALCARECOTkAlMinBias
-                vertexcollection: offlinePrimaryVertices
-                isda: true
-                ismc: true
-            2018MC:
-                IOV:
-                - 316254
-                alignments:
                 - 2018MC
-                dataset: /afs/cern.ch/user/h/hpeterse/new_validation_tool/CMSSW_11_0_0/src/Alignment/OfflineValidation/test/Dataset_Validation_TkAlMinBias_highStatAtCernStore_2018_final.txt
+                dataset: EXAMPLE_PATH/EXAMPLE_NAME_3_{}.txt
                 maxevents: 50000
                 trackcollection: ALCARECOTkAlMinBias
                 vertexcollection: offlinePrimaryVertices
-                isda: true
+                isda: false
                 ismc: true
