@@ -30,6 +30,7 @@
 #include "TStyle.h"
 #include "TSystem.h"
 #include "TTree.h"
+#include "TTreeReader.h"
 
 #include <algorithm>
 #include <cmath>
@@ -123,7 +124,12 @@ public:
       const std::string& plotVar = "medianX",
       Int_t minHits = 50,
       const std::string& options =
-          "plain");  // plotVar=mean,meanX,meanY,median,rms etc., comma-separated list can be given; minHits=the minimum hits needed for module to appear in plot; options="plain" for regular DMR, "split" for inwards/outwards split, "layers" for layerwise DMR, "layer=N" for Nth layer, or combination of the previous (e.g. "split layers")
+          "plain",
+      const std::string& filterName = "");  
+  // plotVar=mean,meanX,meanY,median,rms etc., comma-separated list can be given; 
+  // minHits=the minimum hits needed for module to appear in plot; 
+  // options="plain" for regular DMR, "split" for inwards/outwards split, "layers" for layerwise DMR, "layer=N" for Nth layer, or combination of the previous (e.g. "split layers")
+  // filterName=rootfile containing tree with module ids to be skipped in plotting (to be used for averaged plots or in debugging)
   void plotSurfaceShapes(const std::string& options = "layers", const std::string& variable = "");
   void plotChi2(const char* inputFile);
   // plotSurfaceShapes: options="split","layers"/"layer","subdet"
@@ -162,6 +168,7 @@ public:
     TH1F* h1;
     TH1F* h2;
     bool firsthisto;
+    std::string filterName;
   };
 
 private:
