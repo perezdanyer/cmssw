@@ -155,15 +155,15 @@ int trends(int argc, char* argv[]) {
       TString gtitle = alignment.second.get<string>("title");
       gMean->SetTitle(gtitle); // for the legend
       //gMean->SetTitle(""); // for the legend
-      gMean->SetMarkerSize(0.8);
+      gMean->SetMarkerSize(0.6);
       int color = alignment.second.get<int>("color");
-      int style = (int)(((double) alignment.second.get<int>("style"))/100.);
+      int style = floor (alignment.second.get<double>("style")/100.);
       gMean->SetMarkerColor(color);
       gMean->SetMarkerStyle(style);
   
       hRMS ->SetTitle(gtitle); // for the legend
       //hRMS ->SetTitle(""); // for the legend
-      hRMS ->SetMarkerSize(0.8);
+      hRMS ->SetMarkerSize(0.6);
       hRMS ->SetMarkerColor(color);
       hRMS ->SetMarkerStyle(style);
     

@@ -24,7 +24,7 @@ struct Run2Lumi {
 
     const int firstRun, //!< first run, starting at lumi = 0 on the x-axis of the trend
               lastRun;  //!< last run (excluded!), starting at the max lumi on the x-axis of the trend
-    float convertUnit;
+    const float convertUnit;
 
 private:
     std::map<int, float> runs; //!< couples of run and corresponding luminosity
@@ -42,7 +42,7 @@ public:
          (boost::filesystem::path file, //!< path to a 2-column file with 6-digit run number and lumi in /pb
          int first, //!< 6-digit run number (included)
 	 int last, //!< 6-digit run number (excluded)
-	 float convertUnit //default is from pb to fb
+	 float convertUnit //!< default is from pb to fb
          );
 
     ////////////////////////////////////////////////////////////////////////////////

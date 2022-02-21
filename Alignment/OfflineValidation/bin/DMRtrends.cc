@@ -221,9 +221,9 @@ int trends(int argc, char* argv[]) {
             auto g = Get<TGraphErrors>(gname);
             assert(g != nullptr);
             g->SetTitle(gtitle); // for the legend
-            g->SetMarkerSize(0.8);
+            g->SetMarkerSize(0.6);
             int color = alignment.second.get<int>("color");
-	    int style = (int)(((double) alignment.second.get<int>("style"))/100.);
+	    int style = floor (alignment.second.get<double>("style")/100.);
             g->SetFillColorAlpha(color, 0.2);
             g->SetMarkerColor(color);
             g->SetMarkerStyle(style);
