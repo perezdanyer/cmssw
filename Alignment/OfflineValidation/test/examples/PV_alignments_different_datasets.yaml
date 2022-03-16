@@ -48,7 +48,7 @@ validations:
                 maxevents: 50000
                 trackcollection: ALCARECOTkAlMinBias
                 vertexcollection: offlinePrimaryVertices
-                isda: false
+                isda: true
                 ismc: true
             2016preVFPMC:
                 IOV:
@@ -59,7 +59,7 @@ validations:
                 maxevents: 50000
                 trackcollection: ALCARECOTkAlMinBias
                 vertexcollection: offlinePrimaryVertices
-                isda: false
+                isda: true
                 ismc: true
             2017And2018MC:
                 IOV:
@@ -71,5 +71,5 @@ validations:
                 maxevents: 50000
                 trackcollection: ALCARECOTkAlMinBias
                 vertexcollection: offlinePrimaryVertices
-                isda: false
+                isda: true
                 ismc: true
