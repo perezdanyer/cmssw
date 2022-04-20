@@ -16,10 +16,14 @@ options.register ('config',
                   VarParsing.VarParsing.multiplicity.singleton, # singleton or list
                   VarParsing.VarParsing.varType.string,         # string, int, or float
                   "AllInOne config.")
+options.register ('runType',
+                  "condor", # Default file
+                  VarParsing.VarParsing.multiplicity.singleton, # singleton or list
+                  VarParsing.VarParsing.varType.string,         # string, int, or float
+                  "AllInOne config.")
 options.parseArguments()
 
 #Read in AllInOne config in JSON format
-from Alignment.OfflineValidation.TkAlAllInOneTool.utils import _byteify
 import json
 import os
 
@@ -28,7 +32,7 @@ if options.config == "":
                      "alignment": {}}
 else:
     with open(options.config, "r") as configFile:
-        configuration = _byteify(json.load(configFile, object_hook=_byteify), ignore_dicts=True)
+        configuration = json.load(configFile)
 
 # Read parameters from the configuration file
 useMC = configuration["validation"].get("mc", False)
@@ -218,9 +222,12 @@ process.jetHTAnalyzer = cms.EDAnalyzer('JetHTAnalyzer',
                                        iovList = cms.untracked.vint32(iovListList)
                                        )
 
+outputName = "{}/JetHTAnalysis.root".format(configuration.get("output", os.getcwd()))
+if options.runType == "crab":
+    outputName = "JetHTAnalysis.root"
 
 process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string("{}/JetHTAnalysis.root".format(configuration.get("output", os.getcwd()))),	
+                                   fileName = cms.string(outputName),	
                                    closeFileFast = cms.untracked.bool(False)
                                    )
 

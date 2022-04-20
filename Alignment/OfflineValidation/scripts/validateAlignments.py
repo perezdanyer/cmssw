@@ -195,6 +195,15 @@ def main():
 
             dag.write("\n\n")
 
+            ## If there is a crab configuration file defined in the configuration, make it
+            if "crabConfigurationFile" in job["config"]:
+
+                with open("{}/crabConfiguration.py".format(job["dir"]), "w") as crabFile:
+                    for line in job["config"]["crabConfigurationFile"]:
+                        crabFile.write(line + "\n")
+
+
+
     if args.verbose:
         print("DAGman config has been written: '{}'".format("{}/DAG/dagFile".format(validationDir)))            
 

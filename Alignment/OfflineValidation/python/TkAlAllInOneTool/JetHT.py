@@ -1,30 +1,109 @@
 import copy
 import os
+import getpass
+from datetime import date
+
+# Path digesting function copied from validateAlignments.py
+def digest_path(path):
+    # split path in folders
+    path_s = str(path).split(os.sep)
+
+    path_d_s = []
+    for part in path_s:
+        # Look for environment variables such as $CMSSW_BASE
+        if part.startswith('$'):
+            env_var = part[1:].replace('{', '').replace('}', '')
+            path_d_s.append(os.environ[env_var])
+        else: path_d_s.append(part)
+
+    # re join folders in to a path
+    path_d = os.path.join(*path_d_s)
+
+    # re add front / if needed
+    if path.startswith(os.sep): path_d = os.sep + path_d
+
+    return path_d
 
 def JetHT(config, validationDir):
-    ##List with all and merge jobs
+
+    # List with all and merge jobs
     jobs = []
     mergeJobs = []
     runType = "single"
 
-    ##Start with single DMR jobs
+    # Find today
+    today = date.today()
+    dayFormat = today.strftime("%Y-%m-%d")
+
+    # Start with single JetHT jobs
     if not runType in config["validations"]["JetHT"]: 
         raise Exception("No 'single' key word in config for JetHT") 
 
     for datasetName in config["validations"]["JetHT"][runType]:
 
         for alignment in config["validations"]["JetHT"][runType][datasetName]["alignments"]:
-            ##Work directory for each alignment
+            # Work directory for each alignment
             workDir = "{}/JetHT/{}/{}/{}".format(validationDir, runType, datasetName, alignment)
 
-            ##Write local config
+            # For all the strings in the configuration, expand environment variables
+            for key in config["validations"]["JetHT"][runType][datasetName]:
+                if isinstance(config["validations"]["JetHT"][runType][datasetName][key], str):
+                    config["validations"]["JetHT"][runType][datasetName][key] = digest_path(config["validations"]["JetHT"][runType][datasetName][key])
+
+            # Write local config
             local = {}
             local["output"] = "{}/{}/JetHT/{}/{}/{}".format(config["LFS"], config["name"], runType, datasetName, alignment)
             local["alignment"] = copy.deepcopy(config["alignments"][alignment])
             local["validation"] = copy.deepcopy(config["validations"]["JetHT"][runType][datasetName])
             local["validation"].pop("alignments")
 
-            ##Write job info
+            if "dataset" in config["validations"]["JetHT"][runType][datasetName]:
+                inputList = config["validations"]["JetHT"][runType][datasetName]["dataset"]
+            else:
+                inputList = "needToHaveSomeDefaultFileHere.txt"
+
+            crabOutput = ""
+
+            # Add crab configuration file to the local config
+            crabFile = [
+              "from WMCore.Configuration import Configuration",
+              "config = Configuration()",
+              "",
+              "inputList = \'{}\'".format(inputList),
+              "jobTag = \'TkAlJetHTAnalysis_{}_{}_{}_{}\'".format(runType, datasetName, alignment, dayFormat),
+              "",
+              "config.section_(\"General\")",
+              "config.General.requestName = jobTag",
+              "config.General.workArea = config.General.requestName",
+              "config.General.transferOutputs = True",
+              "config.General.transferLogs = False",
+              "",
+              "config.section_(\"JobType\")",
+              "config.JobType.pluginName = \'Analysis\'",
+              "config.JobType.psetName = \'validation_cfg.py\'",
+              "config.JobType.pyCfgParams = [\'config=validation.json\', \'runType=crab\']",
+              "config.JobType.inputFiles = [\'validation.json\']",
+              "config.JobType.numCores = 1",
+              "config.JobType.maxMemoryMB = 1200",
+              "config.JobType.maxJobRuntimeMin = 900",
+              "",
+              "config.section_(\"Data\")",
+              "config.Data.userInputFiles = open(inputList).readlines()",
+              "config.Data.splitting = \'FileBased\'",
+              "config.Data.unitsPerJob = 5",
+              "config.Data.totalUnits = len(config.Data.userInputFiles)",
+              "config.Data.outputPrimaryDataset = \'AlignmentValidationJetHT\'",
+              "config.Data.outLFNDirBase = \'/store/group/alca_trackeralign/{}/\' + config.General.requestName".format(getpass.getuser()),
+              "config.Data.publication = False",
+              "",
+              "config.section_(\"Site\")",
+              "config.Site.whitelist = ['T2_CH_*','T2_DE_*','T2_FR_*','T2_IT_*']",
+              "config.Site.storageSite = 'T2_CH_CERN'"
+            ]
+
+            local["crabConfigurationFile"] = crabFile
+
+            # Write job info
             job = {
                 "name": "JetHT_{}_{}_{}".format(runType, alignment, datasetName),
                 "dir": workDir,
@@ -77,6 +156,7 @@ def JetHT(config, validationDir):
                     "exe": "addHistograms.sh",
                     "exeArguments": "{} {} {} JetHTAnalysis_merged".format(localRun, eosInputDirectory, eosOutputDirectory),
                     "run-mode": "Condor",
+                    "flavour": "espresso",
                     "config": local,
                     "dependencies": [],
                 }
@@ -101,6 +181,11 @@ def JetHT(config, validationDir):
 
         ##Loop over all merge jobs/IOVs which are wished
         for datasetName in config["validations"]["JetHT"][runType]:
+
+            # For all the strings in the configuration, expand environment variables
+            for key in config["validations"]["JetHT"][runType][datasetName]:
+                if isinstance(config["validations"]["JetHT"][runType][datasetName][key], str):
+                    config["validations"]["JetHT"][runType][datasetName][key] = digest_path(config["validations"]["JetHT"][runType][datasetName][key])
 
             #Work and output directories for each dataset
             workDir = "{}/JetHT/{}/{}".format(validationDir, runType, datasetName)
@@ -147,6 +232,7 @@ def JetHT(config, validationDir):
                 "dir": workDir,
                 "exe": "jetHtPlotter",
                 "run-mode": "Condor",
+                "flavour": "espresso",
                 "config": local,
                 "dependencies": [],
             }
