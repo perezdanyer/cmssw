@@ -10,6 +10,7 @@
 #include <TGraphErrors.h>
 #include <TLegend.h>
 #include <TLine.h>
+#include <TSystem.h>
 
 // AllInOneTool includes
 #include "Options.h"
@@ -60,7 +61,46 @@ void drawSingleHistogram(TH1D *histogram[kMaxFiles], const char *saveName, bool 
 }
 
 /*
- *  Construct vectors of ptHet files and the ptHat value in each of those files
+ *  Find a good range for the y-axes of the histograms
+ *
+ *  Arguments:
+ *   TH1D *histogram[kMaxFiles] = Histogram array from which the Y-axis range is searched
+ *
+ *  return:
+ *   Tuple containing the minimum and maximum zoom for the histogram Y-axis
+ */
+std::tuple<double, double> findHistogramYaxisRange(TH1D *histogram[kMaxFiles]){
+  
+  // Find the smallest minimum and largest maximum from the histograms
+  double minValue = histogram[0]->GetMinimum();
+  double maxValue = histogram[0]->GetMaximum();
+  
+  double newMinValue, newMaxValue;
+  
+  for(int iFile = 1; iFile < kMaxFiles; iFile++){
+    if(histogram[iFile]){
+      newMinValue = histogram[iFile]->GetMinimum();
+      newMaxValue = histogram[iFile]->GetMaximum();
+      
+      if(newMinValue < minValue) minValue = newMinValue;
+      if(newMaxValue > maxValue) maxValue = newMaxValue;
+    }
+  }
+  
+  // Add some margin below the minimum and over the maximum
+  double margin = 0.075;
+  double totalSpan = maxValue - minValue;
+  minValue = minValue - margin * totalSpan;
+  if(minValue < 0) minValue = 0;
+  maxValue = maxValue + margin * totalSpan;
+  
+  // Return the minimum and maximum values
+  return std::make_tuple(minValue, maxValue);
+  
+}
+
+/*
+ *  Construct vectors of ptHat files and the ptHat value in each of those files
  *
  *  Arguments:
  *   const char* inputFile = File containing the list of ptHat separated files and ptHat bin in each file
@@ -402,6 +442,17 @@ void jetHtPlotter(std::string configurationFileName){
   // ================ Configuration done ==================
   // ======================================================
   
+  // =======================================================
+  //   Make sure that the output folder for figures exists
+  // =======================================================
+
+  if(saveFigures){
+    TString outputFolderStatus = gSystem->GetFromPipe("if [ -d output ]; then echo true; else echo false; fi");
+    if(outputFolderStatus == "false"){
+      gSystem->Exec("mkdir output");
+    }
+  }
+
   // ===============================================================
   //   Read different ptHat files for combining those with weights
   // ===============================================================
@@ -592,7 +643,12 @@ void jetHtPlotter(std::string configurationFileName){
   JDrawer *drawer = new JDrawer();
   TLegend *legend[2];
   bool noIovFound = true;
-  
+  double minZoomY, maxZoomY;
+  TH1D *histogramSearchArray[kMaxFiles];
+  for(int iFile = 0; iFile < kMaxFiles; iFile++){
+    histogramSearchArray[iFile] = NULL;
+  }  
+
   // Draw track and vertex histograms
   if(drawTrackQA){
     drawSingleHistogram(hVertex, Form("vertex%s",saveComment), saveFigures, legendComment, 0, normalizeQAplots, false, fileColor);
@@ -613,6 +669,14 @@ void jetHtPlotter(std::string configurationFileName){
         legend[0]->SetTextSize(0.05);legend[0]->SetTextFont(62);
         
         if(jetHtHistograms[0][iHistogramType][iIov] != NULL){
+
+          for(int iFile = 0; iFile < compareFiles; iFile++){
+            histogramSearchArray[iFile] = jetHtHistograms[iFile][iHistogramType][iIov];
+          }
+          
+          std::tie(minZoomY, maxZoomY) = findHistogramYaxisRange(histogramSearchArray);
+          jetHtHistograms[0][iHistogramType][iIov]->GetYaxis()->SetRangeUser(minZoomY, maxZoomY);
+
           drawer->DrawHistogram(jetHtHistograms[0][iHistogramType][iIov], histogramXaxis[iHistogramType], "tracks", iovNames.at(iIov).Data());
           legend[0]->AddEntry(jetHtHistograms[0][iHistogramType][iIov],legendComment[0],"l");
           
