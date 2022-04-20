@@ -65,7 +65,7 @@
             "minZoomDxyTrend": 10,
             "maxZoomDxyTrend": 90
         },
-        "lumiPerIovFile": "CMSSW_BASE/src/Alignment/OfflineValidation/data/lumiPerRun_Run2.txt",
+        "lumiPerIovFile": "$CMSSW_BASE/src/Alignment/OfflineValidation/data/lumiPerRun_Run2.txt",
         "drawYearLines": true,
         "runsForLines": [290543,314881],
         "drawPlotsForEachIOV": false,
