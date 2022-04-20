@@ -157,7 +157,10 @@ void JetHtPlotConfiguration::ReadJsonFile(const std::string fileName){
     try{
       thisValue = configuration.get_child(Form("jethtplot.alignments.%s.inputFile", alignmentName.c_str())).get_value<std::string>();
 
-      // From the file name, replace CMSSW_BASE string with this shell variable
+      // From the file name, expand possible environment variables
+      AutoExpandEnvironmentVariables(thisValue);
+
+      // Expand CMSSW_BASE event without preceding $-sign
       boost::replace_all(thisValue, "CMSSW_BASE", getenv("CMSSW_BASE"));
 
       fInputFileNames.push_back(thisValue);
@@ -342,7 +345,10 @@ void JetHtPlotConfiguration::ReadJsonFile(const std::string fileName){
   try{
     fLumiPerIovFile = configuration.get_child(Form("jethtplot.%s", fJsonLumiPerIovFile.c_str())).get_value<std::string>();
 
-    // From the file name, replace CMSSW_BASE string with this shell variable
+    // From the file name, expand environment variables
+    AutoExpandEnvironmentVariables(fLumiPerIovFile);
+
+    // Expand CMSSW_BASE event without preceding $-sign
     boost::replace_all(fLumiPerIovFile, "CMSSW_BASE", getenv("CMSSW_BASE"));
 
   } catch(const std::exception& e){
@@ -403,7 +409,10 @@ void JetHtPlotConfiguration::ReadJsonFile(const std::string fileName){
   try{
     fIovListForSlides = configuration.get_child(Form("jethtplot.%s", fJsonIovListForSlides.c_str())).get_value<std::string>();
 
-    // From the file name, replace CMSSW_BASE string with this shell variable
+    // From the file name, expand environment variables
+    AutoExpandEnvironmentVariables(fIovListForSlides);
+
+    // Expand CMSSW_BASE event without preceding $-sign
     boost::replace_all(fIovListForSlides, "CMSSW_BASE", getenv("CMSSW_BASE"));
 
   } catch(const std::exception& e){
@@ -642,3 +651,20 @@ const char* JetHtPlotConfiguration::GetIovListForSlides() const{
   return fIovListForSlides.c_str();
 }
 
+// Expand environmental variables updating the input string
+void JetHtPlotConfiguration::AutoExpandEnvironmentVariables(std::string &text) const{
+    static std::regex env( "\\$\\{?([^}\\/]+)\\}?\\/" );
+    std::smatch match;
+    while ( std::regex_search( text, match, env ) ) {
+        const char *s = getenv( match[1].str().c_str() );
+        const std::string var( s == NULL ? "" : Form("%s/", s) );
+        text.replace( match[0].first, match[0].second, var );
+    }
+}
+
+// Expand environmental variables to a new string
+std::string JetHtPlotConfiguration::ExpandEnvironmentVariables(const std::string &input) const{
+    std::string text = input;
+    AutoExpandEnvironmentVariables(text);
+    return text;
+}

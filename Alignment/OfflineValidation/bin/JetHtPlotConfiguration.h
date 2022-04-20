@@ -13,6 +13,8 @@
 #include <iostream>
 #include <vector>
 #include <stdlib.h>
+#include <string>
+#include <regex>
 
 // Root includes
 #include <TString.h>
@@ -79,6 +81,10 @@ public:
 
 private:
   
+  // Methods to expand environtental variables in the configuration
+  void AutoExpandEnvironmentVariables(std::string &text) const;
+  std::string ExpandEnvironmentVariables(const std::string &input) const;
+
   // Strings correcponding to configuration in the JSON file
   std::string fJsonTrackQAname = "drawTrackQA";
   std::string fJsonCategoryNameHistogram = "drawHistograms";
