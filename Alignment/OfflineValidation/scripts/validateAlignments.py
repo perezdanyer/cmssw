@@ -9,6 +9,7 @@ import os
 import argparse
 import pprint
 import sys
+import shutil
 
 import Alignment.OfflineValidation.TkAlAllInOneTool.GCP as GCP
 import Alignment.OfflineValidation.TkAlAllInOneTool.DMR as DMR
@@ -47,6 +48,40 @@ def digest_path(path):
 
     return path_d
 
+##############################################
+def check_proxy():
+##############################################
+    """Check if GRID proxy has been initialized."""
+
+    try:
+        with open(os.devnull, "w") as dump:
+            subprocess.check_call(["voms-proxy-info", "--exists"],
+                                  stdout = dump, stderr = dump)
+    except subprocess.CalledProcessError:
+        return False
+    return True
+
+##############################################
+def forward_proxy(rundir):
+##############################################
+    """Forward proxy to location visible from the batch system.
+    Arguments:
+    - `rundir`: directory for storing the forwarded proxy
+    Return:
+    - Full path to the forwarded proxy
+    """
+
+    if not check_proxy():
+        print("Please create proxy via 'voms-proxy-init -voms cms'.")
+        sys.exit(1)
+
+    ## Move the proxy to the run directory
+    proxyName = "{}/.user_proxy".format(rundir)
+    localProxy = subprocess.check_output(["voms-proxy-info", "--path"]).strip()
+    shutil.copyfile(localProxy, proxyName)
+
+    ## Return the path to the forwarded proxy
+    return proxyName
 
 def main():
     ##Read parser arguments
@@ -124,6 +159,11 @@ def main():
             subprocess.call(["mkdir", "-p", job["config"]["output"]] + (["-v"] if args.verbose else []))
             subprocess.call(["ln", "-fs", job["config"]["output"], "{}/output".format(job["dir"])] + (["-v"] if args.verbose else []))
 
+            ## Forward the proxy to the job directory
+            if args.verbose:
+                print("Forwarding grid proxy to directory {}".format(job["dir"]))
+            myProxy = forward_proxy(job["dir"])
+
             ##Create symlink for executable/python cms config if needed
             subprocess.call("cp -f $(which {}) {}".format(job["exe"], exeDir) + (" -v" if args.verbose else ""), shell = True)
             subprocess.call(["ln", "-fs", "{}/{}".format(exeDir, job["exe"]), job["dir"]] + (["-v"] if args.verbose else []))
@@ -149,6 +189,7 @@ def main():
                     "#!/bin/bash",
                     "cd $CMSSW_BASE/src",
                     "source /cvmfs/cms.cern.ch/cmsset_default.sh",
+                    "export X509_USER_PROXY={}".format(myProxy),
                     "eval `scram runtime -sh`",
                     "cd {}".format(job["dir"]),
                     "./{} {}validation.json".format(job["exe"], "validation_cfg.py config=" if "cms-config" in job else ""),
