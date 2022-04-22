@@ -108,9 +108,9 @@ else:
     print(">>>>>>>>>> JetHT_cfg.py: msg%-i: dataset not specified in configuration! Loading default file!")
 
     if useMC:
-        print(">>>>>>>>>> JetHT_cfg.py: msg%-i: Default file for 2017 MC from 170-300 pT hat bin.")
+        print(">>>>>>>>>> JetHT_cfg.py: msg%-i: Default file for 2018 MC from 170-300 pT hat bin.")
         process.source = cms.Source("PoolSource",
-                              fileNames = cms.untracked.vstring('root://xrootd-cms.infn.it//store/mc/RunIIWinter19PFCalibDRPremix/QCD_Pt_170to300_TuneCP5_13TeV_pythia8/ALCARECO/TkAlMinBias-2017Conditions_105X_mc2017_realistic_v5-v1/10000/A4C71578-282D-384C-AF19-9A685808EEB8.root')
+                              fileNames = cms.untracked.vstring('root://xrootd-cms.infn.it//store/mc/RunIIWinter19PFCalibDRPremix/QCD_Pt_170to300_TuneCP5_13TeV_pythia8/ALCARECO/TkAlMinBias-2018Conditions_105X_upgrade2018_realistic_v4-v1/270000/C42688BC-7401-3A41-9008-7CD1CA4B09E1.root')
                               )
     else:
         print(">>>>>>>>>> JetHT_cfg.py: msg%-i: Default file read from 2018D JetHT dataset.")
