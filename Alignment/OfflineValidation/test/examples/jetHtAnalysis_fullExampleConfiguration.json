@@ -29,7 +29,9 @@
                     "alignments": ["prompt", "rereco", "ultralegacy"],
                     "trackCollection": "ALCARECOTkAlMinBias",
                     "dataset": "$CMSSW_BASE/src/Alignment/OfflineValidation/test/examples/jetHtFilesForRun2018A_first100files.txt",
-                    "iovListFile": "$CMSSW_BASE/src/Alignment/OfflineValidation/data/lumiPerRun_Run2.txt"
+                    "filesPerJob": 1,
+                    "iovListFile": "$CMSSW_BASE/src/Alignment/OfflineValidation/data/lumiPerRun_Run2.txt",
+                    "maxevents": 1000
                 }
             },
             "merge": {

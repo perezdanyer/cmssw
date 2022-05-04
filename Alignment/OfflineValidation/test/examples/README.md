@@ -79,6 +79,20 @@ jetHtPlotter validation.json
 
 The final validation plots appear to the output folder. If you want to change the style of the plots or the histograms plotted, you can edit the validation.json file here and rerun the plotter. No need to redo the time-consuming analysis part.
 
+## Full example using condor
+
+The CRAB running is recommended for large datasets, but smaller tests can also be readily done with condor. For condor running, the same exmaple configuration file is set up to analyze 1000 events from each file. You can run everything with the command:
+
+```
+validateAlignments.py -j espresso jetHtAnalysis_fullExampleConfiguration.json
+```
+
+Then you just wait for your jobs to get submitted, and soon afterwards the plots will appear in the folder
+
+```
+cd $CMSSW_BASE/src/Alignment/OfflineValidation/test/examples/example_json_jetHT/JetHT/plot/fullExample/output
+```
+
 ## jetHt_multiYearTrendPlot.json
 
 This configuration shows how to plot multi-year trend plots using previously merged jetHT validation files. It uses the jetHT plotting macro standalone. You can run this example using
