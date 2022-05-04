@@ -84,6 +84,13 @@ def forward_proxy(rundir):
     return proxyName
 
 def main():
+
+    ## Before doing anything, check that grip proxy exists
+    if not check_proxy():
+        print("Grid proxy is required in most use cases of the tool.")
+        print("Please create a proxy via 'voms-proxy-init -voms cms'.")
+        sys.exit(1)
+
     ##Read parser arguments
     args = parser()
 
@@ -157,6 +164,7 @@ def main():
             ##Create job dir, output dir
             subprocess.call(["mkdir", "-p", job["dir"]] + (["-v"] if args.verbose else []))
             subprocess.call(["mkdir", "-p", job["config"]["output"]] + (["-v"] if args.verbose else []))
+            subprocess.call(["mkdir", "-p", "{}/condor".format(job["dir"])] + (["-v"] if args.verbose else []))
             subprocess.call(["ln", "-fs", job["config"]["output"], "{}/output".format(job["dir"])] + (["-v"] if args.verbose else []))
 
             ## Forward the proxy to the job directory
@@ -192,13 +200,17 @@ def main():
                     "export X509_USER_PROXY={}".format(myProxy),
                     "eval `scram runtime -sh`",
                     "cd {}".format(job["dir"]),
-                    "./{} {}validation.json".format(job["exe"], "validation_cfg.py config=" if "cms-config" in job else ""),
+                    "./{} {}validation.json".format(job["exe"], "validation_cfg.py config=" if "cms-config" in job else "")
                 ]
+
+                # Option to include the condor job number given as a command line argument
+                if "nCondorJobs" in job:
+                    runContent.insert(len(runContent)-1,"JOBNUMBER=${1:--1}")
 
                 # Option the give free arguments to the executable
                 if "exeArguments" in job:
                     runContent.pop()
-                    runContent.append("./{} {}".format(job["exe"],job["exeArguments"]))
+                    runContent.append("./{} {}".format(job["exe"], job["exeArguments"]))
 
                 for line in runContent:
                     runFile.write(line + "\n")
@@ -214,15 +226,23 @@ def main():
                     "universe = vanilla",
                     "getenv = true",
                     "executable = run.sh",
-                    "output = condor.out",
-                    "error  = condor.err",
-                    "log    = condor.log",
+                    "output = condor/condor.out",
+                    "error  = condor/condor.err",
+                    "log    = condor/condor.log",
                     'requirements = (OpSysAndVer =?= "CentOS7")',
                     # Take given flavour for the job, except if overwritten in job config
                     '+JobFlavour = "{}"'.format(args.job_flavour if not 'flavour' in job else job['flavour']),
                     '+AccountingGroup = "group_u_CMS.CAF.ALCA"',
                     "queue"
                 ]
+
+                # If condor job array is sent, add job ID information to submit file
+                if "nCondorJobs" in job:
+                    subContent.insert(3, "arguments = $(ProcID)")
+                    subContent[4] = "output = condor/condor$(ProcID).out";
+                    subContent[5] = "error  = condor/condor$(ProcID).err";
+                    subContent[6] = "log    = condor/condor$(ProcID).log";
+                    subContent[len(subContent)-1] = "queue {}".format(job["nCondorJobs"])
 
                 for line in subContent:
                     subFile.write(line + "\n")

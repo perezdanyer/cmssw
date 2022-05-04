@@ -17,9 +17,14 @@ options.register ('config',
                   VarParsing.VarParsing.varType.string,         # string, int, or float
                   "AllInOne config.")
 options.register ('runType',
-                  "condor", # Default file
+                  "condor", # Default type
                   VarParsing.VarParsing.multiplicity.singleton, # singleton or list
                   VarParsing.VarParsing.varType.string,         # string, int, or float
+                  "AllInOne config.")
+options.register ('jobNumber',
+                  -1, # Default value
+                  VarParsing.VarParsing.multiplicity.singleton, # singleton or list
+                  VarParsing.VarParsing.varType.int,         # string, int, or float
                   "AllInOne config.")
 options.parseArguments()
 
@@ -43,6 +48,7 @@ iovListList = configuration["validation"].get("iovList", [0,500000])
 ptBorders = configuration["validation"].get("profilePtBorders", [3,5,10,20,50,100])
 trackCollection = str(configuration["validation"].get("trackCollection", "ALCARECOTkAlMinBias"))
 maxEventsToRun = configuration["validation"].get("maxevents", 1)
+filesPerJob = configuration["validation"].get("filesPerJob", 5)
 
 # The default global tag is suiteble for the unit test file for data
 globalTag = str(configuration["alignment"].get("globaltag", "auto:run2_data"))
@@ -96,6 +102,17 @@ if "dataset" in configuration["validation"]:
     with open(configuration["validation"]["dataset"], "r") as datafiles:
         for fileName in datafiles.readlines():
             readFiles.append(fileName.replace("\n", ""))
+
+    ## If we have defined a job number, only analyze the files corresponding to this job number
+    if options.jobNumber >= 0:
+        newFiles = []
+        numberOfFiles = len(readFiles)
+        firstIndex = filesPerJob * options.jobNumber
+        for fileIndex in range(firstIndex, firstIndex+filesPerJob):
+            if fileIndex >= numberOfFiles:
+                break
+            newFiles.append(readFiles[fileIndex])
+        readFiles = newFiles
 
     ##Define input source
     process.source = cms.Source("PoolSource",
@@ -222,7 +239,11 @@ process.jetHTAnalyzer = cms.EDAnalyzer('JetHTAnalyzer',
                                        iovList = cms.untracked.vint32(iovListList)
                                        )
 
-outputName = "{}/JetHTAnalysis.root".format(configuration.get("output", os.getcwd()))
+jobNumberString = ""
+if options.jobNumber >= 0:
+    jobNumberString = "_{}".format(options.jobNumber)
+
+outputName = "{}/JetHTAnalysis{}.root".format(configuration.get("output", os.getcwd()), jobNumberString)
 if options.runType == "crab":
     outputName = "JetHTAnalysis.root"
 

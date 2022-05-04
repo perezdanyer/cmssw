@@ -130,6 +130,7 @@ validations
 Variable | Default value | Explanation
 -------- | ------------- | -----------
 dataset | Single test file | A file list containing all analysis files.
+filesPerJob | 5 | Number of files per job when running via CRAB or condor
 alignments | None | An array of alignment sets for which the validation is run.
 trackCollection     | "ALCARECOTkAlMinBias" | Track collection used for the analysis.
 maxevents     | 1 | Maximum number of events before cmsRun terminates.

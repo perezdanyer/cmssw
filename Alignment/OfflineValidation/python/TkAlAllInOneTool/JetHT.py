@@ -1,6 +1,7 @@
 import copy
 import os
 import getpass
+import math
 from datetime import date
 
 # Path digesting function copied from validateAlignments.py
@@ -59,9 +60,19 @@ def JetHT(config, validationDir):
 
             if "dataset" in config["validations"]["JetHT"][runType][datasetName]:
                 inputList = config["validations"]["JetHT"][runType][datasetName]["dataset"]
+                with open(inputList,"r") as inputFiles:
+                    nInputFiles = sum(1 for line in inputFiles if line.rstrip())
             else:
                 inputList = "needToHaveSomeDefaultFileHere.txt"
+                nInputFiles = 1
 
+            if "filesPerJob" in config["validations"]["JetHT"][runType][datasetName]:
+                filesPerJob = config["validations"]["JetHT"][runType][datasetName]["filesPerJob"]
+            else:
+                filesPerJob = 5
+
+            nCondorJobs = math.ceil(nInputFiles / filesPerJob)
+ 
             crabOutput = ""
 
             # Add crab configuration file to the local config
@@ -90,7 +101,7 @@ def JetHT(config, validationDir):
               "config.section_(\"Data\")",
               "config.Data.userInputFiles = open(inputList).readlines()",
               "config.Data.splitting = \'FileBased\'",
-              "config.Data.unitsPerJob = 5",
+              "config.Data.unitsPerJob = {}".format(filesPerJob),
               "config.Data.totalUnits = len(config.Data.userInputFiles)",
               "config.Data.outputPrimaryDataset = \'AlignmentValidationJetHT\'",
               "config.Data.outLFNDirBase = \'/store/group/alca_trackeralign/{}/\' + config.General.requestName".format(getpass.getuser()),
@@ -110,6 +121,8 @@ def JetHT(config, validationDir):
                 "exe": "cmsRun",
                 "cms-config": "{}/src/Alignment/OfflineValidation/python/TkAlAllInOneTool/JetHT_cfg.py".format(os.environ["CMSSW_BASE"]),
                 "run-mode": "Condor",
+                "nCondorJobs": nCondorJobs,
+                "exeArguments": "validation_cfg.py config=validation.json jobNumber=$JOBNUMBER",
                 "dependencies": [],
                 "config": local, 
             }
@@ -167,7 +180,8 @@ def JetHT(config, validationDir):
                     singleAlignment, singleDatasetName = singleJob["name"].split("_")[2:]
 
                     if singleDatasetName in config["validations"]["JetHT"][runType][datasetName]["singles"]:
-                        job["dependencies"].append(singleJob["name"])
+                        if singleAlignment == alignment:
+                            job["dependencies"].append(singleJob["name"])
 
                 mergeJobs.append(job)
 
@@ -237,17 +251,15 @@ def JetHT(config, validationDir):
                 "dependencies": [],
             }
 
-            for alignment in config["validations"]["JetHT"][runType][datasetName]["alignments"]:
+            ##Loop over all merge jobs and set them dependencies for the plot job
+            for mergeJob in mergeJobs:
+                ##Get merge job info and append to plot job if requirements are fulfilled
+                mergeAlignment, mergeDatasetName = mergeJob["name"].split("_")[2:]
 
-                ##Loop over all merge jobs and set them dependencies for the plot job
-                for mergeJob in mergeJobs:
-                    ##Get single job info and append to merge job if requirements fullfilled
-                    mergeAlignment, mergeDatasetName = mergeJob["name"].split("_")[2:]
+                if mergeDatasetName in config["validations"]["JetHT"][runType][datasetName]["merges"]:
+                    job["dependencies"].append(mergeJob["name"])
 
-                    if mergeDatasetName in config["validations"]["JetHT"][runType][datasetName]["merges"]:
-                        job["dependencies"].append(mergeJob["name"])
-
-                plotJobs.append(job)
+            plotJobs.append(job)
 
         jobs.extend(plotJobs)
         
