@@ -31,6 +31,7 @@ options.parseArguments()
 #Read in AllInOne config in JSON format
 import json
 import os
+import re
 
 if options.config == "":
     configuration = {"validation": {},
@@ -99,23 +100,35 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 readFiles = []
 
 if "dataset" in configuration["validation"]:
-    with open(configuration["validation"]["dataset"], "r") as datafiles:
-        for fileName in datafiles.readlines():
-            readFiles.append(fileName.replace("\n", ""))
 
-    ## If we have defined a job number, only analyze the files corresponding to this job number
-    if options.jobNumber >= 0:
-        newFiles = []
-        numberOfFiles = len(readFiles)
-        firstIndex = filesPerJob * options.jobNumber
-        for fileIndex in range(firstIndex, firstIndex+filesPerJob):
-            if fileIndex >= numberOfFiles:
-                break
-            newFiles.append(readFiles[fileIndex])
-        readFiles = newFiles
+    # We have defined a CMS dataset
+    if re.match( r'^/[^/.]+/[^/.]+/[^/.]+$', configuration["validation"]["dataset"] ):
 
-    ##Define input source
-    process.source = cms.Source("PoolSource",
+        ##Define a dummy source. This will be overwritten by CRAB
+        process.source = cms.Source("PoolSource",
+                                fileNames = cms.untracked.vstring("dummy.dat"),
+                                skipEvents = cms.untracked.uint32(0)
+                               )
+      
+    # We are dealing with a filelist
+    else:
+        with open(configuration["validation"]["dataset"], "r") as datafiles:
+            for fileName in datafiles.readlines():
+                readFiles.append(fileName.replace("\n", ""))
+
+        ## If we have defined a job number, only analyze the files corresponding to this job number
+        if options.jobNumber >= 0:
+            newFiles = []
+            numberOfFiles = len(readFiles)
+            firstIndex = filesPerJob * options.jobNumber
+            for fileIndex in range(firstIndex, firstIndex+filesPerJob):
+                if fileIndex >= numberOfFiles:
+                    break
+                newFiles.append(readFiles[fileIndex])
+            readFiles = newFiles
+
+        ##Define input source
+        process.source = cms.Source("PoolSource",
                                 fileNames = cms.untracked.vstring(readFiles),
                                 skipEvents = cms.untracked.uint32(0)
                                )

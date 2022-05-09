@@ -129,7 +129,7 @@ validations
 
 Variable | Default value | Explanation
 -------- | ------------- | -----------
-dataset | Single test file | A file list containing all analysis files.
+dataset | Single test file | A file list containing all analysis files. For CRAB running, you can also specify a CMS dataset in the form: "/JetHT/Run2018A-TkAlMinBias-12Nov2019_UL2018-v2/ALCARECO". This will not work for condor jobs to encourage CRAB usage for large datasets.
 filesPerJob | 5 | Number of files per job when running via CRAB or condor
 alignments | None | An array of alignment sets for which the validation is run.
 trackCollection     | "ALCARECOTkAlMinBias" | Track collection used for the analysis.

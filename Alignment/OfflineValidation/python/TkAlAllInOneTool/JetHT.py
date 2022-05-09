@@ -2,6 +2,7 @@ import copy
 import os
 import getpass
 import math
+import re
 from datetime import date
 
 # Path digesting function copied from validateAlignments.py
@@ -58,13 +59,21 @@ def JetHT(config, validationDir):
             local["validation"] = copy.deepcopy(config["validations"]["JetHT"][runType][datasetName])
             local["validation"].pop("alignments")
 
+            useCMSdataset = False
+            nInputFiles = 1
             if "dataset" in config["validations"]["JetHT"][runType][datasetName]:
                 inputList = config["validations"]["JetHT"][runType][datasetName]["dataset"]
-                with open(inputList,"r") as inputFiles:
-                    nInputFiles = sum(1 for line in inputFiles if line.rstrip())
+
+                # Check if the input is a CMS dataset instead of filelist
+                if re.match( r'^/[^/.]+/[^/.]+/[^/.]+$', inputList ):
+                    useCMSdataset = True
+
+                # If it is not, read the number of files in a given filelist
+                else:
+                    with open(inputList,"r") as inputFiles:
+                        nInputFiles = sum(1 for line in inputFiles if line.rstrip())
             else:
                 inputList = "needToHaveSomeDefaultFileHere.txt"
-                nInputFiles = 1
 
             if "filesPerJob" in config["validations"]["JetHT"][runType][datasetName]:
                 filesPerJob = config["validations"]["JetHT"][runType][datasetName]["filesPerJob"]
@@ -100,9 +109,9 @@ def JetHT(config, validationDir):
               "",
               "config.section_(\"Data\")",
               "config.Data.userInputFiles = open(inputList).readlines()",
+              "config.Data.totalUnits = len(config.Data.userInputFiles)",
               "config.Data.splitting = \'FileBased\'",
               "config.Data.unitsPerJob = {}".format(filesPerJob),
-              "config.Data.totalUnits = len(config.Data.userInputFiles)",
               "config.Data.outputPrimaryDataset = \'AlignmentValidationJetHT\'",
               "config.Data.outLFNDirBase = \'/store/group/alca_trackeralign/{}/\' + config.General.requestName".format(getpass.getuser()),
               "config.Data.publication = False",
@@ -111,6 +120,28 @@ def JetHT(config, validationDir):
               "config.Site.whitelist = ['T2_CH_*','T2_DE_*','T2_FR_*','T2_IT_*']",
               "config.Site.storageSite = 'T2_CH_CERN'"
             ]
+
+            # If there is a CMS dataset defined instead of input file list, make corresponding changes in the configuration file
+            if useCMSdataset:
+                toPop = []
+
+                # Replace the input file list with the CMS dataset
+                for i in range(0, len(crabFile)):
+                    if crabFile[i].startswith("inputList"):
+                        toPop.append(i)
+                    if crabFile[i].startswith("config.Data.userInputFiles"):
+                        crabFile[i] = "config.Data.inputDataset = \'{}\'".format(inputList)
+                    if crabFile[i].startswith("config.Data.totalUnits"):
+                        crabFile[i] = "config.Data.inputDBS = \'global\'"
+                    if crabFile[i].startswith("config.Data.outputPrimaryDataset"):
+                        toPop.append(i)
+
+                # Remove lines not needed when running over 
+                nPopped = 0
+                toPop.sort()
+                for iPop in toPop:
+                    crabFile.pop(iPop-nPopped)
+                    nPopped = nPopped+1
 
             local["crabConfigurationFile"] = crabFile
 
