@@ -50,6 +50,7 @@ ptBorders = configuration["validation"].get("profilePtBorders", [3,5,10,20,50,10
 trackCollection = str(configuration["validation"].get("trackCollection", "ALCARECOTkAlMinBias"))
 maxEventsToRun = configuration["validation"].get("maxevents", 1)
 filesPerJob = configuration["validation"].get("filesPerJob", 5)
+runsInFiles = configuration.get("runsInFiles",[])
 
 # The default global tag is suiteble for the unit test file for data
 globalTag = str(configuration["alignment"].get("globaltag", "auto:run2_data"))
@@ -116,8 +117,23 @@ if "dataset" in configuration["validation"]:
             for fileName in datafiles.readlines():
                 readFiles.append(fileName.replace("\n", ""))
 
-        ## If we have defined a job number, only analyze the files corresponding to this job number
-        if options.jobNumber >= 0:
+        # If we do run number based splitting, only read the files that correspond to the current run number
+        if len(runsInFiles) > 0:
+            newFiles = []
+            for line in readFiles:
+                runAndFile = line.split()
+                if runsInFiles[options.jobNumber] == runAndFile[0]:
+                    newFiles.append(runAndFile[1])
+            readFiles = newFiles
+
+            ##Define input source
+            process.source = cms.Source("PoolSource",
+                                fileNames = cms.untracked.vstring(readFiles),
+                                eventsToProcess = cms.untracked.VEventRange("{}:1-{}:max".format(runsInFiles[options.jobNumber], runsInFiles[options.jobNumber]))
+                               )
+
+        ## If we are not doing run number based splitting but have defined a job number, we have file based splitting. Only analyze the files corresponding to this job number
+        elif options.jobNumber >= 0:
             newFiles = []
             numberOfFiles = len(readFiles)
             firstIndex = filesPerJob * options.jobNumber
@@ -127,8 +143,8 @@ if "dataset" in configuration["validation"]:
                 newFiles.append(readFiles[fileIndex])
             readFiles = newFiles
 
-        ##Define input source
-        process.source = cms.Source("PoolSource",
+            ##Define input source
+            process.source = cms.Source("PoolSource",
                                 fileNames = cms.untracked.vstring(readFiles),
                                 skipEvents = cms.untracked.uint32(0)
                                )

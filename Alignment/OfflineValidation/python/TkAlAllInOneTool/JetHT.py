@@ -26,6 +26,28 @@ def digest_path(path):
 
     return path_d
 
+# Find number of files on a file list. If the list defines a run number before each file, find the number of unique runs instead and return a list of runs with the number
+def findNumberOfUnits(fileList):
+
+    with open(fileList,"r") as inputFiles:
+
+        fileContent = inputFiles.readlines()
+        firstLine =  fileContent[0].rstrip()
+        runsInFiles = []
+
+        # If each line only contains one file, return the number of files
+        if len(firstLine.split()) == 1:
+            nInputFiles = sum(1 for line in fileContent if line.rstrip())
+            return runsInFiles, nInputFiles
+
+        # We now know that the input file is in format "run file". Return the number of unique runs together with the list
+        for line in fileContent:
+            run = line.split()[0]
+            if not run in runsInFiles:
+                runsInFiles.append(run)
+
+        return runsInFiles, len(runsInFiles)
+
 def JetHT(config, validationDir):
 
     # List with all and merge jobs
@@ -61,6 +83,7 @@ def JetHT(config, validationDir):
 
             useCMSdataset = False
             nInputFiles = 1
+            runsInFiles = []
             if "dataset" in config["validations"]["JetHT"][runType][datasetName]:
                 inputList = config["validations"]["JetHT"][runType][datasetName]["dataset"]
 
@@ -70,8 +93,7 @@ def JetHT(config, validationDir):
 
                 # If it is not, read the number of files in a given filelist
                 else:
-                    with open(inputList,"r") as inputFiles:
-                        nInputFiles = sum(1 for line in inputFiles if line.rstrip())
+                    runsInFiles, nInputFiles = findNumberOfUnits(inputList)
             else:
                 inputList = "needToHaveSomeDefaultFileHere.txt"
 
@@ -80,7 +102,13 @@ def JetHT(config, validationDir):
             else:
                 filesPerJob = 5
 
-            nCondorJobs = math.ceil(nInputFiles / filesPerJob)
+            # If we have defined which runs can be found from which files, we want to define one condor job for run number. Otherwise we do file based splitting.
+            oneJobForEachRun = (len(runsInFiles) > 0)
+            if oneJobForEachRun:
+                nCondorJobs = nInputFiles
+                local["runsInFiles"] = runsInFiles
+            else:
+                nCondorJobs = math.ceil(nInputFiles / filesPerJob)
  
             crabOutput = ""
 

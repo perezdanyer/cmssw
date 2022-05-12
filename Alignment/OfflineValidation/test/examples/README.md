@@ -22,7 +22,7 @@ Move to the created directory with the configuration files:
 cd $CMSSW_BASE/src/Alignment/OfflineValidation/test/examples/example_json_jetHT/JetHT/single/fullExample/prompt
 ```
 
-Check that you have write access to the default output directory used by the CRAB. By default the shared EOS space of the tracker validation group at CERN is used.
+Check that you have write access to the default output directory used by the CRAB. By default the shared EOS space of the tracker alignment group at CERN is used.
 
 ```
 crab checkwrite --site=T2_CH_CERN --lfn=/store/group/alca_trackeralign/`whoami`
@@ -70,7 +70,7 @@ cd $CMSSW_BASE/src/JetHtExample/example_json_jetHT/JetHT/merge/fullExample/ultra
 hadd -ff JetHTAnalysis_merged.root `xrdfs root://eoscms.cern.ch ls -u /store/group/alca_trackeralign/username/path/to/ultralegacy/files | grep '\.root'`
 ```
 
-For 100 files, the merging will take about one to two minutes. Now all the files are merged, the only thing that remains is to plot the results. To do this, navigate to the folder where the plotting configuration is located and run it:
+For 100 files, the merging should be done between one and two minutes. Now that all the files are merged, the only thing that remains is to plot the results. To do this, navigate to the folder where the plotting configuration is located and run it:
 
 ```
 cd $CMSSW_BASE/src/Alignment/OfflineValidation/test/examples/example_json_jetHT/JetHT/plot/fullExample
@@ -81,7 +81,23 @@ The final validation plots appear to the output folder. If you want to change th
 
 ## Full example using condor
 
-The CRAB running is recommended for large datasets, but smaller tests can also be readily done with condor. For condor running, the same exmaple configuration file is set up to analyze 1000 events from each file. You can run everything with the command:
+The CRAB running is recommended for large datasets, but smaller tests can also be readily done with condor. There are two different modes for running with condor, and the mode is selected automatically based on the input file list. If using the same file list as for CRAB, file based job splitting method is used. However, there are some dangers in using file based splitting with maxevents parameter, namely that if not selected carefully, some of the files might be skipped altogether. This might lead to certain runs not being analyzed. Thus run number based job splitting is recommended to ensure that each run has the statistics defined in the maxevents parameter. To use run number based splitting, we need to include the run numbers that can be found from the input files in the file list.
+
+There is an automatic procedure to do this. You can generate a file list with run numbers from a regular file list using the tool makeListRunsInFiles.py. To do this for the file list used in the CRAB example, you need to run the command
+
+```
+makeListRunsInFiles.py --input=jetHtFilesForRun2018A_first100files.txt --output=jetHtFilesForRun2018A_first100files_withRuns.txt
+```
+
+Since the information about runs needs to be read from a DAS database, it takes a while to execute this command. For this example with 100 files, the script should finish within two minutes. If it takes significantly longer than that, there might be some network issues. After generating the file list with run information included, change the dataset name in the json configuration file
+
+```
+vim jetHtAnalysis_fullExampleConfiguration.json
+...
+                    "dataset": "$CMSSW_BASE/src/Alignment/OfflineValidation/test/examples/jetHtFilesForRun2018A_first100files_withRuns.txt",
+```
+
+Now that the run numbers are included with the files, validateAlignments.py script will automatically setup run number based splitting. The configuration has been setup to run 1000 events from each run. Notice that if you use the original setup, the validation will still work, but 1000 events from each file will be analyzed instead. You can run everything with the command:
 
 ```
 validateAlignments.py -j espresso jetHtAnalysis_fullExampleConfiguration.json
