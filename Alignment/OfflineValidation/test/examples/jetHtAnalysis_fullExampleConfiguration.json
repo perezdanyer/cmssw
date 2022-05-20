@@ -47,7 +47,8 @@
                     "jethtplot":{
                         "drawProfiles": {
                             "drawDzErrorVsPt": true,
-                            "drawDxyErrorVsPt": true
+                            "drawDxyErrorVsPt": true,
+                            "nIovInOnePlot": 1
                         },
                         "drawHistograms": {
                             "drawDz": true,
@@ -55,7 +56,10 @@
                         },
                         "drawTrends": {
                             "drawDzError": true,
-                            "drawDxyError": true
+                            "drawDxyError": true,
+                            "useLuminosityAxis": true,
+                            "drawYearLines": true,
+                            "runsForLines": [290543,314881]
                         },
                         "trendZoom": {
                             "minZoomDzTrend": 20,
@@ -63,11 +67,7 @@
                             "minZoomDxyTrend": 10,
                             "maxZoomDxyTrend": 90
                         },
-                        "lumiPerIovFile": "$CMSSW_BASE/src/Alignment/OfflineValidation/data/lumiPerRun_Run2.txt",
-                        "nIovInOnePlot": 1,
-                        "useLuminosityForTrends": true,
-                        "drawYearLines": true,
-                        "runsForLines": [290543,314881]
+                        "lumiPerIovFile": "$CMSSW_BASE/src/Alignment/OfflineValidation/data/lumiPerRun_Run2.txt"
                     }
                 }
             }

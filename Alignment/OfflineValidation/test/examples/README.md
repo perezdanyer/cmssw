@@ -117,6 +117,8 @@ This configuration shows how to plot multi-year trend plots using previously mer
 jetHtPlotter jetHt_multiYearTrendPlot.json
 ```
 
+For example purposes, this configuration has a lot of variables redefined to their default values. It shows you available configuration options, even though they can be omitted if you do not want to change the default values.
+
 ## jetHt_ptHatWeightForMCPlot.json
 
 This configuration shows how to apply ptHat weight for MC files produced with different ptHat cuts. What you need to do is to collect the file names and lower boundaries of the ptHat bins into a file, which is this case is ptHatFiles_MC2018_PFJet320.txt. For a file list like this, the ptHat weight is automatically applied by the code. The weights are correct for run2. The plotting can be done using the jetHT plotter standalone:
