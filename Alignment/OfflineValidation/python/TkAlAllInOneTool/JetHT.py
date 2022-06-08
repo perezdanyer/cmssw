@@ -1,6 +1,5 @@
 import copy
 import os
-import getpass
 import math
 import re
 from datetime import date
@@ -110,68 +109,23 @@ def JetHT(config, validationDir):
             else:
                 nCondorJobs = math.ceil(nInputFiles / filesPerJob)
  
-            crabOutput = ""
-
-            # Add crab configuration file to the local config
-            crabFile = [
-              "from WMCore.Configuration import Configuration",
-              "config = Configuration()",
-              "",
-              "inputList = \'{}\'".format(inputList),
-              "jobTag = \'TkAlJetHTAnalysis_{}_{}_{}_{}\'".format(runType, datasetName, alignment, dayFormat),
-              "",
-              "config.section_(\"General\")",
-              "config.General.requestName = jobTag",
-              "config.General.workArea = config.General.requestName",
-              "config.General.transferOutputs = True",
-              "config.General.transferLogs = False",
-              "",
-              "config.section_(\"JobType\")",
-              "config.JobType.pluginName = \'Analysis\'",
-              "config.JobType.psetName = \'validation_cfg.py\'",
-              "config.JobType.pyCfgParams = [\'config=validation.json\', \'runType=crab\']",
-              "config.JobType.inputFiles = [\'validation.json\']",
-              "config.JobType.numCores = 1",
-              "config.JobType.maxMemoryMB = 1200",
-              "config.JobType.maxJobRuntimeMin = 900",
-              "",
-              "config.section_(\"Data\")",
-              "config.Data.userInputFiles = open(inputList).readlines()",
-              "config.Data.totalUnits = len(config.Data.userInputFiles)",
-              "config.Data.splitting = \'FileBased\'",
-              "config.Data.unitsPerJob = {}".format(filesPerJob),
-              "config.Data.outputPrimaryDataset = \'AlignmentValidationJetHT\'",
-              "config.Data.outLFNDirBase = \'/store/group/alca_trackeralign/{}/\' + config.General.requestName".format(getpass.getuser()),
-              "config.Data.publication = False",
-              "",
-              "config.section_(\"Site\")",
-              "config.Site.whitelist = ['T2_CH_*','T2_DE_*','T2_FR_*','T2_IT_*']",
-              "config.Site.storageSite = 'T2_CH_CERN'"
-            ]
+            # Define lines that need to be changed from the template crab configuration
+            crabCustomConfiguration = {"overwrite":[], "remove":[], "add":[]}
+            crabCustomConfiguration["overwrite"].append("inputList = \'{}\'".format(inputList))
+            crabCustomConfiguration["overwrite"].append("jobTag = \'TkAlJetHTAnalysis_{}_{}_{}_{}\'".format(runType, datasetName, alignment, dayFormat))
+            crabCustomConfiguration["overwrite"].append("config.Data.unitsPerJob = {}".format(filesPerJob))
 
             # If there is a CMS dataset defined instead of input file list, make corresponding changes in the configuration file
             if useCMSdataset:
-                toPop = []
-
-                # Replace the input file list with the CMS dataset
-                for i in range(0, len(crabFile)):
-                    if crabFile[i].startswith("inputList"):
-                        toPop.append(i)
-                    if crabFile[i].startswith("config.Data.userInputFiles"):
-                        crabFile[i] = "config.Data.inputDataset = \'{}\'".format(inputList)
-                    if crabFile[i].startswith("config.Data.totalUnits"):
-                        crabFile[i] = "config.Data.inputDBS = \'global\'"
-                    if crabFile[i].startswith("config.Data.outputPrimaryDataset"):
-                        toPop.append(i)
-
-                # Remove lines not needed when running over 
-                nPopped = 0
-                toPop.sort()
-                for iPop in toPop:
-                    crabFile.pop(iPop-nPopped)
-                    nPopped = nPopped+1
-
-            local["crabConfigurationFile"] = crabFile
+                crabCustomConfiguration["remove"].append("inputList")
+                crabCustomConfiguration["remove"].append("config.Data.userInputFiles")
+                crabCustomConfiguration["remove"].append("config.Data.totalUnits")
+                crabCustomConfiguration["remove"].append("config.Data.outputPrimaryDataset")
+                crabCustomConfiguration["overwrite"].pop(0) # Remove inputList from overwrite actions, it is removed for CMS dataset
+                crabCustomConfiguration["add"].append("config.Data.inputDataset = \'{}\'".format(inputList))
+                crabCustomConfiguration["add"].append("config.Data.inputDBS = \'global\'")
+                
+            local["crabCustomConfiguration"] = crabCustomConfiguration
 
             # Write job info
             job = {
