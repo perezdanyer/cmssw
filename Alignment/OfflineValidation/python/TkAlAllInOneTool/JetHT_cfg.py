@@ -149,6 +149,14 @@ if "dataset" in configuration["validation"]:
                                 skipEvents = cms.untracked.uint32(0)
                                )
 
+        ## In the default case we are most likely doing CRAB running. Just use the whole file list. CRAB will handle splitting
+        else:
+            ##Define input source
+            process.source = cms.Source("PoolSource",
+                                fileNames = cms.untracked.vstring(readFiles),
+                                skipEvents = cms.untracked.uint32(0)
+                               )
+
 # If no text file with dataset given, read default file
 else:
     print(">>>>>>>>>> JetHT_cfg.py: msg%-i: dataset not specified in configuration! Loading default file!")
