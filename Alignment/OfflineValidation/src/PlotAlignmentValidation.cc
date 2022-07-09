@@ -2051,7 +2051,7 @@ void PlotAlignmentValidation::plotDMRHistogram(PlotAlignmentValidation::DMRPlotI
   std::string plotVariable =
       getVariableForDMRPlot(histoname.Data(), plotinfo.variable, plotinfo.nbins, plotinfo.min, plotinfo.max);
   std::string selection = "";
-  if (plotinfo.filterName == "") {
+  if (plotinfo.filterName.empty()) {
     //Use only default selection and no filter
     selection = getSelectionForDMRPlot(plotinfo.minHits, plotinfo.subDetId, direction, layer);
     plotinfo.vars->getTree()->Draw(plotVariable.c_str(), selection.c_str(), "goff");

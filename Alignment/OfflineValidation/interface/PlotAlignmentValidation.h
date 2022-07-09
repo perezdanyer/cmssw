@@ -66,7 +66,7 @@ private:
   std::string legendName;
 };
 
-TkOfflineVariables::TkOfflineVariables(
+inline TkOfflineVariables::TkOfflineVariables(
     std::string fileName, std::string baseDir, std::string legName, int lColor, int lStyle) {
   lineColor = lColor;
   lineStyle = lStyle % 100;
@@ -100,7 +100,7 @@ TkOfflineVariables::TkOfflineVariables(
   }
 }
 
-TkOfflineVariables::~TkOfflineVariables() { delete file; }
+inline TkOfflineVariables::~TkOfflineVariables() { delete file; }
 
 class PlotAlignmentValidation {
 public:

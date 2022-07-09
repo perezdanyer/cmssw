@@ -83,11 +83,12 @@ int merge(int argc, char* argv[]) {
   );
 
   for (const pair<string, pt::ptree>& childTree : alignments) {
-    loadFileList((childTree.second.get<string>("file")+Form("/PVValidation_%s_%d.root", childTree.first.c_str(), iov)).c_str(),
-                 "PVValidation",
-                 childTree.second.get<string>("title"),
-                 childTree.second.get<int>("color"),
-                 childTree.second.get<int>("style"));
+    loadFileList(
+        (childTree.second.get<string>("file") + Form("/PVValidation_%s_%d.root", childTree.first.c_str(), iov)).c_str(),
+        "PVValidation",
+        childTree.second.get<string>("title"),
+        childTree.second.get<int>("color"),
+        childTree.second.get<int>("style"));
   }
 
   FitPVResiduals("", stdResiduals, doMaps, "", autoLimits);
