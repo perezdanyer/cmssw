@@ -219,9 +219,9 @@ TH1 *getPtHatCombinedHistogram(std::vector<TFile *> ptHatFiles,
     }
 
     if (ptHatIndex < 0) {
-      cout << "Could not find pT hat boundary " << ptHatValues.at(iFile) << " for file " << ptHatFiles.at(iFile)
-           << endl;
-      cout << "Please check your input! It needs to be in the form <fileName> <ptHatBoundary>" << endl;
+      std::cout << "Could not find pT hat boundary " << ptHatValues.at(iFile) << " for file " << ptHatFiles.at(iFile)
+                << std::endl;
+      std::cout << "Please check your input! It needs to be in the form <fileName> <ptHatBoundary>" << std::endl;
       return nullptr;
     }
 
@@ -911,8 +911,8 @@ void jetHtPlotter(std::string configurationFileName) {
           }
 
         } else {
-          cout << "No histogram found for: "
-               << Form("%s_%s", iovNames.at(iIov).Data(), histogramName[iHistogramType].Data()) << endl;
+          std::cout << "No histogram found for: "
+                    << Form("%s_%s", iovNames.at(iIov).Data(), histogramName[iHistogramType].Data()) << std::endl;
         }
       }  // if for drawing histogram
     }    // histogram type loop
@@ -956,8 +956,8 @@ void jetHtPlotter(std::string configurationFileName) {
                 jetHtProfiles[iFile][iProfileType][iIov + iSamePlot]->SetLineWidth(2);
                 noIovFound = false;
               } else {
-                cout << "No histogram found for: "
-                     << Form("%s_%s", iovNames.at(iIov).Data(), profileName[iProfileType].Data()) << endl;
+                std::cout << "No histogram found for: "
+                          << Form("%s_%s", iovNames.at(iIov).Data(), profileName[iProfileType].Data()) << std::endl;
                 nNullHistograms++;
               }
             }

@@ -11,7 +11,7 @@ PreparePVTrends::PreparePVTrends(const char *outputFileName, int nWorkers, pt::p
 void PreparePVTrends::setDirsAndLabels(pt::ptree &json) {
   DirList.clear();
   LabelList.clear();
-  for (const std::pair<std::string, pt::ptree> &childTree : json) {
+  for (const auto &childTree : json) {
     DirList.push_back(childTree.first.c_str());
     LabelList.push_back(childTree.second.get<std::string>("title"));
   }

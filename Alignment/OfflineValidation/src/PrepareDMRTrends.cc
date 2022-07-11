@@ -6,7 +6,7 @@ namespace pt = boost::property_tree;
 
 PrepareDMRTrends::PrepareDMRTrends(const char *outputFileName, pt::ptree &json) : outputFileName_(outputFileName) {
   geometries.clear();
-  for (const std::pair<std::string, pt::ptree> &childTree : json) {
+  for (const auto &childTree : json) {
     geometries.push_back(childTree.second.get<std::string>("title"));
   }
 }

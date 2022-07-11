@@ -17,8 +17,6 @@
 #include <TGraph.h>
 #include <TLegend.h>
 
-using namespace std;
-
 /*
  * Class for drawing histograms and graphs in the standard style of the group
  */
@@ -1117,7 +1115,7 @@ public:
         break;
 
       default:
-        cout << "Pad " << padNumber << " not found" << endl;
+        std::cout << "Pad " << padNumber << " not found" << std::endl;
         break;
     }
   }
@@ -1158,7 +1156,7 @@ public:
    */
   TString GetCanvasName() {
     if (fCanvas == nullptr) {
-      cout << "Error: No canvas defined! Cannot return name." << endl;
+      std::cout << "Error: No canvas defined! Cannot return name." << std::endl;
       return "";
     }
     TString name = Form("%s", fCanvas->GetName());

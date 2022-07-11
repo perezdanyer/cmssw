@@ -44,8 +44,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 class TkOfflineVariables {
 public:
   TkOfflineVariables(std::string fileName, std::string baseDir, std::string legName = "", int color = 1, int style = 1);
@@ -185,7 +183,7 @@ private:
   bool twolines_;
   bool bigtext_;
   const static TString summaryfilename;
-  ofstream summaryfile;
+  std::ofstream summaryfile;
   bool openedsummaryfile = false;
   TFile* rootsummaryfile;
 
@@ -231,7 +229,7 @@ private:
   void plotDMRHistogram(DMRPlotInfo& plotinfo, int direction = 0, int layer = 0, std::string subdet = "");
   void modifySSHistAndLegend(THStack* hs, TLegend* legend);
   void openSummaryFile();
-  vector<TH1*> findmodule(TFile* f, unsigned int moduleid);
+  std::vector<TH1*> findmodule(TFile* f, unsigned int moduleid);
 };
 
 #endif  // ALIGNMENT_OFFLINEVALIDATION_PLOTALIGNNMENTVALIDATION_H_
