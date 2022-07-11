@@ -139,6 +139,7 @@ validations:
                     compared: prompt
                     IOVpairs:
                     - [274094, 274094]
+        doUnitTest: true
     JetHT:
         single:
             testJob:

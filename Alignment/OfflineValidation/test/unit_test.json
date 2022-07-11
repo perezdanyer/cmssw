@@ -141,7 +141,8 @@
                       "IOVpairs": ["274094", "274094"]
                     }
                  }
-             }
+             },
+             "doUnitTest": "true"
         },
         "JetHT": {
             "single": {
