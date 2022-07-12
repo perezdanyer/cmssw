@@ -239,13 +239,6 @@ void makeArrowPlots(const char* filename, const char* outputDir) {
   bool plotTID = true;
   bool plotTEC = true;
 
-  // Copies input file, now broken but do we still need this?
-  //TString outputfile(outputDir);
-  TString outputfile("OUTPUT_");
-  //outputfile.Append("/OUTPUT_");
-  outputfile.Append(filename);
-  TFile output(outputfile, "recreate");
-
   sprintf(outputDir_, "%s", outputDir);
   gSystem->mkdir(outputDir_, true);
 
