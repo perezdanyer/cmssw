@@ -227,8 +227,7 @@ int GCP(int argc, char* argv[]) {
   TString arrowDir = outDir + "/ArrowPlots";
   makeArrowPlots(inFile.Data(), arrowDir.Data());
 
-  // TODO
-  // - comments à la doxygen
+  std::cout << " --- Finished running GCP.cpp" << std::endl;
   return EXIT_SUCCESS;
 }
 
