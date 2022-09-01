@@ -796,10 +796,10 @@ Realistic25ns900GeV2021CollisionVtxSmearingParameters = cms.PSet(
 # From LHC calculator, emittance is 6.621e-8 cm
 # https://lpc.web.cern.ch/lumiCalc.html
 #
-# BPIX absolute position (https://twiki.cern.ch/twiki/bin/view/CMS/TkAlignmentPixelPosition?rev=42#2022):
-# X = -0.01955 cm
-# Y = -0.1583  cm
-# Z = -0.2626  cm
+# BPIX absolute position (https://twiki.cern.ch/twiki/bin/view/CMS/TkAlignmentPixelPosition?rev=45#Collisions_at_s_13_6_TeV):
+# X =  0.0717651 cm
+# Y = -0.165951  cm
+# Z = -0.356345  cm
 Realistic25ns13p6TeVEarly2022CollisionVtxSmearingParameters = cms.PSet(
     Phi = cms.double(0.0),
     BetaStar = cms.double(30.0),
@@ -807,9 +807,9 @@ Realistic25ns13p6TeVEarly2022CollisionVtxSmearingParameters = cms.PSet(
     Alpha = cms.double(0.0),
     SigmaZ = cms.double(3.8),
     TimeOffset = cms.double(0.0),
-    X0 = cms.double(0.191944),
-    Y0 = cms.double(-0.022646),
-    Z0 = cms.double(1.20441)
+    X0 = cms.double(0.100629),
+    Y0 = cms.double(-0.014995),
+    Z0 = cms.double(1.298155)
 )
 
 # Test HF offset
@@ -968,6 +968,19 @@ Realistic8TeVPACollision2016VtxSmearingParameters = cms.PSet(
     X0 = cms.double(0.0836),
     Y0 = cms.double(0.1837),
     Z0 = cms.double(1.3577)
+)
+
+# Guess for 2022 PbPb beam conditions, which takes the 2018 PbPb beam width parameters from RealisticPbPbCollision2018VtxSmearingParameters with the current pp MC beam centroid from Realistic25ns13p6TeVEarly2022Collision
+Nominal2022PbPbCollisionVtxSmearingParameters = cms.PSet(
+    Phi = cms.double(0.0),
+    BetaStar = cms.double(50),
+    Emittance = cms.double(3.36e-08),
+    Alpha = cms.double(0.0),
+    SigmaZ = cms.double(4.97),
+    TimeOffset = cms.double(0.0),
+    X0 = cms.double(0.100629),
+    Y0 = cms.double(-0.014995),
+    Z0 = cms.double(1.298155)
 )
 
 # Parameters for HL-LHC operation at 13TeV

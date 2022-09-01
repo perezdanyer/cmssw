@@ -263,12 +263,9 @@ void MillePedeFileReader ::readMillePedeResultFile() {
             << "=============" << std::endl;
 
         if (std::abs(ObsMove) > thresholds_[detLabel][alignableIndex]) {
-          if (!isHG_) {
-            edm::LogWarning("MillePedeFileReader")
-                << "Aborting payload creation."
-                << " Exceeding maximum thresholds for movement: " << std::abs(ObsMove) << " for" << detLabel << "("
-                << coord << ")";
-          }
+          edm::LogWarning("MillePedeFileReader") << "Aborting payload creation."
+                                                 << " Exceeding maximum thresholds for movement: " << std::abs(ObsMove)
+                                                 << " for" << detLabel << "(" << coord << ")";
           updateBits_.set(0);
           vetoUpdateDB_ = true;
           continue;
@@ -277,11 +274,9 @@ void MillePedeFileReader ::readMillePedeResultFile() {
           updateBits_.set(1);
 
           if (std::abs(ObsErr) > errors_[detLabel][alignableIndex]) {
-            if (!isHG_) {
-              edm::LogWarning("MillePedeFileReader") << "Aborting payload creation."
-                                                     << " Exceeding maximum thresholds for error: " << std::abs(ObsErr)
-                                                     << " for" << detLabel << "(" << coord << ")";
-            }
+            edm::LogWarning("MillePedeFileReader") << "Aborting payload creation."
+                                                   << " Exceeding maximum thresholds for error: " << std::abs(ObsErr)
+                                                   << " for" << detLabel << "(" << coord << ")";
             updateBits_.set(2);
             vetoUpdateDB_ = true;
             continue;
@@ -309,8 +304,7 @@ void MillePedeFileReader ::readMillePedeResultFile() {
   }
 
   if (isHG_) {          // check fractionCut
-    updateDB_ = false;  // reset both booleans since only fractionCut is considered for HG
-    vetoUpdateDB_ = false;
+    updateDB_ = false;  // reset booleans since fractionCut is considered for HG
     std::stringstream ss;
     for (auto& ali : alignables_) {
       ss << ali << std::endl;
@@ -322,14 +316,17 @@ void MillePedeFileReader ::readMillePedeResultFile() {
           if (fraction_ >= fractions_[ali][i]) {
             updateDB_ = true;
             ss << "   above fraction threshold" << std::endl;
-          } else
+            fractionExceeded_[ali][i] = true;
+          } else {
             ss << std::endl;
+            fractionExceeded_[ali][i] = false;
+          }
         } else
           ss << "No entries available or no fraction thresholds defined" << std::endl;
       }
       ss << "===================" << std::endl;
     }
-    if (updateDB_) {
+    if (updateDB_ && !vetoUpdateDB_) {
       ss << "Alignment will be updated" << std::endl;
     } else {
       ss << "Alignment will NOT be updated" << std::endl;
@@ -498,7 +495,6 @@ void MillePedeFileReader::initializeIndexHelper() {
   indexHelper[PclHLS::TPEPanelDisk2] = std::make_pair(currentSum, currentSum + pixelTopologyMap_->getPXFBlades(2));
   currentSum += pixelTopologyMap_->getPXFBlades(2) * 2;
   indexHelper[PclHLS::TPEPanelDisk3] = std::make_pair(currentSum, currentSum + pixelTopologyMap_->getPXFBlades(3));
-  currentSum += pixelTopologyMap_->getPXFBlades(3) * 2;
 }
 
 int MillePedeFileReader::getIndexForHG(align::ID id, PclHLS HLS) {

@@ -18,7 +18,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic_T21', ''
 if hasattr(process,'MessageLogger'):
     process.MessageLogger.HGCalGeom=dict()
     process.MessageLogger.HGCalSim=dict()
-    process.MessageLogger.CaloSim=dict()
+    process.MessageLogger.HGCSim=dict()
 
 process.load("IOMC.RandomEngine.IOMC_cff")
 process.RandomNumberGeneratorService.generator.initialSeed = 456789
@@ -54,6 +54,10 @@ process.output = cms.OutputModule("PoolOutputModule",
     process.FEVTSIMEventContent,
     fileName = cms.untracked.string('hgcV17.root')
 )
+
+process.hgcalHitPartialEE.missingFile = "missingWafers.txt"
+process.hgcalHitPartialHE.missingFile = "missingWafers.txt"
+process.g4SimHits.HGCSD.MissingWaferFile = "missingWafers.txt"
 
 process.generation_step = cms.Path(process.pgen)
 process.simulation_step = cms.Path(process.psim)
