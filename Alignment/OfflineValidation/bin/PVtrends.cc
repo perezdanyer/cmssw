@@ -6,19 +6,21 @@
 #include <functional>
 #include <unistd.h>
 
-#include <TFile.h>
-#include <TGraph.h>
-#include <TH1.h>
+#include "TFile.h"
+#include "TGraph.h"
+#include "TH1.h"
 
 #include "exceptions.h"
 #include "toolbox.h"
 #include "Options.h"
 
-#include <boost/filesystem.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/optional.hpp>
-#include <fmt/printf.h>
+#include "boost/filesystem.hpp"
+#include "boost/algorithm/string.hpp"
+#include "boost/container/vector.hpp"
+#include "boost/property_tree/ptree.hpp"
+#include "boost/property_tree/json_parser.hpp"
+#include "boost/optional.hpp"
+#include "fmt/printf.h"
 
 #include "TString.h"
 #include "TColor.h"
@@ -29,6 +31,7 @@
 using namespace std;
 using namespace AllInOneConfig;
 namespace fs = boost::filesystem;
+namespace bc = boost::container;
 
 static const char *bold = "\e[1m", *normal = "\e[0m";
 static const float defaultConvertScale = 1000.;
@@ -54,18 +57,25 @@ int trends(int argc, char *argv[]) {
   bool doRMS = validation.count("doRMS") ? validation.get<bool>("doRMS") : true;
   bool doUnitTest = validation.count("doUnitTest") ? validation.get<bool>("doUnitTest") : false;
   int nWorkers = validation.count("nWorkers") ? validation.get<int>("nWorkers") : 20;
-  TString lumiInputFile = style.count("lumiInputFile") ? style.get<string>("lumiInputFile") : "lumiPerRun_Run2.txt";
-
-  TString LumiFile = getenv("CMSSW_BASE");
-  if (lumiInputFile.BeginsWith("/"))
-    LumiFile = lumiInputFile;
-  else {
-    LumiFile += "/src/Alignment/OfflineValidation/data/";
-    LumiFile += lumiInputFile;
+  TString lumiInputFile = style.count("lumiInputFile") ? style.get<string>("lumiInputFile")
+                                                       : "Alignment/OfflineValidation/data/lumiPerRun_Run2.txt";
+  fs::path lumiFile = lumiInputFile.Data();
+  fs::path pathToLumiFile = "";
+  if (!fs::exists(lumiFile)) {
+    bc::vector<fs::path> possible_base_paths;
+    boost::split(possible_base_paths, std::getenv("CMSSW_SEARCH_PATH"), boost::is_any_of(":"));
+    for (const fs::path &path : possible_base_paths) {
+      if (fs::exists(path / lumiFile)) {
+        pathToLumiFile = path / lumiFile;
+        break;
+      }
+    }
+  } else {
+    pathToLumiFile = lumiFile;
   }
-  fs::path pathToLumiFile = LumiFile.Data();
   if (!fs::exists(pathToLumiFile)) {
-    cout << "ERROR: lumi-per-run file (" << LumiFile.Data() << ") not found!" << endl << "Please check!" << endl;
+    cout << "ERROR: lumi-per-run file (" << lumiFile.string().data() << ") not found!" << endl
+         << "Please check!" << endl;
     exit(EXIT_FAILURE);
   }
 
@@ -102,7 +112,7 @@ int trends(int argc, char *argv[]) {
   fs::path pname = Form("%s/PVtrends%s.root", outputdir.data(), labels_to_add.data());
 
   PreparePVTrends prepareTrends(pname.c_str(), nWorkers, alignments);
-  prepareTrends.multiRunPVValidation(doRMS, LumiFile, doUnitTest);
+  prepareTrends.multiRunPVValidation(doRMS, pathToLumiFile.string().data(), doUnitTest);
 
   assert(fs::exists(pname));
 
@@ -112,7 +122,7 @@ int trends(int argc, char *argv[]) {
   int firstRun = validation.count("firstRun") ? validation.get<int>("firstRun") : 272930;
   int lastRun = validation.count("lastRun") ? validation.get<int>("lastRun") : 325175;
 
-  const Run2Lumi GetLumi(LumiFile.Data(), firstRun, lastRun, convertUnit);
+  const Run2Lumi GetLumi(pathToLumiFile.string().data(), firstRun, lastRun, convertUnit);
 
   vector<string> variables{"dxy_phi_vs_run", "dxy_eta_vs_run", "dz_phi_vs_run", "dz_eta_vs_run"};
 
