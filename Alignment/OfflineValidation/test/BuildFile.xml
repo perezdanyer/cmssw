@@ -31,4 +31,12 @@
     <use name="FWCore/TestProcessor"/>
     <use name="catch2"/>
   </bin>
+  <bin file="testAlignmentOfflineValidation.cpp" name="EoP">
+    <flags TEST_RUNNER_ARGS=" /bin/bash Alignment/OfflineValidation/test test_unitEoP.sh"/>
+    <use name="FWCore/Utilities"/>
+  </bin>
+  <bin file="testAlignmentOfflineValidation.cpp" name="Miscellanea">
+    <flags TEST_RUNNER_ARGS=" /bin/bash Alignment/OfflineValidation/test test_unitMiscellanea.sh"/>
+    <use name="FWCore/Utilities"/>
+  </bin>
 </environment>
