@@ -14,9 +14,9 @@
 #include "toolbox.h"
 #include "Options.h"
 
+#include "FWCore/ParameterSet/interface/FileInPath.h"
 #include "boost/filesystem.hpp"
 #include "boost/algorithm/string.hpp"
-#include "boost/container/vector.hpp"
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
 #include "boost/optional.hpp"
@@ -59,21 +59,12 @@ int trends(int argc, char *argv[]) {
   int nWorkers = validation.count("nWorkers") ? validation.get<int>("nWorkers") : 20;
   TString lumiInputFile = style.count("lumiInputFile") ? style.get<string>("lumiInputFile")
                                                        : "Alignment/OfflineValidation/data/lumiPerRun_Run2.txt";
+
   fs::path lumiFile = lumiInputFile.Data();
+  edm::FileInPath fip = edm::FileInPath(lumiFile.string());
   fs::path pathToLumiFile = "";
   if (!fs::exists(lumiFile)) {
-    bc::vector<fs::path> possible_base_paths;
-    string forbidden_path_keyword = "/poison";
-    boost::split(possible_base_paths, std::getenv("CMSSW_SEARCH_PATH"), boost::is_any_of(":"));
-    for (const fs::path &path : possible_base_paths) {
-      if (path.string().find(forbidden_path_keyword) != string::npos) {
-        continue;
-      }
-      if (fs::exists(path / lumiFile)) {
-        pathToLumiFile = path / lumiFile;
-        break;
-      }
-    }
+    pathToLumiFile = fip.fullPath();
   } else {
     pathToLumiFile = lumiFile;
   }
