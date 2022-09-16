@@ -61,8 +61,12 @@ int trends(int argc, char *argv[]) {
   fs::path pathToLumiFile = "";
   if (!fs::exists(lumiFile)) {
     bc::vector<fs::path> possible_base_paths;
+    string forbidden_path_keyword = "/poison";
     boost::split(possible_base_paths, std::getenv("CMSSW_SEARCH_PATH"), boost::is_any_of(":"));
     for (const fs::path &path : possible_base_paths) {
+      if (path.string().find(forbidden_path_keyword) != string::npos) {
+        continue;
+      }
       if (fs::exists(path / lumiFile)) {
         pathToLumiFile = path / lumiFile;
         break;
@@ -75,6 +79,8 @@ int trends(int argc, char *argv[]) {
     cout << "ERROR: lumi-per-run file (" << lumiFile.string().data() << ") not found!" << endl
          << "Please check!" << endl;
     exit(EXIT_FAILURE);
+  } else {
+    cout << "Found lumi-per-run file: " << pathToLumiFile.string().data() << endl;
   }
   if (!lumiInputFile.Contains(year)) {
     cout << "ERROR: lumi-per-run file must contain (" << year.data() << ")!" << endl << "Please check!" << endl;
