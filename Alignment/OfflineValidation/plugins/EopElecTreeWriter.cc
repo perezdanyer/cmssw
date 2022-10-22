@@ -411,8 +411,8 @@ void EopElecTreeWriter::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
     const unsigned int prescaleSize = hltConfig_.prescaleSize();
     for (unsigned int ps = 0; ps < prescaleSize; ps++) {
-      const unsigned int prescaleValue = hltConfig_.prescaleValue(ps, triggerName);
-      if (prescaleValue != 1) {
+      double prescaleValue = hltConfig_.prescaleValue<double>(ps, triggerName);
+      if (prescaleValue != 1.0) {
         myTrigger.prescale = prescaleValue;
       }
     }
