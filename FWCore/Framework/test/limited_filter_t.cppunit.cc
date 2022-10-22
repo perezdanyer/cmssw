@@ -385,6 +385,23 @@ private:
       m_globalEndLuminosityBlockSummaryCalled = false;
     }
   };
+
+  class TransformProd : public edm::limited::EDFilter<edm::Transformer> {
+  public:
+    TransformProd(edm::ParameterSet const&)
+        : edm::limited::EDFilterBase(s_pset), edm::limited::EDFilter<edm::Transformer>(s_pset) {
+      token_ = produces<float>();
+      registerTransform(token_, [](float iV) { return int(iV); });
+    }
+
+    bool filter(edm::StreamID, edm::Event& iEvent, edm::EventSetup const&) const {
+      //iEvent.emplace(token_, 3.625);
+      return true;
+    }
+
+  private:
+    edm::EDPutTokenT<float> token_;
+  };
 };
 
 ///registration of the test so that the runner can find it
@@ -402,8 +419,8 @@ testLimitedFilter::testLimitedFilter()
 
   std::string uuid = edm::createGlobalIdentifier();
   edm::Timestamp now(1234567UL);
-  auto runAux = std::make_shared<edm::RunAuxiliary>(eventID.run(), now, now);
-  m_rp.reset(new edm::RunPrincipal(runAux, m_prodReg, m_procConfig, &historyAppender_, 0));
+  m_rp.reset(new edm::RunPrincipal(m_prodReg, m_procConfig, &historyAppender_, 0));
+  m_rp->setAux(edm::RunAuxiliary(eventID.run(), now, now));
   edm::LuminosityBlockAuxiliary lumiAux(m_rp->run(), 1, now, now);
   m_lbp.reset(new edm::LuminosityBlockPrincipal(m_prodReg, m_procConfig, &historyAppender_, 0));
   m_lbp->setAux(lumiAux);
