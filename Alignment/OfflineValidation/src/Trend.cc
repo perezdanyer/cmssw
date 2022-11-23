@@ -22,10 +22,10 @@ namespace pt = boost::property_tree;
 
 Run2Lumi::Run2Lumi(fs::path file, int first, int last, float convertUnit)
     : firstRun(first), lastRun(last), convertUnit(convertUnit) {
-  cout << __func__ << endl;
+  //cout << __func__ << endl;
   assert(first < last);
 
-  cout << file << endl;
+  //cout << file << endl;
   assert(fs::exists(file));
 
   ifstream f(file);
@@ -143,7 +143,7 @@ Trend::Trend(const char* name,
       JSON(json),
       GetLumi(GetLumiFunctor),
       lumiType(lumiAxisType) {
-  cout << __func__ << endl;
+  //cout << __func__ << endl;
 
   if (JSON.count("CMSlabel"))
     CMS = Form("#scale[1.1]{#bf{CMS}} #it{%s}", JSON.get<string>("CMSlabel").data());
@@ -164,11 +164,11 @@ Trend::Trend(const char* name,
   frame->GetYaxis()->SetLabelSize(fontsize);
   frame->GetYaxis()->SetTitleSize(fontsize);
   lgd.SetTextSize(fontsize);
-  cout << "frame->GetXaxis()->GetLabelSize() = " << frame->GetXaxis()->GetLabelSize() << endl;
-  cout << "frame->GetXaxis()->GetTitleSize() = " << frame->GetXaxis()->GetTitleSize() << endl;
+  //cout << "frame->GetXaxis()->GetLabelSize() = " << frame->GetXaxis()->GetLabelSize() << endl;
+  //cout << "frame->GetXaxis()->GetTitleSize() = " << frame->GetXaxis()->GetTitleSize() << endl;
 
   if (ymax > 0 && ymin < 0) {
-    cout << "Plotting horizontal line at zero" << endl;
+    //cout << "Plotting horizontal line at zero" << endl;
     TLine l;
     l.SetLineColor(kBlack);
     l.SetLineStyle(kDashed);
@@ -218,20 +218,20 @@ Trend::Trend(const char* name,
 }
 
 void Trend::operator()(TObject* obj, TString drawOpt, TString lgdOpt, bool fullRange) {
-  cout << __func__ << endl;
+  //cout << __func__ << endl;
   c.cd();
 
   TString classname = obj->ClassName();
   if (classname.Contains("TGraph")) {
     auto g = dynamic_cast<TGraph*>(obj);
     int n = g->GetN();
-    cout << g->GetPointX(n - 1) << ' ' << GetLumi.lastRun;
+    //cout << g->GetPointX(n - 1) << ' ' << GetLumi.lastRun;
     if (fullRange) {
-      cout << " -> adding one point" << endl;
+      //cout << " -> adding one point" << endl;
       g->Set(n);
       g->SetPoint(n, GetLumi.lastRun, 0);
     } else
-      cout << " -> hole between end of graph and right edge" << endl;
+      //cout << " -> hole between end of graph and right edge" << endl;
     g = GetLumi(g);
     g->Draw("same" + drawOpt);
   } else if (classname.Contains("TH1")) {
@@ -255,7 +255,7 @@ void Trend::operator()(TObject* obj, TString drawOpt, TString lgdOpt, bool fullR
 }
 
 Trend::~Trend() {
-  cout << __func__ << endl;
+  //cout << __func__ << endl;
 
   c.cd();
   lgd.Draw();
@@ -292,7 +292,7 @@ Trend::~Trend() {
 
       auto lumi = max(GetLumi(currentRun), (float)0.01);
       auto posX = l + (lumi / totLumi) / (l + 1 + r) + 0.02;
-      cout << currentRun << setw(20) << label << setw(20) << lumi << setw(20) << posX << endl;
+      //cout << currentRun << setw(20) << label << setw(20) << lumi << setw(20) << posX << endl;
       label = "#scale[0.8]{" + label + "}";
       latex.DrawLatex(posX, posY, label.c_str());
 
